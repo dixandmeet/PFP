@@ -1,0 +1,378 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Football Premium Design System */
+    --background: 142 76% 97%;
+    --foreground: 142 10% 10%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 142 10% 10%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 142 10% 10%;
+    
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 142 30% 96%;
+    --secondary-foreground: 142 10% 20%;
+    
+    --muted: 142 20% 96%;
+    --muted-foreground: 142 10% 45%;
+    
+    --accent: 45 93% 47%;
+    --accent-foreground: 45 10% 10%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 142 20% 90%;
+    --input: 142 20% 85%;
+    --ring: 142 76% 36%;
+    
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-white text-base-content antialiased;
+    font-feature-settings: 'rlig' 1, 'calt' 1, 'ss01' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  /* Smooth scrolling + prevent horizontal overflow on mobile */
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* Football Premium Glass Effects */
+  .glass-pitch {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(34, 197, 94, 0.15);
+  }
+  
+  .glass-stadium {
+    background: rgba(255, 255, 255, 0.90);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+  
+  /* Text gradients */
+  .text-gradient-pitch {
+    @apply bg-gradient-to-r from-pitch-600 via-pitch-500 to-pitch-600 bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-gold-600 via-gold-400 to-gold-600 bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-victory {
+    @apply bg-gradient-to-r from-victory-600 via-victory-500 to-gold-500 bg-clip-text text-transparent;
+  }
+  
+  /* Focus states */
+  .focus-pitch {
+    @apply focus:outline-none focus:ring-2 focus:ring-pitch-500 focus:ring-offset-2 focus:ring-offset-white;
+  }
+  
+  /* Card Stadium Effect */
+  .card-stadium {
+    @apply bg-white border-2 border-pitch-100 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300;
+    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  
+  .card-stadium:hover {
+    @apply -translate-y-1 border-pitch-200;
+    box-shadow: 0 8px 30px rgba(34, 197, 94, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* Stat Card Premium */
+  .stat-card {
+    @apply relative overflow-hidden bg-gradient-to-br from-white to-pitch-50/30 border-2 border-pitch-100 rounded-2xl p-6 transition-all duration-300;
+  }
+  
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #22c55e, #eab308);
+  }
+  
+  .stat-card:hover {
+    @apply border-pitch-200 scale-105;
+    box-shadow: 0 12px 40px rgba(34, 197, 94, 0.2), 0 6px 16px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Pitch Pattern Background */
+  .pitch-pattern {
+    background-image: 
+      linear-gradient(0deg, rgba(34, 197, 94, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34, 197, 94, 0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  
+  /* Hover lift effect */
+  .hover-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+  
+  .hover-lift:hover {
+    @apply -translate-y-1.5;
+  }
+  
+  /* Smooth transitions */
+  .transition-smooth {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Text shimmer effect */
+  .text-shimmer {
+    background: linear-gradient(
+      90deg,
+      #16a34a 0%,
+      #22c55e 45%,
+      #eab308 55%,
+      #22c55e 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+  
+  /* Stagger animation helpers */
+  .stagger-item {
+    animation: fade-in-up 0.6s ease-out backwards;
+  }
+  
+  .stagger-item:nth-child(1) { animation-delay: 0ms; }
+  .stagger-item:nth-child(2) { animation-delay: 100ms; }
+  .stagger-item:nth-child(3) { animation-delay: 200ms; }
+  .stagger-item:nth-child(4) { animation-delay: 300ms; }
+  .stagger-item:nth-child(5) { animation-delay: 400ms; }
+  .stagger-item:nth-child(6) { animation-delay: 500ms; }
+  
+  /* Badge Premium */
+  .badge-premium {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase;
+  }
+  
+  /* Premium Glass Effect */
+  .glass-premium {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  }
+  
+  .glass-dark {
+    background: rgba(9, 9, 11, 0.85);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Gradient Spotlight Effect */
+  .gradient-spotlight {
+    background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(212, 168, 83, 0.15), transparent);
+  }
+  
+  .gradient-spotlight-green {
+    background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(34, 197, 94, 0.12), transparent);
+  }
+  
+  /* Text Gradient Apple Style */
+  .text-gradient-apple {
+    @apply bg-gradient-to-r from-apple-accent via-apple-accent-secondary to-apple-accent bg-clip-text text-transparent;
+  }
+  
+  /* Premium Gold Gradient Text */
+  .text-gradient-premium {
+    background: linear-gradient(135deg, #d4a853 0%, #f5d799 50%, #d4a853 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Card Premium with Border Gradient */
+  .card-premium {
+    @apply relative bg-white rounded-2xl overflow-hidden;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  }
+  
+  .card-premium::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(212, 168, 83, 0.3), rgba(34, 197, 94, 0.3));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+  
+  /* Bento Grid Item */
+  .bento-item {
+    @apply relative bg-white/80 backdrop-blur-sm rounded-3xl border border-stadium-200/50 p-6 transition-all duration-500;
+  }
+  
+  .bento-item:hover {
+    @apply bg-white border-stadium-300/50 shadow-xl;
+    transform: translateY(-4px);
+  }
+  
+  /* Animated Counter */
+  .counter-value {
+    @apply tabular-nums;
+    font-variant-numeric: tabular-nums;
+  }
+  
+  /* Hero Section Overlay */
+  .hero-overlay {
+    background: linear-gradient(180deg, 
+      rgba(9, 9, 11, 0.9) 0%,
+      rgba(9, 9, 11, 0.7) 50%,
+      rgba(9, 9, 11, 0.95) 100%
+    );
+  }
+  
+  /* Trust Badge */
+  .trust-badge {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full bg-pitch-500/10 text-pitch-600 text-sm font-medium;
+  }
+  
+  /* Marquee Fade Mask */
+  .marquee-mask {
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      white 10%,
+      white 90%,
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      white 10%,
+      white 90%,
+      transparent 100%
+    );
+  }
+  
+  /* League Logo Item */
+  .league-logo {
+    @apply flex items-center justify-center px-8 py-4 rounded-2xl bg-white/50 backdrop-blur-sm border border-stadium-200/50;
+    @apply hover:bg-white hover:border-pitch-200/50 transition-all duration-300;
+  }
+  
+  /* Conic gradient for animated borders */
+  .bg-gradient-conic {
+    background: conic-gradient(from 0deg, var(--tw-gradient-stops));
+  }
+  
+  /* Spin around animation */
+  .animate-spin-around {
+    animation: spin-around 8s linear infinite;
+  }
+  
+  @keyframes spin-around {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+/* Custom scrollbar */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(10, 10, 10, 0.15) transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(10, 10, 10, 0.15);
+    border-radius: 4px;
+    border: 2px solid transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(10, 10, 10, 0.25);
+  }
+}
+
+/* Typography enhancements */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+    letter-spacing: -0.02em;
+  }
+  
+  p {
+    @apply leading-relaxed;
+  }
+  
+  /* Selection color */
+  ::selection {
+    background-color: rgba(34, 197, 94, 0.15);
+    color: inherit;
+  }
+}

@@ -1,0 +1,23 @@
+import { NextRequest, NextResponse } from "next/server"
+import { requireRole } from "@/lib/permissions/rbac"
+import { handleApiError } from "@/lib/utils/api-helpers"
+import { WithdrawalService } from "@/lib/services/credits"
+import { reviewWithdrawalSchema } from "@/lib/validators/credit-schemas"
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const user = await requireRole(["ADMIN"])
+    const { id } = await params
+    const body = await request.json()
+    const { action, note } = reviewWithdrawalSchema.parse(body)
+
+    await WithdrawalService.reviewWithdrawal(id, user.id, action, note)
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    return handleApiError(error)
+  }
+}
