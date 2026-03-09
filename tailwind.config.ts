@@ -1,5 +1,6 @@
 import type { Config } from "tailwindcss"
 import tailwindcssAnimate from "tailwindcss-animate"
+// @ts-ignore — daisyui n'a pas de fichier de types
 import daisyui from "daisyui"
 
 const config: Config & { daisyui?: Record<string, unknown> } = {
