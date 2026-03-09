@@ -113,15 +113,16 @@ export function CreatePostDialog({ open, onOpenChange, onPostCreated }: CreatePo
 
     for (const media of mediaFiles) {
       try {
-        // Upload via proxy serveur (évite les problèmes CORS avec S3)
-        const formData = new FormData()
-        formData.append("file", media.file)
-        formData.append("fileType", "POST_MEDIA")
-        formData.append("isPublic", "true")
-
+        // Upload via proxy serveur — raw body (évite les erreurs FormData de Next.js)
         const uploadResponse = await fetch("/api/files/upload-proxy", {
           method: "POST",
-          body: formData,
+          headers: {
+            "Content-Type": media.file.type,
+            "x-file-name": media.file.name,
+            "x-file-type": "POST_MEDIA",
+            "x-is-public": "true",
+          },
+          body: media.file,
         })
 
         const data = await uploadResponse.json()
