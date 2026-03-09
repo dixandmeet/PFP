@@ -99,15 +99,16 @@ export default function PlayerProfilePage() {
     try {
       const formData = new FormData()
       formData.append("file", file)
-      formData.append("fileType", "PROFILE_PICTURE")
+      formData.append("fileType", "COVER_PHOTO")
 
-      const uploadResponse = await fetch("/api/files/upload-direct", {
+      const uploadResponse = await fetch("/api/files/upload-proxy", {
         method: "POST",
         body: formData,
       })
       if (!uploadResponse.ok) throw new Error("Erreur lors de l'upload")
 
-      const { url } = await uploadResponse.json()
+      const responseData = await uploadResponse.json()
+      const url = responseData.fileAsset?.url || responseData.url
 
       const updateResponse = await fetch(`/api/players/${user?.playerProfile?.id}`, {
         method: "PATCH",
