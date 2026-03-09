@@ -86,18 +86,11 @@ export function ProfileHeader({
     }
   }
 
-  const renderImage = (src: string, alt: string, fill?: boolean, w?: number, h?: number) => {
-    if (src.startsWith("/uploads")) {
-      return fill ? (
-        <img src={src} alt={alt} className="absolute inset-0 w-full h-full object-cover" />
-      ) : (
-        <img src={src} alt={alt} className="w-full h-full object-cover" />
-      )
-    }
+  const renderImage = (src: string, alt: string, fill?: boolean, _w?: number, _h?: number) => {
     return fill ? (
-      <Image src={src} alt={alt} fill className="object-cover" priority />
+      <img src={src} alt={alt} className="absolute inset-0 w-full h-full object-cover" />
     ) : (
-      <Image src={src} alt={alt} width={w} height={h} className="object-cover w-full h-full" />
+      <img src={src} alt={alt} className="w-full h-full object-cover" />
     )
   }
 

@@ -214,10 +214,23 @@ export default function PlayerProfileEditPage() {
     try {
       setSaving(true)
 
+      // Inclure explicitement les URLs des photos (ne pas dépendre uniquement des hidden inputs)
+      const submitData = {
+        ...data,
+        profilePicture: data.profilePicture || profilePicturePreview || "",
+        coverPhoto: data.coverPhoto || coverPhotoPreview || "",
+      }
+
+      // Nettoyer les URLs blob: locales (ne pas envoyer de blob:http://...)
+      if (submitData.profilePicture?.startsWith("blob:")) submitData.profilePicture = ""
+      if (submitData.coverPhoto?.startsWith("blob:")) submitData.coverPhoto = ""
+
+      console.log("[PFP] Submit data photos:", { profilePicture: submitData.profilePicture, coverPhoto: submitData.coverPhoto })
+
       const response = await fetch(`/api/players/${profileId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(submitData),
       })
 
       if (!response.ok) {

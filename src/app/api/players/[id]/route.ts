@@ -101,6 +101,8 @@ export async function PATCH(
       updateData.dateOfBirth = new Date(updateData.dateOfBirth)
     }
 
+    console.log("[PFP] Player PATCH - profilePicture:", updateData.profilePicture, "coverPhoto:", updateData.coverPhoto)
+
     const updatedProfile = await prisma.playerProfile.update({
       where: { id },
       data: updateData,
