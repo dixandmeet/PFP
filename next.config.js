@@ -47,6 +47,11 @@ const nextConfig = {
     ],
   },
   poweredBy: false,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '100mb',
+    },
+  },
   async headers() {
     return [
       {
