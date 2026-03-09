@@ -159,23 +159,23 @@ export default function PlayerProfileEditPage() {
 
       
 
-      const uploadResponse = await fetch("/api/files/upload-direct", {
+      const uploadResponse = await fetch("/api/files/upload-proxy", {
         method: "POST",
         body: formData,
       })
 
       const responseData = await uploadResponse.json()
-      
+
       if (!uploadResponse.ok) {
         console.error("Upload error response:", responseData)
         throw new Error(responseData.error || "Erreur lors de l'upload")
       }
 
-      
+      const fileUrl = responseData.fileAsset?.url || responseData.url
 
       // Mettre à jour le champ et l'aperçu avec l'URL serveur
-      setValue(field, responseData.url)
-      setPreview(responseData.url)
+      setValue(field, fileUrl)
+      setPreview(fileUrl)
       
       // Nettoyer l'URL locale
       URL.revokeObjectURL(localPreview)
