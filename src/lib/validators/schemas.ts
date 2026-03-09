@@ -19,6 +19,13 @@ const urlOrPath = z.string().refine(
   { message: "Doit être une URL ou un chemin relatif" }
 )
 
+// Convertit "", null, NaN → undefined pour que .optional() fonctionne
+const emptyToUndefined = (val: unknown) => {
+  if (val === "" || val === null || val === undefined) return undefined
+  if (typeof val === "number" && isNaN(val)) return undefined
+  return val
+}
+
 // Player Profile
 export const createPlayerProfileSchema = z.object({
   firstName: z.string().min(1, "Prénom requis"),
@@ -27,9 +34,9 @@ export const createPlayerProfileSchema = z.object({
   dateOfBirth: z.string().or(z.date()),
   nationality: z.string().min(2, "Nationalité requise"),
   secondNationality: z.string().optional(),
-  height: z.number().int().positive().optional(),
-  weight: z.number().int().positive().optional(),
-  strongFoot: z.enum(["LEFT", "RIGHT", "BOTH"]).optional(),
+  height: z.preprocess(emptyToUndefined, z.number().int().positive().optional()),
+  weight: z.preprocess(emptyToUndefined, z.number().int().positive().optional()),
+  strongFoot: z.preprocess(emptyToUndefined, z.enum(["LEFT", "RIGHT", "BOTH"]).optional()),
   primaryPosition: z.string().min(2, "Position primaire requise"),
   secondaryPositions: z.array(z.string()).default([]),
   currentClub: z.string().optional(),
