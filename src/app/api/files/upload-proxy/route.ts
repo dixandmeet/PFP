@@ -1,4 +1,4 @@
-// API: File upload proxy (avec fallback stockage local si S3 indisponible)
+// API: File upload proxy — Vercel Blob (prioritaire) › S3 › local dev
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/lib/permissions/rbac"
 import { handleApiError } from "@/lib/utils/api-helpers"
@@ -8,9 +8,11 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
 import { writeFile, mkdir } from "fs/promises"
 import path from "path"
 
-const USE_LOCAL_STORAGE = process.env.USE_LOCAL_STORAGE === "true" || !process.env.S3_ENDPOINT
+const USE_VERCEL_BLOB = !!process.env.BLOB_READ_WRITE_TOKEN
+const USE_S3 = !USE_VERCEL_BLOB && !!process.env.S3_ENDPOINT
+const USE_LOCAL = !USE_VERCEL_BLOB && !USE_S3
 
-const s3Client = !USE_LOCAL_STORAGE ? new S3Client({
+const s3Client = USE_S3 ? new S3Client({
   endpoint: process.env.S3_ENDPOINT,
   region: process.env.S3_REGION || "us-east-1",
   credentials: {
@@ -32,52 +34,42 @@ export async function POST(request: Request) {
     const isPublic = formData.get("isPublic") === "true"
 
     if (!file) {
-      return NextResponse.json(
-        { error: "Aucun fichier fourni" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Aucun fichier fourni" }, { status: 400 })
     }
 
     const isVideo = file.type.startsWith("video/")
     const maxSizeMB = isVideo ? 100 : 10
-    const maxSize = maxSizeMB * 1024 * 1024
-    if (file.size > maxSize) {
+    if (file.size > maxSizeMB * 1024 * 1024) {
       return NextResponse.json(
         { error: `Le fichier dépasse la limite de ${maxSizeMB}MB` },
         { status: 400 }
       )
     }
 
-    // Générer la clé du fichier
     const key = generateFileKey(user.id, file.name)
-
-    // Convertir le fichier en buffer
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
     let fileUrl: string
 
-    if (USE_LOCAL_STORAGE || !s3Client) {
-      // Stockage local (pour le développement)
-      const uploadDir = path.join(process.cwd(), "public", "uploads", user.id)
-      await mkdir(uploadDir, { recursive: true })
-      
-      const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`
-      const filePath = path.join(uploadDir, filename)
-      
-      await writeFile(filePath, buffer)
-      fileUrl = `/uploads/${user.id}/${filename}`
-    } else {
-      // Upload vers S3
-      const command = new PutObjectCommand({
-        Bucket: BUCKET,
-        Key: key,
-        Body: buffer,
-        ContentType: file.type,
+    if (USE_VERCEL_BLOB) {
+      // ✅ Vercel Blob — stockage cloud intégré Vercel
+      const { put } = await import("@vercel/blob")
+      const blob = await put(key, buffer, {
+        access: "public",
+        contentType: file.type,
+        token: process.env.BLOB_READ_WRITE_TOKEN,
       })
-
+      fileUrl = blob.url
+    } else if (USE_S3 && s3Client) {
+      // ✅ S3 / Cloudflare R2
       try {
-        await s3Client.send(command)
+        await s3Client.send(new PutObjectCommand({
+          Bucket: BUCKET,
+          Key: key,
+          Body: buffer,
+          ContentType: file.type,
+        }))
         fileUrl = getPublicUrl(key)
       } catch (s3Error: any) {
         console.error("Erreur S3:", s3Error)
@@ -86,9 +78,15 @@ export async function POST(request: Request) {
           { status: 503 }
         )
       }
+    } else {
+      // 🛠 Local uniquement (développement)
+      const uploadDir = path.join(process.cwd(), "public", "uploads", user.id)
+      await mkdir(uploadDir, { recursive: true })
+      const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`
+      await writeFile(path.join(uploadDir, filename), buffer)
+      fileUrl = `/uploads/${user.id}/${filename}`
     }
 
-    // Créer l'entrée FileAsset
     const fileAsset = await prisma.fileAsset.create({
       data: {
         key,
