@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Play, Pause, Download, ZoomIn, Maximize2, Volume2, VolumeX } from "lucide-react"
+import { X, Play, Pause, Download, ZoomIn, Maximize2, Volume2, VolumeX, Film } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { ReelsViewer } from "./ReelsViewer"
@@ -145,7 +145,21 @@ export function MediaGallery({ mediaUrls, className, postId, postContent, postUs
                   preload="auto"
                   onPlay={() => setPlayingVideos(prev => ({ ...prev, [globalIndex]: true }))}
                   onPause={() => setPlayingVideos(prev => ({ ...prev, [globalIndex]: false }))}
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none"
+                    const fb = e.currentTarget.parentElement?.querySelector("[data-video-fallback]") as HTMLElement
+                    if (fb) fb.style.display = "flex"
+                  }}
                 />
+
+                {/* Fallback si format vidéo non supporté */}
+                <div data-video-fallback className="absolute inset-0 flex-col items-center justify-center bg-slate-900" style={{ display: "none" }}>
+                  <Film className="h-12 w-12 text-white/60 mb-3" />
+                  <p className="text-sm text-white/70 font-medium">Format vidéo non supporté par le navigateur</p>
+                  <a href={item.url} download className="mt-2 px-4 py-1.5 rounded-full bg-white/10 text-white/80 text-xs hover:bg-white/20 transition-colors">
+                    Télécharger la vidéo
+                  </a>
+                </div>
 
                 {/* Overlay controles */}
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
