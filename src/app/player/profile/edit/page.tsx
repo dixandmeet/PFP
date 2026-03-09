@@ -295,7 +295,10 @@ export default function PlayerProfileEditPage() {
         </Button>
       </motion.div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit, (errors) => {
+        console.error("[PFP] Form validation errors:", errors)
+        toast({ title: "Erreur de validation", description: "Vérifiez les champs du formulaire", variant: "destructive" })
+      })} className="space-y-6">
         {/* Champs cachés pour les URLs des photos */}
         <input type="hidden" {...register("profilePicture")} />
         <input type="hidden" {...register("coverPhoto")} />
@@ -656,7 +659,7 @@ export default function PlayerProfileEditPage() {
                 <Label htmlFor="height" className="text-sm font-medium">Taille (cm)</Label>
                 <Input 
                   type="number" 
-                  {...register("height", { valueAsNumber: true })} 
+                  {...register("height", { setValueAs: (v: string) => v === "" ? undefined : Number(v) })}
                   className="h-11 border-stadium-300 focus:border-pitch-500 focus:ring-pitch-500"
                   placeholder="Ex: 175"
                 />
@@ -666,7 +669,7 @@ export default function PlayerProfileEditPage() {
                 <Label htmlFor="weight" className="text-sm font-medium">Poids (kg)</Label>
                 <Input 
                   type="number" 
-                  {...register("weight", { valueAsNumber: true })} 
+                  {...register("weight", { setValueAs: (v: string) => v === "" ? undefined : Number(v) })}
                   className="h-11 border-stadium-300 focus:border-pitch-500 focus:ring-pitch-500"
                   placeholder="Ex: 70"
                 />
