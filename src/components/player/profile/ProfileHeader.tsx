@@ -125,8 +125,8 @@ export function ProfileHeader({
 
       {/* Identity bloc */}
       <div className="relative px-4 sm:px-6 pb-4 sm:pb-6">
-        <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-14">
-          {/* Avatar */}
+        {/* Row 1 : Avatar (overlap sur la couverture) + boutons CTA */}
+        <div className="flex items-end justify-between -mt-14">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -144,38 +144,8 @@ export function ProfileHeader({
             <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-pitch-500 border-2 border-white" />
           </motion.div>
 
-          {/* Name + infos */}
-          <div className="flex-1 min-w-0 pt-2 sm:pt-0">
-            <h1 className="text-2xl sm:text-[34px] md:text-[38px] font-bold text-slate-900 leading-tight tracking-tight">
-              {displayName}
-            </h1>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-              {position && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                  {position}
-                </span>
-              )}
-              {p.currentClub && p.currentClub !== "À renseigner" && (
-                <span className="flex items-center gap-1.5 text-sm text-slate-500">
-                  {clubLogo ? (
-                    <Image src={clubLogo} alt="" width={16} height={16} className="rounded-full" />
-                  ) : (
-                    <Building2 className="h-3.5 w-3.5" />
-                  )}
-                  {p.currentClub}
-                </span>
-              )}
-              {p.nationality && (
-                <span className="flex items-center gap-1 text-sm text-slate-500">
-                  <MapPin className="h-3.5 w-3.5" />
-                  {p.nationality}
-                </span>
-              )}
-            </div>
-          </div>
-
           {/* CTA */}
-          <div className="flex items-center gap-2 flex-shrink-0 sm:pb-1 w-full sm:w-auto">
+          <div className="flex items-center gap-2 flex-shrink-0 pb-1">
             <Button
               onClick={onEditClick}
               size="sm"
@@ -193,6 +163,36 @@ export function ProfileHeader({
               <Eye className="mr-1.5 h-3.5 w-3.5" />
               Page publique
             </Button>
+          </div>
+        </div>
+
+        {/* Row 2 : Nom + infos (toujours dans la zone blanche) */}
+        <div className="mt-3">
+          <h1 className="text-2xl sm:text-[34px] md:text-[38px] font-bold text-slate-900 leading-tight tracking-tight">
+            {displayName}
+          </h1>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+            {position && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                {position}
+              </span>
+            )}
+            {p.currentClub && p.currentClub !== "À renseigner" && (
+              <span className="flex items-center gap-1.5 text-sm text-slate-500">
+                {clubLogo ? (
+                  <Image src={clubLogo} alt="" width={16} height={16} className="rounded-full" />
+                ) : (
+                  <Building2 className="h-3.5 w-3.5" />
+                )}
+                {p.currentClub}
+              </span>
+            )}
+            {p.nationality && (
+              <span className="flex items-center gap-1 text-sm text-slate-500">
+                <MapPin className="h-3.5 w-3.5" />
+                {p.nationality}
+              </span>
+            )}
           </div>
         </div>
 
