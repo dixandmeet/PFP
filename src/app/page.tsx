@@ -11,7 +11,6 @@ const HowItWorks = dynamic(() => import("@/components/sections/HowItWorks").then
 const CorePillars = dynamic(() => import("@/components/sections/CorePillars").then(m => ({ default: m.CorePillars })))
 const AIStudio = dynamic(() => import("@/components/sections/AIStudio").then(m => ({ default: m.AIStudio })))
 const TrustSecurity = dynamic(() => import("@/components/sections/TrustSecurity").then(m => ({ default: m.TrustSecurity })))
-const Testimonials = dynamic(() => import("@/components/sections/Testimonials").then(m => ({ default: m.Testimonials })))
 const FinalCTA = dynamic(() => import("@/components/sections/FinalCTA").then(m => ({ default: m.FinalCTA })))
 const Footer = dynamic(() => import("@/components/footer/Footer").then(m => ({ default: m.Footer })))
 const ScrollToTop = dynamic(() => import("@/components/ui/ScrollToTop").then(m => ({ default: m.ScrollToTop })))
@@ -67,9 +66,6 @@ export default function HomePage() {
           
           {/* Trust & Security - Dark section */}
           <TrustSecurity />
-          
-          {/* Testimonials - Social proof */}
-          <Testimonials />
           
           {/* Final CTA - Premium call to action */}
           <FinalCTA />
