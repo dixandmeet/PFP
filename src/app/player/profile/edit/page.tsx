@@ -283,6 +283,10 @@ export default function PlayerProfileEditPage() {
       </motion.div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Champs cachés pour les URLs des photos */}
+        <input type="hidden" {...register("profilePicture")} />
+        <input type="hidden" {...register("coverPhoto")} />
+
         {/* Photos */}
         <Card className="overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-pitch-50 to-stadium-50 border-b py-3 px-4">
