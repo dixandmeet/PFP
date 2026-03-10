@@ -7,7 +7,7 @@ import {
   Euro,
   Calendar,
   CheckCircle,
-  Sparkles,
+  Send,
   FileSearch,
   Lock,
   Coins,
@@ -234,7 +234,7 @@ export function OpportunityPreview({
                   className="w-full rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium shadow-sm"
                   onClick={() => onApply(listing)}
                 >
-                  <Sparkles className="mr-2 h-4 w-4" />
+                  <Send className="mr-2 h-4 w-4" />
                   Postuler maintenant
                 </Button>
               )}

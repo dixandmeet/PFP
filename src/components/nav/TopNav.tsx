@@ -19,7 +19,7 @@ const navLinks = [
     ]
   },
   { href: "#how-it-works", label: "Comment ça marche" },
-  { href: "#ia", label: "IA Studio", badge: "Nouveau" },
+  { href: "#studio", label: "Studio", badge: "Nouveau" },
   { href: "#securite", label: "Sécurité" },
 ]
 

@@ -14,7 +14,7 @@ const faqs = [
       },
       {
         q: "La plateforme est-elle gratuite ?",
-        a: "L'inscription et la création de profil sont gratuites. Certaines fonctionnalités avancées (messagerie illimitée, rapports détaillés, assistant IA) nécessitent des crédits ou un abonnement Pro/Elite.",
+        a: "L'inscription et la création de profil sont gratuites. Certaines fonctionnalités avancées (messagerie illimitée, rapports détaillés, assistant intelligent) nécessitent des crédits ou un abonnement Pro/Elite.",
       },
       {
         q: "Dans quels pays Profoot Profile est-il disponible ?",

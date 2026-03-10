@@ -6,7 +6,7 @@ import { motion } from "framer-motion"
 import {
   CheckCircle2,
   Circle,
-  Sparkles,
+  TrendingUp,
   Loader2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -54,7 +54,7 @@ export function ProfileCompletionCard({
       >
         <div className="flex items-center gap-3">
           <div className="p-3 bg-pitch-500 rounded-xl">
-            <Sparkles className="h-6 w-6 text-white" />
+            <TrendingUp className="h-6 w-6 text-white" />
           </div>
           <div>
             <h3 className="font-bold text-pitch-800">Profil complet !</h3>

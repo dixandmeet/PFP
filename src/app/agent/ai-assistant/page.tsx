@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2, Bot, Send, User, CheckCircle, AlertCircle } from "lucide-react"
+import { Loader2, MessageCircle, Send, User, CheckCircle, AlertCircle } from "lucide-react"
 
 interface Message {
   role: "user" | "assistant"
@@ -83,9 +83,9 @@ export default function AgentAIAssistantPage() {
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-6 flex items-center gap-3">
-        <Bot className="h-8 w-8 text-blue-600" />
+        <MessageCircle className="h-8 w-8 text-blue-600" />
         <div>
-          <h1 className="text-3xl font-bold">Assistant IA Agent Copilot</h1>
+          <h1 className="text-3xl font-bold">Assistant Agent</h1>
           <p className="text-gray-600 mt-1">Optimisez votre activité d'agent</p>
         </div>
       </div>
@@ -111,14 +111,14 @@ export default function AgentAIAssistantPage() {
           <div className="space-y-4">
             {messages.map((msg, i) => (
               <div key={i} className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                {msg.role === "assistant" && <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center"><Bot className="h-5 w-5 text-blue-600" /></div>}
+                {msg.role === "assistant" && <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center"><MessageCircle className="h-5 w-5 text-blue-600" /></div>}
                 <div className={`max-w-[80%] rounded-lg px-4 py-3 ${msg.role === "user" ? "bg-blue-600 text-white" : "bg-gray-100"}`}>
                   <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                 </div>
                 {msg.role === "user" && <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center"><User className="h-5 w-5" /></div>}
               </div>
             ))}
-            {loading && <div className="flex gap-3"><div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center"><Bot className="h-5 w-5" /></div><div className="bg-gray-100 rounded-lg px-4 py-3"><Loader2 className="h-5 w-5 animate-spin" /></div></div>}
+            {loading && <div className="flex gap-3"><div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center"><MessageCircle className="h-5 w-5" /></div><div className="bg-gray-100 rounded-lg px-4 py-3"><Loader2 className="h-5 w-5 animate-spin" /></div></div>}
           </div>
         </CardContent>
       </Card>

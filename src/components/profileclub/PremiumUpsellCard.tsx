@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Crown, Sparkles, Check, ArrowRight, Settings } from "lucide-react"
+import { Crown, Star, Check, ArrowRight, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface PremiumUpsellCardProps {
@@ -83,7 +83,7 @@ export function PremiumUpsellCard({
                 key={item}
                 className="flex items-center gap-2 text-xs text-stadium-600"
               >
-                <Sparkles className="h-3 w-3 text-gold-400 flex-shrink-0" />
+                <Star className="h-3 w-3 text-gold-400 flex-shrink-0" />
                 {item}
               </li>
             )

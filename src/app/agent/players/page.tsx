@@ -4,13 +4,7 @@ import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -31,11 +25,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/components/ui/use-toast"
-import { 
-  Loader2, 
-  Users, 
+import {
+  Loader2,
+  Users,
   Eye,
   Send,
   FileText,
@@ -47,9 +40,7 @@ import {
   Clock,
   AlertCircle,
   Plus,
-  Award,
-  TrendingUp,
-  Activity
+  RefreshCw,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -110,12 +101,12 @@ interface AllPlayer {
   currentClub?: string
 }
 
-const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
-  PENDING: { label: "En attente", color: "bg-yellow-100 text-yellow-700 border-yellow-200", icon: Clock },
-  ACTIVE: { label: "Actif", color: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle },
-  EXPIRED: { label: "Expiré", color: "bg-gray-100 text-gray-700 border-gray-200", icon: AlertCircle },
-  TERMINATED: { label: "Résilié", color: "bg-red-100 text-red-700 border-red-200", icon: XCircle },
-  REJECTED: { label: "Refusé", color: "bg-red-100 text-red-700 border-red-200", icon: XCircle },
+const statusConfig: Record<string, { label: string; bg: string; text: string; ring: string; dot: string; icon: any }> = {
+  PENDING: { label: "En attente", bg: "bg-amber-50", text: "text-amber-700", ring: "ring-amber-200", dot: "bg-amber-500", icon: Clock },
+  ACTIVE: { label: "Actif", bg: "bg-green-50", text: "text-green-700", ring: "ring-green-200", dot: "bg-green-500", icon: CheckCircle },
+  EXPIRED: { label: "Expiré", bg: "bg-slate-50", text: "text-slate-600", ring: "ring-slate-200", dot: "bg-slate-400", icon: AlertCircle },
+  TERMINATED: { label: "Résilié", bg: "bg-red-50", text: "text-red-700", ring: "ring-red-200", dot: "bg-red-500", icon: XCircle },
+  REJECTED: { label: "Refusé", bg: "bg-red-50", text: "text-red-700", ring: "ring-red-200", dot: "bg-red-500", icon: XCircle },
 }
 
 export default function AgentPlayersPage() {
@@ -126,10 +117,9 @@ export default function AgentPlayersPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [mandateSearchQuery, setMandateSearchQuery] = useState("")
   const [playerSearchQuery, setPlayerSearchQuery] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState("players")
+  const [activeTab, setActiveTab] = useState<"players" | "mandates">("players")
 
   const {
     register,
@@ -142,11 +132,9 @@ export default function AgentPlayersPage() {
     resolver: zodResolver(mandateSchema),
   })
 
-  // Charger les données
   useEffect(() => {
     async function loadData() {
       try {
-        // Charger les mandats actifs et les joueurs
         const [mandatesResponse, allPlayersResponse] = await Promise.all([
           fetch("/api/mandates"),
           fetch("/api/players?limit=100"),
@@ -157,7 +145,6 @@ export default function AgentPlayersPage() {
           const allMandates = mandatesData.mandates || []
           setMandates(allMandates)
 
-          // Charger les détails des joueurs avec mandat actif
           const activeMandates = allMandates.filter((m: Mandate) => m.status === "ACTIVE")
           const playersWithMandates = await Promise.all(
             activeMandates.map(async (mandate: Mandate) => {
@@ -176,7 +163,7 @@ export default function AgentPlayersPage() {
                   }
                 }
                 return null
-              } catch (error) {
+              } catch {
                 return null
               }
             })
@@ -188,7 +175,7 @@ export default function AgentPlayersPage() {
           const playersData = await allPlayersResponse.json()
           setAllPlayers(playersData.players || [])
         }
-      } catch (error) {
+      } catch {
         toast({
           title: "Erreur",
           description: "Impossible de charger les données",
@@ -258,7 +245,7 @@ export default function AgentPlayersPage() {
         title: "Succès",
         description: "Mandat résilié",
       })
-    } catch (error) {
+    } catch {
       toast({
         title: "Erreur",
         description: "Impossible de résilier le mandat",
@@ -306,375 +293,423 @@ export default function AgentPlayersPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <div className="max-w-6xl mx-auto px-6 py-6 space-y-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-slate-200 rounded-lg w-48" />
+          <div className="h-4 bg-slate-100 rounded w-72" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-white ring-1 ring-slate-200 rounded-2xl p-5 space-y-3">
+                <div className="h-3 bg-slate-100 rounded w-20" />
+                <div className="h-7 bg-slate-200 rounded w-12" />
+              </div>
+            ))}
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="bg-white ring-1 ring-slate-200 rounded-2xl p-5 space-y-4">
+                <div className="h-5 bg-slate-200 rounded w-3/4" />
+                <div className="h-3 bg-slate-100 rounded w-1/2" />
+                <div className="h-3 bg-slate-100 rounded w-2/3" />
+                <div className="h-10 bg-slate-100 rounded-xl w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      {/* Header avec gradient */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Mes Agents
-            </h1>
-            <p className="text-gray-600 mt-2 text-lg">
-              Gérez vos joueurs et mandats en un seul endroit
-            </p>
-          </div>
-          <Button 
-            onClick={() => setDialogOpen(true)}
-            size="lg"
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-          >
-            <Plus className="mr-2 h-5 w-5" />
-            Nouveau mandat
-          </Button>
+    <div className="max-w-6xl mx-auto px-6 py-6 space-y-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+        className="flex items-start justify-between"
+      >
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Mes Joueurs</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Gérez vos joueurs et mandats en un seul endroit
+          </p>
         </div>
-      </div>
+        <Button
+          onClick={() => setDialogOpen(true)}
+          className="rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium shadow-sm"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Nouveau mandat
+        </Button>
+      </motion.div>
 
-      {/* Stats en relief */}
-      <div className="grid gap-4 md:grid-cols-4 mb-8">
-        <Card className="border-l-4 border-l-blue-500 hover:shadow-lg transition-shadow">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500 flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Joueurs actifs
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-blue-600">{players.length}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-yellow-500 hover:shadow-lg transition-shadow">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500 flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              En attente
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-yellow-600">
-              {mandatesByStatus.PENDING?.length || 0}
+      {/* Stats */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.05 }}
+        className="grid grid-cols-2 md:grid-cols-4 gap-4"
+      >
+        <div className="bg-white ring-1 ring-slate-200 rounded-2xl shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-8 w-8 rounded-xl bg-green-50 flex items-center justify-center">
+              <Users className="h-4 w-4 text-green-600" />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <p className="text-2xl font-bold text-slate-900">{players.length}</p>
+          <p className="text-xs text-slate-500 mt-0.5">Joueurs actifs</p>
+        </div>
 
-        <Card className="border-l-4 border-l-green-500 hover:shadow-lg transition-shadow">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500 flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              Mandats actifs
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-600">
-              {mandatesByStatus.ACTIVE?.length || 0}
+        <div className="bg-white ring-1 ring-slate-200 rounded-2xl shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-8 w-8 rounded-xl bg-amber-50 flex items-center justify-center">
+              <Clock className="h-4 w-4 text-amber-600" />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <p className="text-2xl font-bold text-slate-900">
+            {mandatesByStatus.PENDING?.length || 0}
+          </p>
+          <p className="text-xs text-slate-500 mt-0.5">En attente</p>
+        </div>
 
-        <Card className="border-l-4 border-l-purple-500 hover:shadow-lg transition-shadow">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500 flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Total mandats
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-purple-600">{mandates.length}</div>
-          </CardContent>
-        </Card>
-      </div>
+        <div className="bg-white ring-1 ring-slate-200 rounded-2xl shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-8 w-8 rounded-xl bg-emerald-50 flex items-center justify-center">
+              <CheckCircle className="h-4 w-4 text-emerald-600" />
+            </div>
+          </div>
+          <p className="text-2xl font-bold text-slate-900">
+            {mandatesByStatus.ACTIVE?.length || 0}
+          </p>
+          <p className="text-xs text-slate-500 mt-0.5">Mandats actifs</p>
+        </div>
 
-      {/* Tabs avec design moderne */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 h-12 bg-gray-100">
-          <TabsTrigger value="players" className="text-base data-[state=active]:bg-white data-[state=active]:shadow">
-            <Users className="mr-2 h-4 w-4" />
+        <div className="bg-white ring-1 ring-slate-200 rounded-2xl shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-8 w-8 rounded-xl bg-slate-100 flex items-center justify-center">
+              <FileText className="h-4 w-4 text-slate-500" />
+            </div>
+          </div>
+          <p className="text-2xl font-bold text-slate-900">{mandates.length}</p>
+          <p className="text-xs text-slate-500 mt-0.5">Total mandats</p>
+        </div>
+      </motion.div>
+
+      {/* Tab switcher */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.1 }}
+      >
+        <div className="bg-white ring-1 ring-slate-200 rounded-2xl shadow-sm p-1.5 inline-flex gap-1">
+          <button
+            onClick={() => setActiveTab("players")}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              activeTab === "players"
+                ? "bg-green-600 text-white shadow-sm"
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            <Users className="inline-block mr-1.5 h-4 w-4 -mt-0.5" />
             Mes Joueurs ({players.length})
-          </TabsTrigger>
-          <TabsTrigger value="mandates" className="text-base data-[state=active]:bg-white data-[state=active]:shadow">
-            <FileText className="mr-2 h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setActiveTab("mandates")}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              activeTab === "mandates"
+                ? "bg-green-600 text-white shadow-sm"
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            <FileText className="inline-block mr-1.5 h-4 w-4 -mt-0.5" />
             Tous les Mandats ({mandates.length})
-          </TabsTrigger>
-        </TabsList>
+          </button>
+        </div>
+      </motion.div>
 
-        {/* Onglet Joueurs */}
-        <TabsContent value="players" className="space-y-6">
-          {/* Recherche */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                  placeholder="Rechercher par nom, position, club..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-12 text-base"
-                />
-              </div>
-            </CardContent>
-          </Card>
+      {/* Search */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.15 }}
+      >
+        <div className="bg-white ring-1 ring-slate-200 rounded-2xl shadow-sm p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Rechercher par nom, position, club..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 border-slate-200 focus:ring-2 focus:ring-green-600/30 rounded-xl"
+            />
+          </div>
+        </div>
+      </motion.div>
 
-          {/* Liste des joueurs */}
-          {filteredPlayers.length === 0 ? (
-            <Card className="border-dashed">
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <div className="rounded-full bg-gray-100 p-6 mb-4">
-                  <Users className="h-12 w-12 text-gray-400" />
+      {/* Tab content */}
+      <AnimatePresence mode="wait">
+        {activeTab === "players" ? (
+          <motion.div
+            key="players"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-6"
+          >
+            {filteredPlayers.length === 0 ? (
+              <div className="bg-white ring-1 ring-slate-200 rounded-2xl shadow-sm p-12 text-center">
+                <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                  <Users className="h-6 w-6 text-slate-400" />
                 </div>
-                <p className="text-xl font-medium text-gray-900 mb-2">
+                <p className="text-sm font-medium text-slate-700 mb-1">
                   {searchQuery ? "Aucun joueur trouvé" : "Aucun joueur sous mandat"}
                 </p>
-                <p className="text-gray-500 mb-6">
-                  {searchQuery 
+                <p className="text-xs text-slate-500 mb-4">
+                  {searchQuery
                     ? "Essayez avec d'autres critères de recherche"
                     : "Créez votre premier mandat pour commencer"}
                 </p>
                 {!searchQuery && (
-                  <Button onClick={() => setDialogOpen(true)} size="lg">
-                    <Plus className="mr-2 h-5 w-5" />
+                  <Button
+                    onClick={() => setDialogOpen(true)}
+                    className="rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium shadow-sm"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
                     Créer un mandat
                   </Button>
                 )}
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredPlayers.map((player) => (
-                <Card key={player.id} className="hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-200">
-                  <CardHeader className="pb-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="text-xl mb-1">
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {filteredPlayers.map((player, idx) => (
+                  <motion.div
+                    key={player.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, delay: idx * 0.04 }}
+                    className="bg-white ring-1 ring-slate-200 rounded-2xl shadow-sm hover:shadow-md hover:ring-green-600/40 transition-all duration-200 p-5"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base font-bold text-slate-900 truncate">
                           {player.firstName} {player.lastName}
-                        </CardTitle>
+                        </h3>
                         {player.displayName && (
-                          <p className="text-sm text-gray-500 italic mb-2">
-                            "{player.displayName}"
+                          <p className="text-xs text-slate-400 italic truncate">
+                            &quot;{player.displayName}&quot;
                           </p>
                         )}
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="outline" className="font-medium">
-                            {player.primaryPosition}
-                          </Badge>
-                          <span className="text-sm text-gray-600">
-                            {calculateAge(player.dateOfBirth)} ans
-                          </span>
-                        </div>
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {/* Nationalité */}
-                      <div className="flex items-center gap-2 text-sm">
-                        <MapPin className="h-4 w-4 text-blue-500" />
-                        <span className="font-medium">{player.nationality}</span>
+
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-green-50 text-green-700 text-xs font-medium ring-1 ring-green-600/20">
+                        {player.primaryPosition}
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        {calculateAge(player.dateOfBirth)} ans
+                      </span>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      <div className="flex items-center gap-2 text-xs text-slate-600">
+                        <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        <span>{player.nationality}</span>
                       </div>
 
-                      {/* Club actuel */}
                       {player.currentClub && (
-                        <div className="text-sm bg-gray-50 p-3 rounded-lg">
-                          <span className="text-gray-600">Club : </span>
-                          <span className="font-semibold">{player.currentClub}</span>
+                        <div className="bg-slate-50 rounded-xl p-3">
+                          <p className="text-xs text-slate-500">Club</p>
+                          <p className="text-sm font-medium text-slate-800">{player.currentClub}</p>
                           {player.currentLeague && (
-                            <span className="text-gray-500 block mt-1">
-                              {player.currentLeague}
-                            </span>
+                            <p className="text-xs text-slate-500 mt-0.5">{player.currentLeague}</p>
                           )}
                         </div>
                       )}
 
-                      {/* Contrat */}
-                      {player.contractEndDate && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Calendar className="h-4 w-4 text-purple-500" />
-                          <span className="text-gray-600">
-                            Contrat jusqu'au{" "}
-                            <span className="font-medium">
-                              {new Date(player.contractEndDate).toLocaleDateString("fr-FR")}
-                            </span>
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Positions secondaires */}
                       {player.secondaryPositions.length > 0 && (
                         <div className="flex flex-wrap gap-1">
-                          {player.secondaryPositions.map((pos, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-xs">
+                          {player.secondaryPositions.map((pos, i) => (
+                            <span
+                              key={i}
+                              className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-xs"
+                            >
                               {pos}
-                            </Badge>
+                            </span>
                           ))}
                         </div>
                       )}
 
-                      {/* Mandat */}
                       {player.mandate && (
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-3">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                            <p className="text-sm font-medium text-green-900">
-                              Mandat actif jusqu'au{" "}
-                              {new Date(player.mandate.endDate).toLocaleDateString("fr-FR")}
-                            </p>
-                          </div>
+                        <div className="bg-green-50 ring-1 ring-green-200 rounded-xl p-3 flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
+                          <p className="text-xs font-medium text-green-800">
+                            Mandat actif jusqu&apos;au{" "}
+                            {new Date(player.mandate.endDate).toLocaleDateString("fr-FR")}
+                          </p>
                         </div>
                       )}
-
-                      {/* Actions */}
-                      <div className="flex gap-2 pt-3">
-                        <Link href={`/agent/players/${player.id}`} className="flex-1">
-                          <Button variant="outline" size="sm" className="w-full">
-                            <Eye className="mr-2 h-4 w-4" />
-                            Voir profil
-                          </Button>
-                        </Link>
-                        <Link href="/agent/search" className="flex-1">
-                          <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700">
-                            <Send className="mr-2 h-4 w-4" />
-                            Soumettre
-                          </Button>
-                        </Link>
-                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
 
-          {/* Actions rapides */}
-          {players.length > 0 && (
-            <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
-                  Actions rapides
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                    <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100">
+                      <Link href={`/agent/players/${player.id}`} className="flex-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full rounded-xl border-slate-200 text-slate-600 hover:border-slate-300 text-xs"
+                        >
+                          <Eye className="mr-1.5 h-3.5 w-3.5" />
+                          Voir profil
+                        </Button>
+                      </Link>
+                      <Link href="/agent/search" className="flex-1">
+                        <Button
+                          size="sm"
+                          className="w-full rounded-xl bg-green-600 hover:bg-green-700 text-white text-xs"
+                        >
+                          <Send className="mr-1.5 h-3.5 w-3.5" />
+                          Soumettre
+                        </Button>
+                      </Link>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {/* Quick actions */}
+            {players.length > 0 && (
+              <div className="bg-white ring-1 ring-slate-200 rounded-2xl shadow-sm p-5">
+                <h3 className="text-sm font-semibold text-slate-700 mb-3">Actions rapides</h3>
                 <div className="grid gap-3 md:grid-cols-3">
                   <Link href="/agent/search">
-                    <Button variant="outline" className="w-full justify-start h-12 bg-white">
-                      <Search className="mr-2 h-5 w-5" />
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start rounded-xl border-slate-200 text-slate-600 hover:border-slate-300 h-10"
+                    >
+                      <Search className="mr-2 h-4 w-4" />
                       Rechercher des opportunités
                     </Button>
                   </Link>
                   <Link href="/agent/submissions">
-                    <Button variant="outline" className="w-full justify-start h-12 bg-white">
-                      <Send className="mr-2 h-5 w-5" />
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start rounded-xl border-slate-200 text-slate-600 hover:border-slate-300 h-10"
+                    >
+                      <Send className="mr-2 h-4 w-4" />
                       Mes soumissions
                     </Button>
                   </Link>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start h-12 bg-white"
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start rounded-xl border-slate-200 text-slate-600 hover:border-slate-300 h-10"
                     onClick={() => setActiveTab("mandates")}
                   >
-                    <FileText className="mr-2 h-5 w-5" />
+                    <FileText className="mr-2 h-4 w-4" />
                     Voir tous les mandats
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        {/* Onglet Mandats */}
-        <TabsContent value="mandates" className="space-y-6">
-          {mandates.length === 0 ? (
-            <Card className="border-dashed">
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <div className="rounded-full bg-gray-100 p-6 mb-4">
-                  <FileText className="h-12 w-12 text-gray-400" />
+              </div>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="mandates"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-6"
+          >
+            {mandates.length === 0 ? (
+              <div className="bg-white ring-1 ring-slate-200 rounded-2xl shadow-sm p-12 text-center">
+                <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                  <FileText className="h-6 w-6 text-slate-400" />
                 </div>
-                <p className="text-xl font-medium text-gray-900 mb-2">Aucun mandat</p>
-                <p className="text-gray-500 mb-6">
+                <p className="text-sm font-medium text-slate-700 mb-1">Aucun mandat</p>
+                <p className="text-xs text-slate-500 mb-4">
                   Créez votre premier mandat avec un joueur
                 </p>
-                <Button onClick={() => setDialogOpen(true)} size="lg">
-                  <Plus className="mr-2 h-5 w-5" />
+                <Button
+                  onClick={() => setDialogOpen(true)}
+                  className="rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium shadow-sm"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
                   Créer un mandat
                 </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-8">
-              {statusOrder.map((status) => {
-                const mandatesInStatus = mandatesByStatus[status]
-                if (!mandatesInStatus || mandatesInStatus.length === 0) return null
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {statusOrder.map((status) => {
+                  const mandatesInStatus = mandatesByStatus[status]
+                  if (!mandatesInStatus || mandatesInStatus.length === 0) return null
 
-                const config = statusConfig[status]
-                const Icon = config.icon
+                  const config = statusConfig[status]
+                  const Icon = config.icon
 
-                return (
-                  <div key={status}>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className={`p-2 rounded-lg ${config.color.split(' ')[0]} bg-opacity-20`}>
-                        <Icon className="h-6 w-6" />
+                  return (
+                    <div key={status}>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className={`h-8 w-8 rounded-xl ${config.bg} flex items-center justify-center`}>
+                          <Icon className={`h-4 w-4 ${config.text}`} />
+                        </div>
+                        <h2 className="text-lg font-bold text-slate-900">{config.label}</h2>
+                        <span className="inline-flex items-center justify-center h-6 min-w-[24px] px-2 rounded-full bg-slate-100 text-xs font-medium text-slate-600">
+                          {mandatesInStatus.length}
+                        </span>
                       </div>
-                      <h2 className="text-2xl font-bold">{config.label}</h2>
-                      <Badge variant="outline" className="text-base px-3 py-1">
-                        {mandatesInStatus.length}
-                      </Badge>
-                    </div>
 
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {mandatesInStatus.map((mandate) => (
-                        <Card 
-                          key={mandate.id} 
-                          className={`hover:shadow-lg transition-all duration-300 border-2 ${config.color.includes('border') ? config.color.split(' ').find(c => c.includes('border')) : ''}`}
-                        >
-                          <CardHeader className="pb-4">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <CardTitle className="text-lg mb-2">
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {mandatesInStatus.map((mandate, idx) => (
+                          <motion.div
+                            key={mandate.id}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2, delay: idx * 0.04 }}
+                            className={`bg-white ring-1 ${config.ring} rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 p-5`}
+                          >
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-base font-bold text-slate-900 truncate">
                                   {mandate.playerProfile.firstName}{" "}
                                   {mandate.playerProfile.lastName}
-                                </CardTitle>
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="outline">
+                                </h3>
+                                <div className="flex items-center gap-2 mt-1.5">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-green-50 text-green-700 text-xs font-medium ring-1 ring-green-600/20">
                                     {mandate.playerProfile.primaryPosition}
-                                  </Badge>
-                                  <Badge className={config.color}>
+                                  </span>
+                                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md ${config.bg} ${config.text} text-xs font-medium ring-1 ${config.ring}`}>
+                                    <span className={`h-1.5 w-1.5 rounded-full ${config.dot}`} />
                                     {config.label}
-                                  </Badge>
+                                  </span>
                                 </div>
                               </div>
                             </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-3">
+
+                            <div className="space-y-2.5">
                               {mandate.playerProfile.currentClub && (
-                                <div className="text-sm text-gray-600">
-                                  <span className="font-medium">
-                                    {mandate.playerProfile.currentClub}
-                                  </span>
-                                </div>
+                                <p className="text-xs text-slate-600 font-medium">
+                                  {mandate.playerProfile.currentClub}
+                                </p>
                               )}
 
-                              <div className="flex items-center gap-2 text-sm bg-gray-50 p-3 rounded-lg">
-                                <Calendar className="h-4 w-4 text-gray-400" />
-                                <div>
-                                  <div className="font-medium">
+                              <div className="bg-slate-50 rounded-xl p-3 flex items-start gap-2.5">
+                                <Calendar className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
+                                <div className="text-xs">
+                                  <p className="font-medium text-slate-700">
                                     Du {new Date(mandate.startDate).toLocaleDateString("fr-FR")}
-                                  </div>
-                                  <div className="text-gray-600">
+                                  </p>
+                                  <p className="text-slate-500">
                                     au {new Date(mandate.endDate).toLocaleDateString("fr-FR")}
-                                  </div>
+                                  </p>
                                 </div>
                               </div>
 
                               {mandate.terms && (
-                                <div className="bg-gray-50 p-3 rounded-lg">
-                                  <p className="text-sm text-gray-700 line-clamp-3">
+                                <div className="bg-slate-50 rounded-xl p-3">
+                                  <p className="text-xs text-slate-600 line-clamp-3">
                                     {mandate.terms}
                                   </p>
                                 </div>
@@ -683,84 +718,82 @@ export default function AgentPlayersPage() {
                               {mandate.status === "ACTIVE" && (
                                 <Button
                                   size="sm"
-                                  variant="destructive"
-                                  className="w-full mt-2"
+                                  variant="outline"
+                                  className="w-full mt-2 rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 text-xs"
                                   onClick={() => handleTerminate(mandate.id)}
                                 >
-                                  <XCircle className="mr-2 h-4 w-4" />
+                                  <XCircle className="mr-1.5 h-3.5 w-3.5" />
                                   Résilier le mandat
                                 </Button>
                               )}
                             </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                          </motion.div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+                  )
+                })}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Dialog création mandat */}
+      {/* Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-lg ring-1 ring-slate-200 rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl">Nouveau mandat</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg font-bold text-slate-900">
+              Nouveau mandat
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-500">
               Créer un mandat avec un de vos joueurs
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 mt-2">
             <div>
-              <Label htmlFor="playerProfileId" className="text-base">Joueur *</Label>
-              <div className="space-y-3 mt-2">
+              <Label className="text-sm font-medium text-slate-700 mb-2 block">
+                Joueur *
+              </Label>
+              <div className="space-y-3">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <Input
                     placeholder="Rechercher un joueur..."
                     value={playerSearchQuery}
                     onChange={(e) => setPlayerSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 border-slate-200 focus:ring-2 focus:ring-green-600/30 rounded-xl"
                   />
                 </div>
                 <Select
                   onValueChange={(value) => setValue("playerProfileId", value)}
                   defaultValue={watch("playerProfileId")}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-slate-200 focus:ring-2 focus:ring-green-600/30 rounded-xl">
                     <SelectValue placeholder="Sélectionner un joueur" />
                   </SelectTrigger>
                   <SelectContent>
                     {filteredAllPlayers.map((player) => (
                       <SelectItem key={player.id} value={player.id}>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">
-                            {player.firstName} {player.lastName}
-                          </span>
-                          <span className="text-gray-500">•</span>
-                          <span className="text-sm text-gray-500">
-                            {player.primaryPosition}
-                          </span>
-                          {player.currentClub && (
-                            <>
-                              <span className="text-gray-500">•</span>
-                              <span className="text-sm text-gray-500">
-                                {player.currentClub}
-                              </span>
-                            </>
-                          )}
-                        </div>
+                        <span className="font-medium">
+                          {player.firstName} {player.lastName}
+                        </span>
+                        <span className="text-slate-400 mx-1">·</span>
+                        <span className="text-slate-500">{player.primaryPosition}</span>
+                        {player.currentClub && (
+                          <>
+                            <span className="text-slate-400 mx-1">·</span>
+                            <span className="text-slate-500">{player.currentClub}</span>
+                          </>
+                        )}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               {errors.playerProfileId && (
-                <p className="text-sm text-red-600 mt-2">
+                <p className="text-xs text-red-600 mt-2">
                   {errors.playerProfileId.message}
                 </p>
               )}
@@ -768,30 +801,34 @@ export default function AgentPlayersPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="startDate" className="text-base">Date de début *</Label>
+                <Label htmlFor="startDate" className="text-sm font-medium text-slate-700">
+                  Date de début *
+                </Label>
                 <Input
                   id="startDate"
                   type="date"
                   {...register("startDate")}
-                  className="mt-2"
+                  className="mt-2 border-slate-200 focus:ring-2 focus:ring-green-600/30 rounded-xl"
                 />
                 {errors.startDate && (
-                  <p className="text-sm text-red-600 mt-2">
+                  <p className="text-xs text-red-600 mt-2">
                     {errors.startDate.message}
                   </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="endDate" className="text-base">Date de fin *</Label>
+                <Label htmlFor="endDate" className="text-sm font-medium text-slate-700">
+                  Date de fin *
+                </Label>
                 <Input
                   id="endDate"
                   type="date"
                   {...register("endDate")}
-                  className="mt-2"
+                  className="mt-2 border-slate-200 focus:ring-2 focus:ring-green-600/30 rounded-xl"
                 />
                 {errors.endDate && (
-                  <p className="text-sm text-red-600 mt-2">
+                  <p className="text-xs text-red-600 mt-2">
                     {errors.endDate.message}
                   </p>
                 )}
@@ -799,31 +836,34 @@ export default function AgentPlayersPage() {
             </div>
 
             <div>
-              <Label htmlFor="terms" className="text-base">Conditions du mandat</Label>
+              <Label htmlFor="terms" className="text-sm font-medium text-slate-700">
+                Conditions du mandat
+              </Label>
+              <p className="text-xs text-slate-500 mb-2">
+                Commission, exclusivité, zone géographique, clauses spécifiques...
+              </p>
               <Textarea
                 id="terms"
                 {...register("terms")}
-                placeholder="Commission, exclusivité, zone géographique, clauses spécifiques..."
-                rows={5}
-                className="mt-2"
+                placeholder="Décrivez les termes et conditions du mandat..."
+                rows={4}
+                className="border-slate-200 focus:ring-2 focus:ring-green-600/30 rounded-xl resize-none"
               />
-              <p className="text-sm text-gray-500 mt-2">
-                Décrivez les termes et conditions du mandat (optionnel)
-              </p>
             </div>
 
-            <DialogFooter className="gap-2">
+            <div className="flex gap-3 justify-end pt-3 border-t border-slate-100">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setDialogOpen(false)}
+                className="rounded-xl border-slate-200 text-slate-600"
               >
                 Annuler
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={saving}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium shadow-sm"
               >
                 {saving ? (
                   <>
@@ -837,7 +877,7 @@ export default function AgentPlayersPage() {
                   </>
                 )}
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>

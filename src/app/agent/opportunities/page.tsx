@@ -27,7 +27,7 @@ import {
   Target,
   AlertCircle,
   RefreshCw,
-  Sparkles,
+  Send,
   Users,
 } from "lucide-react"
 
@@ -534,7 +534,7 @@ function AgentOpportunitiesContent() {
                   </>
                 ) : (
                   <>
-                    <Sparkles className="mr-2 h-4 w-4" />
+                    <Send className="mr-2 h-4 w-4" />
                     Soumettre le joueur
                   </>
                 )}

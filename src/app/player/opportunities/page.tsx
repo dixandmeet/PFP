@@ -42,7 +42,6 @@ import {
   CheckCircle,
   Target,
   Calendar,
-  Sparkles,
   Eye,
   Briefcase,
   AlertCircle,
@@ -845,7 +844,7 @@ function PlayerOpportunitiesContent() {
                   </>
                 ) : (
                   <>
-                    <Sparkles className="mr-2 h-4 w-4" />
+                    <Send className="mr-2 h-4 w-4" />
                     Envoyer
                   </>
                 )}

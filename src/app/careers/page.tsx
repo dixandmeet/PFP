@@ -30,8 +30,8 @@ const openings = [
     icon: Users,
   },
   {
-    title: "Data Scientist - IA Sport",
-    department: "Data & IA",
+    title: "Data Scientist - Sport Analytics",
+    department: "Data & Analytics",
     location: "Paris / Remote",
     type: "CDI",
     icon: Code,

@@ -13,7 +13,7 @@ import {
   UserPlus,
   ClipboardList,
   Send,
-  Bot,
+  MessageSquare,
   UserRound,
   MessageSquareText,
   Zap,
@@ -320,9 +320,9 @@ export default function AdminDashboard() {
               icon={Send}
             />
             <StatsCard
-              title="Actions AI"
+              title="Actions automatisées"
               value={stats?.audit.last7Days || 0}
-              icon={Bot}
+              icon={MessageSquare}
               description="7 derniers jours"
               className="ring-1 ring-violet-100 bg-violet-50/30"
             />

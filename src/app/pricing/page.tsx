@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { Check, ArrowRight, Sparkles, Zap, Crown } from "lucide-react"
+import { Check, ArrowRight, Star, Zap, Crown } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Tarifs | Profoot Profile",
@@ -31,13 +31,13 @@ const plans = [
     description: "Pour les professionnels actifs",
     price: "29€",
     period: "/mois",
-    icon: Sparkles,
+    icon: Star,
     color: "bg-primary/10 text-primary",
     features: [
       "Tout Starter inclus",
       "50 crédits/mois",
       "Messagerie illimitée",
-      "Assistant IA basique",
+      "Assistant intelligent",
       "Rapports de performance",
       "Visibilité améliorée",
       "Alertes mercato",
@@ -56,7 +56,7 @@ const plans = [
     features: [
       "Tout Pro inclus",
       "200 crédits/mois",
-      "Assistant IA avancé",
+      "Assistant avancé",
       "Rapports détaillés illimités",
       "Accès prioritaire aux annonces",
       "Badge vérifié premium",

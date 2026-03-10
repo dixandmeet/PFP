@@ -1,14 +1,14 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Users, Shield, Building2, Sparkles } from "lucide-react"
+import { Users, Shield, Building2, TrendingUp } from "lucide-react"
 import { containerVariants, itemVariants, glowVariants, HERO_COPY } from "./hero/constants"
 import { HeroBadge } from "./hero/HeroBadge"
 import { HeroActions } from "./hero/HeroActions"
 import { HeroMetrics } from "./hero/HeroMetrics"
 import { HeroVisualStack } from "./hero/HeroVisualStack"
 
-const iconMap = { Users, Shield, Building2, Sparkles } as const
+const iconMap = { Users, Shield, Building2, TrendingUp } as const
 
 export function Hero() {
   return (

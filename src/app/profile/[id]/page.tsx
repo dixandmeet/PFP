@@ -34,7 +34,7 @@ import {
   MoreHorizontal,
   Check,
   ExternalLink,
-  Sparkles,
+  TrendingUp,
   Lock,
   Coins,
   Eye,
@@ -476,7 +476,7 @@ export default function PublicProfilePage() {
           <div className="relative">
             <div className="h-16 w-16 rounded-full border-4 border-pitch-200 border-t-pitch-600 animate-spin mx-auto" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <Sparkles className="h-6 w-6 text-pitch-600" />
+              <Loader2 className="h-6 w-6 text-pitch-600 animate-spin" />
             </div>
           </div>
           <p className="mt-4 text-stadium-600 font-medium">Chargement du profil...</p>
@@ -1039,7 +1039,7 @@ export default function PublicProfilePage() {
                   <span>Possibilité d&apos;envoyer des messages</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-stadium-700">
-                  <Sparkles className="h-4 w-4 text-pitch-500" />
+                  <TrendingUp className="h-4 w-4 text-pitch-500" />
                   <span>Mises à jour et nouvelles publications</span>
                 </div>
               </div>

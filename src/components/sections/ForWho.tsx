@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { User, Briefcase, Building2, CheckCircle2, ArrowRight, Sparkles } from "lucide-react"
+import { User, Briefcase, Building2, CheckCircle2, ArrowRight, Star } from "lucide-react"
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -35,7 +35,7 @@ export function ForWho() {
         "Profil football complet (parcours, stats, vidéos)",
         "Contrôle total de la visibilité",
         "Postule directement aux opportunités",
-        "Améliore ton profil avec l'assistant IA",
+        "Améliore ton profil avec l'assistant",
       ],
       cta: "Je suis joueur",
       href: "/register?role=player",
@@ -54,11 +54,11 @@ export function ForWho() {
         "Mandats clairs et traçables",
         "Soumissions structurées aux clubs",
         "Shortlists intelligentes",
-        "Gain de temps avec l'IA (sans perdre le contrôle)",
+        "Gain de temps (sans perdre le contrôle)",
       ],
       cta: "Je suis agent",
       href: "/register?role=agent",
-      badge: "IA intégrée",
+      badge: null,
       featured: true,
     },
     {
@@ -133,7 +133,7 @@ export function ForWho() {
                   {persona.badge && (
                     <div className="absolute top-5 right-5">
                       <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary">
-                        <Sparkles className="w-3 h-3" />
+                        <Star className="w-3 h-3" />
                         {persona.badge}
                       </span>
                     </div>

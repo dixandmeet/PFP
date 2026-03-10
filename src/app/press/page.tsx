@@ -15,8 +15,8 @@ const pressReleases = [
   },
   {
     date: "Janvier 2026",
-    title: "Lancement de l'assistant IA pour les agents sportifs",
-    excerpt: "Profoot Profile dévoile son assistant IA dédié aux agents, capable d'analyser les profils de joueurs et de suggérer des opportunités de transfert.",
+    title: "Lancement de l'assistant intelligent pour les agents sportifs",
+    excerpt: "Profoot Profile dévoile son assistant dédié aux agents, capable d'analyser les profils de joueurs et de suggérer des opportunités de transfert.",
   },
   {
     date: "Décembre 2025",

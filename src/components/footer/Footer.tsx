@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Send, Linkedin, Twitter, Instagram, Shield, MapPin, Mail, ArrowRight, ArrowUpRight, Heart, Sparkles } from "lucide-react"
+import { Send, Linkedin, Twitter, Instagram, Shield, MapPin, Mail, ArrowRight, ArrowUpRight, Heart } from "lucide-react"
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -180,8 +180,8 @@ export function Footer() {
                 <span>RGPD</span>
               </div>
               <div className="flex items-center gap-1.5 text-[11px] text-white/20">
-                <Sparkles className="w-3 h-3 text-amber-400/40" />
-                <span>IA Responsable</span>
+                <Shield className="w-3 h-3 text-amber-400/40" />
+                <span>Plateforme sécurisée</span>
               </div>
               <div className="flex items-center gap-1.5 text-[11px] text-white/20">
                 <MapPin className="w-3 h-3 text-primary/40" />

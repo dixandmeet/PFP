@@ -27,7 +27,7 @@ const securityFeatures = [
   {
     icon: ClipboardList,
     title: "Audit des actions",
-    description: "Historique complet et traçabilité de toutes les actions utilisateurs et IA.",
+    description: "Historique complet et traçabilité de toutes les actions utilisateurs.",
   },
 ]
 

@@ -21,7 +21,6 @@ import {
   Mail,
   ExternalLink,
   Verified,
-  Sparkles
 } from "lucide-react"
 
 interface AgentProfile {
@@ -287,7 +286,7 @@ export function AgentProfileCard({
               transition={{ delay: 0.5 }}
             >
               <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="h-5 w-5 text-amber-500" />
+                <Award className="h-5 w-5 text-amber-500" />
                 <h3 className="text-lg font-semibold text-gray-900">Spécialités</h3>
               </div>
               <div className="flex flex-wrap gap-3">

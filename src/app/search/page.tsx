@@ -14,7 +14,6 @@ import {
   Loader2, 
   ArrowLeft,
   X,
-  Sparkles,
   TrendingUp,
   ChevronRight,
   Globe,
@@ -920,7 +919,7 @@ function SearchContent() {
             className="text-center mb-8"
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-white/80 text-xs font-medium mb-4">
-              <Sparkles className="h-3 w-3" />
+              <Search className="h-3 w-3" />
               Recherche Avancée
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">

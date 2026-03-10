@@ -23,8 +23,8 @@ const articles = [
     readTime: "8 min",
   },
   {
-    title: "L'IA au service du recrutement sportif",
-    excerpt: "Comment l'intelligence artificielle transforme le scouting et le recrutement dans le football professionnel.",
+    title: "Le digital au service du recrutement sportif",
+    excerpt: "Comment la technologie transforme le scouting et le recrutement dans le football professionnel.",
     date: "28 janvier 2026",
     category: "Innovation",
     readTime: "6 min",
@@ -45,7 +45,7 @@ const articles = [
   },
   {
     title: "Nouveauté : les rapports de performance automatisés",
-    excerpt: "Profoot Profile lance une nouvelle fonctionnalité permettant de générer des rapports de performance détaillés grâce à l'IA.",
+    excerpt: "Profoot Profile lance une nouvelle fonctionnalité permettant de générer des rapports de performance détaillés automatiquement.",
     date: "8 janvier 2026",
     category: "Produit",
     readTime: "4 min",

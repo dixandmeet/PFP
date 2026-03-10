@@ -36,7 +36,6 @@ import {
   Trophy,
   Target,
   Clock,
-  Sparkles,
   MapPin,
   Calendar,
   AlertCircle,
@@ -590,7 +589,7 @@ export function CareerTimeline({ playerProfileId, className }: CareerTimelinePro
                           <MiniStat
                             label="Passes D."
                             value={entry.assists}
-                            icon={Sparkles}
+                            icon={Target}
                           />
                         </div>
                       )}

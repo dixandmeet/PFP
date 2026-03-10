@@ -5,7 +5,7 @@ import Link from "next/link"
 import {
   UserCircle,
   Briefcase,
-  Sparkles,
+  Award,
   ArrowRight,
   Loader2,
   AlertCircle,
@@ -96,7 +96,7 @@ export default function StaffDashboardPage() {
       title: "Compétences",
       description: "Tags et spécialités",
       href: "/club/staff/profile?section=skills",
-      icon: Sparkles,
+      icon: Award,
       color: "bg-purple-50 text-purple-600",
     },
   ]

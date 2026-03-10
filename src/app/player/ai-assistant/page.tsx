@@ -21,7 +21,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2, Bot, Send, User, CheckCircle, AlertCircle } from "lucide-react"
+import { Loader2, MessageCircle, Send, User, CheckCircle, AlertCircle } from "lucide-react"
 
 interface Message {
   role: "user" | "assistant"
@@ -160,9 +160,9 @@ export default function PlayerAIAssistantPage() {
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-6">
         <div className="flex items-center gap-3">
-          <Bot className="h-8 w-8 text-blue-600" />
+          <MessageCircle className="h-8 w-8 text-blue-600" />
           <div>
-            <h1 className="text-3xl font-bold">Assistant IA Player Agent</h1>
+            <h1 className="text-3xl font-bold">Assistant Joueur</h1>
             <p className="text-gray-600 mt-1">
               Votre copilote pour améliorer votre carrière
             </p>
@@ -250,7 +250,7 @@ export default function PlayerAIAssistantPage() {
                 {message.role === "assistant" && (
                   <div className="flex-shrink-0">
                     <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                      <Bot className="h-5 w-5 text-blue-600" />
+                      <MessageCircle className="h-5 w-5 text-blue-600" />
                     </div>
                   </div>
                 )}
@@ -292,7 +292,7 @@ export default function PlayerAIAssistantPage() {
             {loading && (
               <div className="flex gap-3">
                 <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Bot className="h-5 w-5 text-blue-600" />
+                  <MessageCircle className="h-5 w-5 text-blue-600" />
                 </div>
                 <div className="bg-gray-100 rounded-lg px-4 py-3">
                   <Loader2 className="h-5 w-5 animate-spin" />

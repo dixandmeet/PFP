@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { UserPlus, Users, Rocket, Brain } from "lucide-react"
+import { UserPlus, Users, Rocket, Zap } from "lucide-react"
 
 const steps = [
   {
@@ -33,9 +33,9 @@ const steps = [
   },
   {
     number: "04",
-    icon: Brain,
-    title: "Accélère avec l'IA",
-    description: "L'IA analyse et propose. Tu valides toujours.",
+    icon: Zap,
+    title: "Accélère ta carrière",
+    description: "La plateforme analyse et propose. Tu valides toujours.",
     accentColor: "text-purple-600",
     accentBg: "bg-purple-50",
     dotColor: "bg-purple-600",

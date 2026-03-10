@@ -21,7 +21,7 @@ const values = [
   {
     icon: Lightbulb,
     title: "Innovation",
-    description: "L'IA au service du football : assistants intelligents, rapports automatisés, matching avancé.",
+    description: "La technologie au service du football : assistants intelligents, rapports automatisés, matching avancé.",
   },
   {
     icon: Heart,

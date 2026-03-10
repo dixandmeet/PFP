@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Brain, TrendingUp, Building2, ShieldCheck, User, Send, CheckCircle2, Zap } from "lucide-react"
+import { MessageSquare, TrendingUp, Building2, ShieldCheck, User, Send, CheckCircle2, Zap } from "lucide-react"
 
 export function AIStudio() {
   const [activeTab, setActiveTab] = useState(0)
@@ -14,7 +14,7 @@ export function AIStudio() {
     {
       id: "player",
       icon: User,
-      title: "IA Joueur",
+      title: "Assistant Joueur",
       subtitle: "Coach carrière personnel",
       accentColor: "text-blue-600",
       accentBg: "bg-blue-50",
@@ -33,7 +33,7 @@ export function AIStudio() {
     {
       id: "agent",
       icon: TrendingUp,
-      title: "IA Agent",
+      title: "Assistant Agent",
       subtitle: "Copilot business",
       accentColor: "text-primary",
       accentBg: "bg-emerald-50",
@@ -52,7 +52,7 @@ export function AIStudio() {
     {
       id: "club",
       icon: Building2,
-      title: "IA Club",
+      title: "Assistant Club",
       subtitle: "Assistant recrutement",
       accentColor: "text-purple-600",
       accentBg: "bg-purple-50",
@@ -92,7 +92,7 @@ export function AIStudio() {
   const activeAssistant = assistants[activeTab]
 
   return (
-    <section id="ia" className="relative py-24 sm:py-28 md:py-36 overflow-hidden bg-white">
+    <section id="studio" className="relative py-24 sm:py-28 md:py-36 overflow-hidden bg-white">
       {/* Top border */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-base-content/[0.06] to-transparent" />
       
@@ -105,11 +105,11 @@ export function AIStudio() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            <p className="text-[13px] font-medium text-base-content/40 uppercase tracking-wide mb-4">AI Studio</p>
+            <p className="text-[13px] font-medium text-base-content/40 uppercase tracking-wide mb-4">Studio</p>
             <h2 className="text-3xl sm:text-4xl md:text-[2.75rem] lg:text-5xl font-bold text-base-content leading-[1.1] tracking-[-0.02em] mb-5">
-              L&apos;IA au service du{" "}
+              Le recrutement{" "}
               <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">
-                recrutement
+                intelligent
               </span>
             </h2>
             <p className="text-[15px] sm:text-[16px] text-base-content/45 leading-relaxed max-w-lg mx-auto">
@@ -198,7 +198,7 @@ export function AIStudio() {
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-6">
                       <div className="flex items-center gap-2.5">
                         <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[11px] font-bold text-primary">1</div>
-                        <span className="text-[13px] text-white/60">L&apos;IA propose</span>
+                        <span className="text-[13px] text-white/60">On propose</span>
                       </div>
                       <div className="flex items-center gap-2.5">
                         <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[11px] font-bold text-amber-400">2</div>
@@ -231,7 +231,7 @@ export function AIStudio() {
                       <div className="flex items-center gap-3">
                         <div className="relative">
                           <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center">
-                            <Brain className="w-4 h-4 text-white" />
+                            <MessageSquare className="w-4 h-4 text-white" />
                           </div>
                           <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 border-2 border-base-content rounded-full" />
                         </div>
@@ -281,7 +281,7 @@ export function AIStudio() {
                         )}
                       </AnimatePresence>
 
-                      {/* AI response */}
+                      {/* Assistant response */}
                       <AnimatePresence>
                         {showResponse && (
                           <motion.div 

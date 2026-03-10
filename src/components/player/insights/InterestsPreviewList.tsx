@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { InterestRow } from "./InterestRow"
-import { Sparkles, ChevronRight } from "lucide-react"
+import { Inbox, ChevronRight } from "lucide-react"
 import type { InterestItem } from "@/types/interests"
 
 interface InterestsPreviewListProps {
@@ -43,7 +43,7 @@ export function InterestsPreviewList({
       <div className={cn("rounded-2xl border border-stadium-200 bg-white p-8", className)}>
         <div className="flex flex-col items-center text-center gap-3">
           <div className="flex items-center justify-center w-14 h-14 rounded-full bg-stadium-50">
-            <Sparkles className="h-7 w-7 text-stadium-300" />
+            <Inbox className="h-7 w-7 text-stadium-300" />
           </div>
           <p className="text-sm font-semibold text-stadium-600">
             Aucun intérêt reçu

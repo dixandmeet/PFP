@@ -2,12 +2,12 @@
 
 import { motion } from "framer-motion"
 import { Reveal, StaggerContainer, StaggerItem } from "@/components/motion/Reveal"
-import { Sparkles, Target, TrendingUp, FileCheck, ArrowRight, MapPin, Calendar, Euro } from "lucide-react"
+import { Megaphone, Target, TrendingUp, FileCheck, ArrowRight, MapPin, Calendar, Euro } from "lucide-react"
 
 export function OpportunitiesSection() {
   const opportunities = [
     {
-      icon: Sparkles,
+      icon: Megaphone,
       title: "Annonces Mercato",
       description: "Les clubs publient leurs besoins. Les joueurs et agents postulent directement avec leur profil vérifié.",
       gradient: "from-gold-500 to-gold-600",
@@ -15,7 +15,7 @@ export function OpportunitiesSection() {
     {
       icon: Target,
       title: "Matching intelligent",
-      description: "L'IA analyse les profils et suggère les meilleures opportunités pour chaque acteur du réseau.",
+      description: "L'algorithme analyse les profils et suggère les meilleures opportunités pour chaque acteur du réseau.",
       gradient: "from-pitch-500 to-pitch-600",
     },
     {

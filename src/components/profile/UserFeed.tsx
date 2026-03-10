@@ -10,7 +10,7 @@ import {
   Loader2, 
   MessageSquare,
   Plus,
-  Sparkles,
+  TrendingUp,
   PenLine
 } from "lucide-react"
 
@@ -186,7 +186,7 @@ export function UserFeed({ userId, currentUserId }: UserFeedProps) {
       >
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-emerald-100">
-            <Sparkles className="h-5 w-5 text-emerald-600" />
+            <TrendingUp className="h-5 w-5 text-emerald-600" />
           </div>
           <div>
             <h2 className="text-xl font-bold text-gray-900">Publications</h2>

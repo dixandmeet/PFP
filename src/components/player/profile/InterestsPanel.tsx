@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { BadgePill } from "@/components/player/insights/BadgePill"
-import { Building2, UserCircle, Eye, MessageCircle, ChevronRight, Sparkles } from "lucide-react"
+import { Building2, UserCircle, Eye, MessageCircle, ChevronRight, Inbox } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { fr } from "date-fns/locale"
 import type { InterestItem } from "@/types/interests"
@@ -42,7 +42,7 @@ export function InterestsPanel({ interests, onMarkAsRead, className }: Interests
       <div className={cn("rounded-xl border border-slate-200 bg-white p-10", className)}>
         <div className="flex flex-col items-center text-center gap-3">
           <div className="flex items-center justify-center w-14 h-14 rounded-full bg-slate-50">
-            <Sparkles className="h-7 w-7 text-slate-300" />
+            <Inbox className="h-7 w-7 text-slate-300" />
           </div>
           <p className="text-sm font-semibold text-slate-600">Aucun intérêt reçu</p>
           <p className="text-xs text-slate-400 max-w-xs">

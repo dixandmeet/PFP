@@ -3,7 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation"
 import { useMemo, useCallback } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { UserCircle, Briefcase, Sparkles } from "lucide-react"
+import { UserCircle, Briefcase, Award } from "lucide-react"
 import { StaffProfileSectionInfo } from "./StaffProfileSectionInfo"
 import { StaffProfileSectionExperience } from "./StaffProfileSectionExperience"
 import { StaffProfileSectionSkills } from "./StaffProfileSectionSkills"
@@ -64,7 +64,7 @@ export default function StaffProfilePage() {
             value="skills"
             className="rounded-lg gap-2 data-[state=active]:bg-white data-[state=active]:text-pitch-600 data-[state=active]:shadow-sm"
           >
-            <Sparkles className="h-4 w-4" />
+            <Award className="h-4 w-4" />
             Compétences
           </TabsTrigger>
         </TabsList>

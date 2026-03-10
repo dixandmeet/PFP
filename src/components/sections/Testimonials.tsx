@@ -22,7 +22,7 @@ const testimonials = [
     rating: 5,
   },
   {
-    quote: "Les candidatures sont enfin comparables et exploitables. L'assistant IA nous fait gagner un temps précieux en période de mercato.",
+    quote: "Les candidatures sont enfin comparables et exploitables. L'assistant nous fait gagner un temps précieux en période de mercato.",
     author: "Sophie Martin",
     role: "Responsable recrutement",
     company: "Club Ligue 1",

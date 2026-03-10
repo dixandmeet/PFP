@@ -120,7 +120,7 @@ export async function executeAIAction(
       data: {
         userId,
         type: "AI_ACTION_COMPLETED",
-        title: "Action IA exécutée",
+        title: "Action exécutée",
         message: result.message || `${action.toolName} terminé`,
         link: result.link || null,
       }

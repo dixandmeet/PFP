@@ -24,7 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Activity, Search, Bot, Filter } from "lucide-react"
+import { Activity, Search, MessageSquare, Filter } from "lucide-react"
 import { formatDistanceToNow, format } from "date-fns"
 import { fr } from "date-fns/locale"
 
@@ -140,7 +140,7 @@ export default function AdminAuditPage() {
       cell: (log) => (
         <div className="flex items-center gap-2">
           {isAIAction(log.action) && (
-            <Bot className="h-4 w-4 text-blue-500" />
+            <MessageSquare className="h-4 w-4 text-blue-500" />
           )}
           <span className="text-sm font-medium text-slate-900">
             {formatAction(log.action)}
@@ -221,7 +221,7 @@ export default function AdminAuditPage() {
           <StatsCard
             title="Actions AI"
             value={aiActionsCount}
-            icon={Bot}
+            icon={MessageSquare}
             className="border-l-4 border-l-blue-500"
           />
           <StatsCard
@@ -242,7 +242,7 @@ export default function AdminAuditPage() {
             }}
             className="h-9"
           >
-            <Bot className="h-4 w-4 mr-2" />
+            <MessageSquare className="h-4 w-4 mr-2" />
             Actions AI uniquement
           </Button>
 
@@ -288,7 +288,7 @@ export default function AdminAuditPage() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 {selectedLog && isAIAction(selectedLog.action) && (
-                  <Bot className="h-5 w-5 text-blue-500" />
+                  <MessageSquare className="h-5 w-5 text-blue-500" />
                 )}
                 {selectedLog && formatAction(selectedLog.action)}
               </DialogTitle>

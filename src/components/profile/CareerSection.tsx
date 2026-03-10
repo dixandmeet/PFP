@@ -36,7 +36,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/use-toast"
 import { EmptyState } from "@/components/ui/empty-state"
-import { Loader2, Plus, Briefcase, Trophy, Target, Clock, Sparkles, MapPin, Calendar, AlertCircle } from "lucide-react"
+import { Loader2, Plus, Briefcase, Trophy, Target, Clock, Check, MapPin, Calendar, AlertCircle } from "lucide-react"
 import { CLUBS, PRO_LEAGUES, AMATEUR_LEAGUES, POSITIONS } from "@/lib/constants/football-data"
 
 // Schema de validation
@@ -259,7 +259,7 @@ export function CareerSection({ playerProfileId }: CareerSectionProps) {
             <DialogHeader>
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 bg-gradient-to-br from-pitch-500 to-pitch-600 rounded-lg">
-                  <Sparkles className="h-5 w-5 text-white" />
+                  <Trophy className="h-5 w-5 text-white" />
                 </div>
                 <DialogTitle className="text-2xl font-black text-stadium-900">Nouvelle expérience</DialogTitle>
               </div>
@@ -516,7 +516,7 @@ export function CareerSection({ playerProfileId }: CareerSectionProps) {
                     </>
                   ) : (
                     <>
-                      <Sparkles className="mr-2 h-4 w-4" />
+                      <Check className="mr-2 h-4 w-4" />
                       Enregistrer
                     </>
                   )}
@@ -632,7 +632,7 @@ export function CareerSection({ playerProfileId }: CareerSectionProps) {
                     {entry.assists !== null && entry.assists !== undefined && (
                       <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-1">
-                          <Sparkles className="h-4 w-4 text-pitch-600" />
+                          <Target className="h-4 w-4 text-pitch-600" />
                           <div className="text-sm text-stadium-600 font-semibold">Passes D.</div>
                         </div>
                         <div className="text-2xl font-black text-pitch-700">

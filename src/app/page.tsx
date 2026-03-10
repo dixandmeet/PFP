@@ -18,12 +18,12 @@ const CookieConsent = dynamic(() => import("@/components/ui/CookieConsent").then
 
 export const metadata: Metadata = {
   title: "Profoot Profile | Le réseau professionnel du football",
-  description: "Profils vérifiés, mandats, marketplace mercato et assistants IA — pour connecter joueurs, agents et clubs, du football amateur au haut niveau.",
-  keywords: ["football", "mercato", "agent", "joueur", "club", "transfert", "mandat", "recrutement", "IA", "centre de formation", "académie"],
+  description: "Profils vérifiés, mandats, marketplace mercato et outils intelligents — pour connecter joueurs, agents et clubs, du football amateur au haut niveau.",
+  keywords: ["football", "mercato", "agent", "joueur", "club", "transfert", "mandat", "recrutement", "centre de formation", "académie"],
   authors: [{ name: "Profoot Profile" }],
   openGraph: {
     title: "Profoot Profile | Le réseau professionnel du football",
-    description: "Profils vérifiés, mandats, marketplace mercato et assistants IA — pour connecter joueurs, agents et clubs, du football amateur au haut niveau.",
+    description: "Profils vérifiés, mandats, marketplace mercato et outils intelligents — pour connecter joueurs, agents et clubs, du football amateur au haut niveau.",
     type: "website",
     locale: "fr_FR",
     siteName: "Profoot Profile",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Profoot Profile | Le réseau professionnel du football",
-    description: "Profils vérifiés, mandats, marketplace mercato et assistants IA — pour connecter joueurs, agents et clubs, du football amateur au haut niveau.",
+    description: "Profils vérifiés, mandats, marketplace mercato et outils intelligents — pour connecter joueurs, agents et clubs, du football amateur au haut niveau.",
   },
   robots: {
     index: true,
@@ -61,7 +61,7 @@ export default function HomePage() {
           {/* Core Pillars - 5 Features Bento Grid */}
           <CorePillars />
           
-          {/* AI Studio - Interactive Demo */}
+          {/* Studio - Interactive Demo */}
           <AIStudio />
           
           {/* Trust & Security - Dark section */}

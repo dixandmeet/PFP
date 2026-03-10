@@ -8,7 +8,7 @@ export const HERO_COPY = {
     after: "du football",
   },
   subtitle:
-    "Profils vérifiés, mandats sécurisés, marketplace mercato et assistants IA — pour connecter joueurs, agents et clubs, du football amateur au haut niveau.",
+    "Profils vérifiés, mandats sécurisés, marketplace mercato et outils intelligents — pour connecter joueurs, agents et clubs, du football amateur au haut niveau.",
   ctaPrimary: "Créer mon profil gratuitement",
   ctaSecondary: "Voir comment ça marche",
   microcopy: "Gratuit • 2 min • Sans engagement",
@@ -21,7 +21,7 @@ export const HERO_COPY = {
     { label: "Joueurs vérifiés", icon: "Users" as const },
     { label: "Mandats sécurisés", icon: "Shield" as const },
     { label: "Clubs certifiés", icon: "Building2" as const },
-    { label: "IA assistée", icon: "Sparkles" as const },
+    { label: "Technologie avancée", icon: "TrendingUp" as const },
   ],
   clubs: [
     { name: "PSG", color: "from-blue-600 to-red-600" },

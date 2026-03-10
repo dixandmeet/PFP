@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import {
   Loader2,
-  Sparkles,
+  Award,
   Plus,
   X,
   AlertCircle,
@@ -240,7 +240,7 @@ export function StaffProfileSectionSkills() {
             ) : (
               <div className="flex flex-col items-center justify-center py-8">
                 <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center mb-3">
-                  <Sparkles className="h-6 w-6 text-purple-500" />
+                  <Award className="h-6 w-6 text-purple-500" />
                 </div>
                 <p className="text-sm text-gray-400 text-center max-w-xs">
                   Aucune compétence ajoutée. Tapez une compétence ou sélectionnez-en une parmi les suggestions

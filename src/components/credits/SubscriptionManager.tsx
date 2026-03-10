@@ -15,7 +15,6 @@ import {
   Star,
   XCircle,
   ChevronDown,
-  Sparkles,
   Shield,
   Headphones,
   BarChart3,
@@ -293,7 +292,7 @@ function PlanCard({
           "flex items-center justify-center rounded-t-xl text-xs font-bold text-white bg-gradient-to-r from-pitch-500 to-emerald-500",
           compact ? "gap-1 py-1 text-[10px]" : "gap-1.5 py-1.5"
         )}>
-          <Sparkles className={cn(compact ? "h-3 w-3" : "h-3.5 w-3.5")} />
+          <Crown className={cn(compact ? "h-3 w-3" : "h-3.5 w-3.5")} />
           Recommandé
         </div>
       )}
