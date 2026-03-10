@@ -112,6 +112,7 @@ enum NotificationType {
 
 enum FileAssetType {
   PROFILE_PICTURE
+  COVER_PHOTO
   VIDEO
   DOCUMENT
   REPORT_ATTACHMENT

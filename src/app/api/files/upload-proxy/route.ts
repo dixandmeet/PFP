@@ -26,6 +26,16 @@ const s3Client = USE_S3 ? new S3Client({
 
 const BUCKET = process.env.S3_BUCKET || "profoot-files"
 
+// Types valides pour FileAsset (doit correspondre à l'enum Prisma FileAssetType)
+const VALID_FILE_TYPES = new Set([
+  "PROFILE_PICTURE",
+  "COVER_PHOTO",
+  "VIDEO",
+  "DOCUMENT",
+  "REPORT_ATTACHMENT",
+  "POST_MEDIA",
+])
+
 // Extraire le fichier soit depuis les headers (raw body) soit depuis FormData
 async function extractFile(request: Request): Promise<{
   buffer: Buffer
@@ -78,6 +88,9 @@ export async function POST(request: Request) {
       )
     }
 
+    // Valider le type de fichier — fallback sur POST_MEDIA si invalide
+    const safeFileType = VALID_FILE_TYPES.has(fileType) ? fileType : "POST_MEDIA"
+
     const key = generateFileKey(user.id, filename)
 
     let fileUrl: string
@@ -102,7 +115,7 @@ export async function POST(request: Request) {
       } catch (s3Error: any) {
         console.error("Erreur S3:", s3Error)
         return NextResponse.json(
-          { error: `Erreur de stockage: ${s3Error.message || "Service indisponible"}` },
+          { error: "Erreur de stockage. Veuillez réessayer." },
           { status: 503 }
         )
       }
@@ -122,7 +135,7 @@ export async function POST(request: Request) {
         filename,
         mimeType: contentType,
         size: buffer.length,
-        type: fileType as any,
+        type: safeFileType as any,
         ownerId: user.id,
         ownerType: "USER",
         accessPolicy: {

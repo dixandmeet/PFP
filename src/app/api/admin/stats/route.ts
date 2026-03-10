@@ -218,11 +218,9 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error("Error fetching admin stats:", error)
-    const errorMessage =
-      error instanceof Error ? error.message : "Erreur inconnue"
     return NextResponse.json(
       {
-        error: `Erreur lors de la récupération des statistiques: ${errorMessage}`,
+        error: "Erreur lors de la récupération des statistiques",
       },
       { status: 500 }
     )
