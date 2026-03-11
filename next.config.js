@@ -1,4 +1,7 @@
 const { withSentryConfig } = require("@sentry/nextjs")
+const withBundleAnalyzer = require("@next/bundle-analyzer")({
+  enabled: process.env.ANALYZE === "true",
+})
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -44,10 +47,28 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'r2.thesportsdb.com',
       },
+      {
+        protocol: 'https',
+        hostname: '*.cdn.bubble.io',
+      },
     ],
+    formats: ['image/avif', 'image/webp'],
   },
   poweredBy: false,
   experimental: {
+    optimizePackageImports: [
+      'framer-motion',
+      'lucide-react',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-select',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-accordion',
+      '@radix-ui/react-alert-dialog',
+      'date-fns',
+      '@dnd-kit/core',
+      '@dnd-kit/sortable',
+    ],
     serverActions: {
       bodySizeLimit: '100mb',
     },
@@ -83,7 +104,7 @@ const nextConfig = {
   },
 }
 
-module.exports = withSentryConfig(nextConfig, {
+module.exports = withSentryConfig(withBundleAnalyzer(nextConfig), {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   silent: !process.env.CI,

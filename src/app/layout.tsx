@@ -5,11 +5,12 @@ import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
 import { Providers } from "@/components/providers"
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
-  variable: "--font-inter"
+  variable: "--font-inter",
+  preload: true,
 })
 
 export const metadata: Metadata = {

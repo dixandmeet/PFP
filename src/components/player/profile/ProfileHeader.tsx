@@ -86,11 +86,11 @@ export function ProfileHeader({
     }
   }
 
-  const renderImage = (src: string, alt: string, fill?: boolean, _w?: number, _h?: number) => {
+  const renderImage = (src: string, alt: string, fill?: boolean, w?: number, h?: number) => {
     return fill ? (
-      <img src={src} alt={alt} className="absolute inset-0 w-full h-full object-cover" />
+      <Image src={src} alt={alt} fill sizes="100vw" className="object-cover" priority />
     ) : (
-      <img src={src} alt={alt} className="w-full h-full object-cover" />
+      <Image src={src} alt={alt} width={w || 96} height={h || 96} className="w-full h-full object-cover" />
     )
   }
 

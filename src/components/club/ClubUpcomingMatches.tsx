@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { motion } from "framer-motion"
 import { Calendar, Clock } from "lucide-react"
 import type { Match } from "@/lib/services/thesportsdb"
@@ -70,10 +71,13 @@ export function ClubUpcomingMatches({ matches, fullWidth = false }: ClubUpcoming
             <div className={`flex items-center ${fullWidth ? "gap-4" : "gap-3"}`}>
               {/* Équipe domicile */}
               <div className={`flex items-center flex-1 min-w-0 ${fullWidth ? "gap-3" : "gap-2"}`}>
-                <img 
-                  src={match.homeTeam.crest} 
+                <Image
+                  src={match.homeTeam.crest}
                   alt={match.homeTeam.shortName}
-                  className={`object-contain ${fullWidth ? "w-10 h-10" : "w-6 h-6"}`}
+                  width={fullWidth ? 40 : 24}
+                  height={fullWidth ? 40 : 24}
+                  className="object-contain"
+                  loading="lazy"
                 />
                 <span className={`font-medium text-stadium-800 truncate ${fullWidth ? "text-base" : "text-sm"}`}>
                   {fullWidth ? match.homeTeam.name : match.homeTeam.shortName}
@@ -93,10 +97,13 @@ export function ClubUpcomingMatches({ matches, fullWidth = false }: ClubUpcoming
                 <span className={`font-medium text-stadium-800 truncate ${fullWidth ? "text-base" : "text-sm"}`}>
                   {fullWidth ? match.awayTeam.name : match.awayTeam.shortName}
                 </span>
-                <img 
-                  src={match.awayTeam.crest} 
+                <Image
+                  src={match.awayTeam.crest}
                   alt={match.awayTeam.shortName}
-                  className={`object-contain ${fullWidth ? "w-10 h-10" : "w-6 h-6"}`}
+                  width={fullWidth ? 40 : 24}
+                  height={fullWidth ? 40 : 24}
+                  className="object-contain"
+                  loading="lazy"
                 />
               </div>
             </div>

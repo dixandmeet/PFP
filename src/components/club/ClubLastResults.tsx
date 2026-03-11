@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { motion } from "framer-motion"
 import { Trophy, Check, X, Minus } from "lucide-react"
 import type { Match } from "@/lib/services/thesportsdb"
@@ -79,10 +80,13 @@ export function ClubLastResults({ matches, clubName, fullWidth = false }: ClubLa
               <div className={`flex items-center ${fullWidth ? "gap-4" : "gap-2"}`}>
                 {/* Équipe domicile */}
                 <div className={`flex items-center flex-1 min-w-0 ${fullWidth ? "gap-3" : "gap-1.5"}`}>
-                  <img 
-                    src={match.homeTeam.crest} 
+                  <Image
+                    src={match.homeTeam.crest}
                     alt={match.homeTeam.shortName}
-                    className={`object-contain ${fullWidth ? "w-8 h-8" : "w-5 h-5"}`}
+                    width={fullWidth ? 32 : 20}
+                    height={fullWidth ? 32 : 20}
+                    className="object-contain"
+                    loading="lazy"
                   />
                   <span className={`font-medium text-stadium-700 truncate ${fullWidth ? "text-base" : "text-xs"}`}>
                     {fullWidth ? match.homeTeam.name : match.homeTeam.shortName}
@@ -105,10 +109,13 @@ export function ClubLastResults({ matches, clubName, fullWidth = false }: ClubLa
                   <span className={`font-medium text-stadium-700 truncate ${fullWidth ? "text-base" : "text-xs"}`}>
                     {fullWidth ? match.awayTeam.name : match.awayTeam.shortName}
                   </span>
-                  <img 
-                    src={match.awayTeam.crest} 
+                  <Image
+                    src={match.awayTeam.crest}
                     alt={match.awayTeam.shortName}
-                    className={`object-contain ${fullWidth ? "w-8 h-8" : "w-5 h-5"}`}
+                    width={fullWidth ? 32 : 20}
+                    height={fullWidth ? 32 : 20}
+                    className="object-contain"
+                    loading="lazy"
                   />
                 </div>
 

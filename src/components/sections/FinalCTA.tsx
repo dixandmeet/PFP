@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { motion } from "framer-motion"
 import { ArrowRight, CheckCircle, Shield, Zap, Play } from "lucide-react"
 
@@ -155,7 +156,7 @@ export function FinalCTA() {
                   key={i}
                   className="w-9 h-9 rounded-full border-2 border-white overflow-hidden"
                 >
-                  <img src={src} alt="" className="w-full h-full object-cover" />
+                  <Image src={src} alt="" width={36} height={36} className="w-full h-full object-cover" loading="lazy" />
                 </div>
               ))}
               <div className="w-9 h-9 rounded-full border-2 border-white bg-base-content flex items-center justify-center">

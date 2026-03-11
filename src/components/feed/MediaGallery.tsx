@@ -1,11 +1,15 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef } from "react"
+import dynamic from "next/dynamic"
+import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, Play, Pause, Download, ZoomIn, Maximize2, Volume2, VolumeX, Film } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { ReelsViewer } from "./ReelsViewer"
+
+// Lazy load ReelsViewer (composant lourd, ouvert uniquement au clic)
+const ReelsViewer = dynamic(() => import("./ReelsViewer").then(m => ({ default: m.ReelsViewer })), { ssr: false })
 
 interface MediaItem {
   url: string
@@ -35,6 +39,12 @@ export function MediaGallery({ mediaUrls, className, postId, postContent, postUs
     return null
   }
 
+  // Normaliser les URLs protocol-relative (//) en https://
+  const normalizeUrl = (url: string): string => {
+    if (url.startsWith('//')) return `https:${url}`
+    return url
+  }
+
   const getMediaType = (url: string): 'image' | 'video' | 'document' => {
     const lowerUrl = url.toLowerCase()
     if (lowerUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?|$)/)) return 'image'
@@ -44,7 +54,7 @@ export function MediaGallery({ mediaUrls, className, postId, postContent, postUs
   }
 
   const media: MediaItem[] = mediaUrls.map(url => ({
-    url,
+    url: normalizeUrl(url),
     type: getMediaType(url)
   }))
 
@@ -99,13 +109,14 @@ export function MediaGallery({ mediaUrls, className, postId, postContent, postUs
 
   const hasVideos = media.some(m => m.type === 'video')
   const videos = media.filter(m => m.type === 'video')
-  const nonVideos = media.filter(m => m.type !== 'video')
+  const images = media.filter(m => m.type === 'image')
+  const documents = media.filter(m => m.type === 'document')
 
   const getGridLayout = () => {
-    if (hasVideos && nonVideos.length === 0) {
+    if (hasVideos && images.length === 0) {
       return videos.length === 1 ? "grid-cols-1" : "grid-cols-2"
     }
-    switch (nonVideos.length) {
+    switch (images.length) {
       case 1:
         return "grid-cols-1"
       case 2:
@@ -142,7 +153,7 @@ export function MediaGallery({ mediaUrls, className, postId, postContent, postUs
                   autoPlay
                   loop
                   playsInline
-                  preload="auto"
+                  preload="none"
                   onPlay={() => setPlayingVideos(prev => ({ ...prev, [globalIndex]: true }))}
                   onPause={() => setPlayingVideos(prev => ({ ...prev, [globalIndex]: false }))}
                   onError={(e) => {
@@ -210,53 +221,70 @@ export function MediaGallery({ mediaUrls, className, postId, postContent, postUs
         </div>
       )}
 
-      {/* Autres medias (images, documents) */}
-      {nonVideos.length > 0 && (
+      {/* Images */}
+      {images.length > 0 && (
         <div className={cn("grid gap-2", getGridLayout(), !hasVideos && className)}>
-        {nonVideos.slice(0, 4).map((item, index) => {
+        {images.slice(0, 4).map((item, index) => {
           const globalIndex = media.indexOf(item)
           return (
           <div
             key={index}
             className={cn(
               "relative aspect-video rounded-lg overflow-hidden bg-stadium-100 cursor-pointer group",
-              nonVideos.length === 1 && "aspect-[16/10]",
-              nonVideos.length === 3 && index === 0 && "col-span-2"
+              images.length === 1 && "aspect-[16/10]",
+              images.length === 3 && index === 0 && "col-span-2"
             )}
             onClick={() => openLightbox(globalIndex)}
           >
-            {item.type === 'image' && (
-              <>
-                <img
-                  src={item.url}
-                  alt={`Média ${index + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                  <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8" />
-                </div>
-              </>
-            )}
+            <Image
+              src={item.url}
+              alt={`Média ${index + 1}`}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+              <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8" />
+            </div>
 
-            {item.type === 'document' && (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-stadium-100 to-stadium-200">
-                <div className="text-center">
-                  <Download className="h-8 w-8 text-stadium-600 mx-auto mb-2" />
-                  <p className="text-xs text-stadium-600 font-semibold">Document</p>
-                </div>
-              </div>
-            )}
-
-            {index === 3 && nonVideos.length > 4 && (
+            {index === 3 && images.length > 4 && (
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                 <span className="text-white text-3xl font-black">
-                  +{nonVideos.length - 4}
+                  +{images.length - 4}
                 </span>
               </div>
             )}
           </div>
           )
         })}
+        </div>
+      )}
+
+      {/* Documents — pièces jointes compactes */}
+      {documents.length > 0 && (
+        <div className={cn("flex flex-col gap-2", className)}>
+          {documents.map((item, index) => {
+            const fileName = item.url.split('/').pop()?.split('?')[0] || 'Document'
+            return (
+              <a
+                key={index}
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-stadium-100 bg-stadium-50 hover:bg-stadium-100 transition-colors group"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex-shrink-0 p-2 rounded-lg bg-white shadow-sm group-hover:shadow-md transition-shadow">
+                  <Download className="h-5 w-5 text-pitch-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-stadium-800 truncate">{fileName}</p>
+                  <p className="text-xs text-stadium-500">Cliquer pour ouvrir</p>
+                </div>
+              </a>
+            )
+          })}
         </div>
       )}
 
