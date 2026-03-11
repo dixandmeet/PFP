@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { approveClub } from "@/lib/services/club-onboarding-service"
 import { sendEmail, emailTemplates } from "@/lib/email"
+import { getBaseUrl } from "@/lib/url"
 
 type RouteContext = { params: Promise<{ id: string }> }
 
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     // Envoyer email de confirmation
     const userName = club.user.name || club.user.email?.split("@")[0] || "Utilisateur"
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+    const baseUrl = getBaseUrl()
     const dashboardUrl = `${baseUrl}/club/dashboard`
 
     if (club.user.email) {

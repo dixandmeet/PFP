@@ -6,6 +6,7 @@ import { inviteClubMemberSchema, removeMemberSchema, changeRoleSchema } from "@/
 import { handleApiError } from "@/lib/utils/api-helpers"
 import { sendEmail, emailTemplates } from "@/lib/email"
 import { prisma } from "@/lib/prisma"
+import { getBaseUrl } from "@/lib/url"
 
 /**
  * GET /api/club/members — List all ACTIVE + INVITED members
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
     )
 
     // Send invitation email
-    const inviteUrl = `${process.env.NEXTAUTH_URL || "https://profootprofile.com"}/invite/${member.inviteToken}`
+    const inviteUrl = `${getBaseUrl()}/invite/${member.inviteToken}`
     const inviterName = session.user.name || "Un administrateur"
 
     try {

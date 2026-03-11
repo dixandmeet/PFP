@@ -6,6 +6,7 @@ import crypto from "crypto"
 import { z } from "zod"
 import { sendEmail, emailTemplates } from "@/lib/email"
 import { passwordSchema } from "@/lib/validators/schemas"
+import { getBaseUrl } from "@/lib/url"
 
 const registerSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
     })
 
     // Construire l'URL de vérification
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+    const baseUrl = getBaseUrl()
     const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}&email=${encodeURIComponent(validatedData.email.toLowerCase())}`
 
     // Envoyer email de bienvenue avec lien de vérification

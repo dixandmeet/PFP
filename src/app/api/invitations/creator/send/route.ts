@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { inviteCreatorSchema } from "@/lib/validators/club-onboarding-schemas"
 import { sendEmail, emailTemplates } from "@/lib/email"
+import { getBaseUrl } from "@/lib/url"
 
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000 // 1 heure
 const MAX_INVITATIONS_PER_HOUR = 3
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Envoyer l'email d'invitation
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+    const baseUrl = getBaseUrl()
     const signupUrl = `${baseUrl}/register?email=${encodeURIComponent(email)}&ref=club-invite`
     const inviterName = session.user.name || session.user.email
 

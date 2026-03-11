@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { handleApiError, parseBody } from "@/lib/utils/api-helpers"
 import { createMandateSchema } from "@/lib/validators/schemas"
 import { sendEmail, emailTemplates } from "@/lib/email"
+import { getBaseUrl } from "@/lib/url"
 
 export async function GET(request: Request) {
   try {
@@ -147,7 +148,7 @@ export async function POST(request: Request) {
 
     // Envoyer email au joueur
     if (playerProfile.user?.email) {
-      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+      const baseUrl = getBaseUrl()
       const { subject, html } = emailTemplates.notificationEmail(
         playerProfile.firstName,
         "Nouvelle demande de mandat",

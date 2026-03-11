@@ -5,6 +5,7 @@ import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "./prisma"
 import { sendEmail, emailTemplates } from "./email"
+import { getBaseUrl } from "./url"
 import bcrypt from "bcryptjs"
 import { Role } from "@prisma/client"
 
@@ -159,7 +160,7 @@ export const authOptions: NextAuthOptions = {
       // User created event
       
       if (user.email) {
-        const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+        const baseUrl = getBaseUrl()
         const userName = user.name || user.email.split("@")[0]
 
         // Pour les utilisateurs Google OAuth, l'email est déjà vérifié par Google

@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/permissions/rbac"
 import { handleApiError } from "@/lib/utils/api-helpers"
 import { StripeService, SubscriptionService } from "@/lib/services/credits"
 import { createSubscriptionSchema } from "@/lib/validators/credit-schemas"
+import { getBaseUrl } from "@/lib/url"
 
 // GET — obtenir l'abonnement actuel
 export async function GET() {
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const baseUrl = returnUrl || `${process.env.NEXTAUTH_URL}/credits`
+    const baseUrl = returnUrl || `${getBaseUrl()}/credits`
     const result = await StripeService.createSubscriptionCheckout(user.id, plan, baseUrl)
 
     return NextResponse.json(result)

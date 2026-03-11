@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { resendVerificationSchema } from "@/lib/validators/club-onboarding-schemas"
 import { sendEmail, emailTemplates } from "@/lib/email"
 import crypto from "crypto"
+import { getBaseUrl } from "@/lib/url"
 
 const RATE_LIMIT_MAX = 3 // Max 3 renvois par email tant que des tokens sont valides
 
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Envoyer l'email de vérification
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+    const baseUrl = getBaseUrl()
     const verificationUrl = `${baseUrl}/verify-email?token=${token}&email=${encodeURIComponent(email)}`
     const userName = user.name || email.split("@")[0]
 

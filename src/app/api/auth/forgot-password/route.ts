@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { sendEmail, emailTemplates } from "@/lib/email"
 import crypto from "crypto"
+import { getBaseUrl } from "@/lib/url"
 
 export async function POST(request: NextRequest) {
   try {
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Construire le lien de réinitialisation
-    const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const baseUrl = getBaseUrl()
     const resetUrl = `${baseUrl}/reset-password?token=${token}`
 
     // Générer le template d'email

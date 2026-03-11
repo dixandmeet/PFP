@@ -5,6 +5,7 @@ import { getClubForUser, resendInvitation } from "@/lib/services/club-members"
 import { handleApiError } from "@/lib/utils/api-helpers"
 import { sendEmail, emailTemplates } from "@/lib/email"
 import { z } from "zod"
+import { getBaseUrl } from "@/lib/url"
 
 const resendSchema = z.object({
   memberId: z.string().min(1),
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
       session.user.id
     )
 
-    const inviteUrl = `${process.env.NEXTAUTH_URL || "https://profootprofile.com"}/invite/${member.inviteToken}`
+    const inviteUrl = `${getBaseUrl()}/invite/${member.inviteToken}`
     const inviterName = session.user.name || "Un administrateur"
 
     try {

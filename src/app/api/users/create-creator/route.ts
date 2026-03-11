@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { createCreatorSchema } from "@/lib/validators/club-onboarding-schemas"
 import { sendEmail, emailTemplates } from "@/lib/email"
 import crypto from "crypto"
+import { getBaseUrl } from "@/lib/url"
 
 export async function POST(request: NextRequest) {
   try {
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Envoyer l'email de vérification
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+    const baseUrl = getBaseUrl()
     const verificationUrl = `${baseUrl}/verify-email?token=${token}&email=${encodeURIComponent(email)}`
 
     const emailContent = emailTemplates.verificationEmail(firstName, verificationUrl)

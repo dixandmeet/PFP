@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import crypto from "crypto"
 import { sendEmail, emailTemplates } from "@/lib/email"
+import { getBaseUrl } from "@/lib/url"
 
 // POST - Envoyer un email de vérification
 const sendVerificationSchema = z.object({
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
     })
 
     // Envoyer l'email de vérification
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+    const baseUrl = getBaseUrl()
     const verificationUrl = `${baseUrl}/verify-email?token=${token}&email=${encodeURIComponent(email.toLowerCase())}`
     const userName = user.name || email.split("@")[0]
 
