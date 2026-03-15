@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { getClubForUser, resendInvitation } from "@/lib/services/club-members"
 import { handleApiError } from "@/lib/utils/api-helpers"
+import { isClubRole } from "@/lib/utils/role-helpers"
 import { sendEmail, emailTemplates } from "@/lib/email"
 import { z } from "zod"
 import { getBaseUrl } from "@/lib/url"
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 })
     }
 
-    if (session.user.role !== "CLUB") {
+    if (!isClubRole(session.user.role)) {
       return NextResponse.json({ error: "Acces refuse" }, { status: 403 })
     }
 

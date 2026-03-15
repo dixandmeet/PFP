@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import crypto from "crypto"
-import { sendEmail, emailTemplates } from "@/lib/email"
+import { sendTrackedEmail, emailTemplates } from "@/lib/email"
 import { getBaseUrl } from "@/lib/url"
 
 // POST - Envoyer un email de vérification
@@ -22,17 +22,10 @@ export async function POST(request: Request) {
       select: { id: true, email: true, emailVerified: true, name: true }
     })
 
-    if (!user) {
+    // Return same response whether user exists or not to prevent email enumeration
+    if (!user || user.emailVerified) {
       return NextResponse.json(
-        { error: "Utilisateur non trouvé" },
-        { status: 404 }
-      )
-    }
-
-    // Si l'email est déjà vérifié
-    if (user.emailVerified) {
-      return NextResponse.json(
-        { message: "Email déjà vérifié", alreadyVerified: true },
+        { message: "Si cette adresse est enregistrée, un email de vérification a été envoyé." },
         { status: 200 }
       )
     }
@@ -61,7 +54,7 @@ export async function POST(request: Request) {
     const userName = user.name || email.split("@")[0]
 
     const { subject, html } = emailTemplates.verificationEmail(userName, verificationUrl)
-    await sendEmail({ to: email, subject, html })
+    await sendTrackedEmail({ to: email, subject, html, userId: user.id, template: "verification" })
 
     return NextResponse.json({
       message: "Email de vérification envoyé",

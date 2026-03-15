@@ -181,11 +181,60 @@ export interface WithdrawalEntry {
   createdAt: string
 }
 
+export interface OnboardingSessionEntry {
+  id: string
+  currentStep: string
+  creatorOtpVerifiedAt: string | null
+  verifiedCreatorEmail: string | null
+  createdAt: string
+  club: {
+    clubName: string
+    status: string
+    kycStatus: string
+    rejectReason: string | null
+  } | null
+}
+
+export interface EmailLogEntry {
+  id: string
+  to: string
+  subject: string
+  template: string
+  metadata: any
+  createdAt: string
+}
+
+export interface NotificationEntry {
+  id: string
+  type: string
+  title: string
+  message: string
+  link: string | null
+  isRead: boolean
+  createdAt: string
+}
+
+export interface ClubMemberEntry {
+  id: string
+  email: string
+  role: string
+  status: string
+  staffOnboardingStep: string | null
+  acceptedAt: string | null
+  createdAt: string
+  user: {
+    id: string
+    name: string | null
+    email: string
+    image: string | null
+  } | null
+}
+
 export interface UserDetail {
   id: string
   name: string | null
   email: string
-  role: "PLAYER" | "AGENT" | "CLUB" | "ADMIN"
+  role: "PLAYER" | "AGENT" | "CLUB" | "CLUB_STAFF" | "ADMIN"
   image: string | null
   createdAt: string
   emailVerified: string | null
@@ -275,6 +324,9 @@ export interface UserDetail {
   creditTransactions: CreditTransactionEntry[]
   withdrawals: WithdrawalEntry[]
   stripeConnect: StripeConnectEntry | null
+  // Onboarding
+  onboardingSession: OnboardingSessionEntry | null
+  // Activity
   auditLogs: {
     id: string
     action: string
@@ -283,6 +335,8 @@ export interface UserDetail {
     metadata: any
     createdAt: string
   }[]
+  emailLogs: EmailLogEntry[]
+  notifications: NotificationEntry[]
   _count: {
     posts: number
     comments: number
@@ -297,7 +351,7 @@ export interface UserDetail {
 export interface FormUser {
   name: string
   email: string
-  role: "PLAYER" | "AGENT" | "CLUB" | "ADMIN"
+  role: "PLAYER" | "AGENT" | "CLUB" | "CLUB_STAFF" | "ADMIN"
   playerProfile: {
     firstName: string
     lastName: string

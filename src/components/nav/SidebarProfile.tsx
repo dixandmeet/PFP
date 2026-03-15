@@ -14,6 +14,7 @@ import {
   Loader2
 } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
+import { isClubRole } from "@/lib/utils/role-helpers"
 
 interface ProfileData {
   role: string
@@ -48,7 +49,7 @@ interface ProfileData {
 }
 
 interface SidebarProfileProps {
-  role: "PLAYER" | "AGENT" | "CLUB"
+  role: "PLAYER" | "AGENT" | "CLUB" | "CLUB_STAFF"
 }
 
 // Calcul du pourcentage pour chaque type
@@ -87,7 +88,7 @@ function calculateCompletion(role: string, profile: ProfileData | null): { perce
     return { percentage: Math.round((completed / fields.length) * 100), missing }
   }
 
-  if (role === "CLUB" && profile.clubProfile) {
+  if (isClubRole(role) && profile.clubProfile) {
     const p = profile.clubProfile
     const fields = [
       { value: p.clubName, label: "Nom" },
@@ -155,7 +156,7 @@ export function SidebarProfile({ role }: SidebarProfileProps) {
     subtitle = p.agencyName || "Agent"
     profilePicture = p.profilePicture
     profileLink = "/agent/profile"
-  } else if (role === "CLUB" && profile?.clubProfile) {
+  } else if (isClubRole(role) && profile?.clubProfile) {
     const p = profile.clubProfile
     displayName = p.clubName || profile.email?.split("@")[0] || ""
     subtitle = p.city && p.country ? `${p.city}, ${p.country}` : "Club"
@@ -163,7 +164,7 @@ export function SidebarProfile({ role }: SidebarProfileProps) {
     profileLink = "/club/profile"
   } else {
     displayName = profile?.email?.split("@")[0] || "Utilisateur"
-    subtitle = role === "PLAYER" ? "Joueur" : role === "AGENT" ? "Agent" : "Club"
+    subtitle = role === "PLAYER" ? "Joueur" : role === "AGENT" ? "Agent" : isClubRole(role) ? "Club" : role
     profileLink = `/${role.toLowerCase()}/profile`
   }
 

@@ -45,7 +45,9 @@ export async function PATCH(
         clubProfile: true,
         playerProfile: {
           include: {
-            user: true,
+            user: {
+              select: { id: true, email: true, name: true, role: true },
+            },
           },
         },
       },
@@ -86,12 +88,16 @@ export async function PATCH(
       include: {
         clubProfile: {
           include: {
-            user: true,
+            user: {
+              select: { id: true, email: true, name: true, role: true, image: true },
+            },
           },
         },
         playerProfile: {
           include: {
-            user: true,
+            user: {
+              select: { id: true, email: true, name: true, role: true, image: true },
+            },
           },
         },
         listing: true,

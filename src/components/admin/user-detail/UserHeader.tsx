@@ -16,10 +16,12 @@ import {
   X,
   Loader2,
   AlertTriangle,
+  MessageCircle,
 } from "lucide-react"
 import { format, formatDistanceToNow } from "date-fns"
 import { fr } from "date-fns/locale"
 import type { UserDetail } from "./types"
+import { isClubRole } from "@/lib/utils/role-helpers"
 
 interface UserHeaderProps {
   user: UserDetail
@@ -33,6 +35,7 @@ interface UserHeaderProps {
   onCancel: () => void
   onAction: (action: string, data?: any) => Promise<void>
   onDelete: () => Promise<void>
+  onMessage?: () => void
 }
 
 export function UserHeader({
@@ -47,6 +50,7 @@ export function UserHeader({
   onCancel,
   onAction,
   onDelete,
+  onMessage,
 }: UserHeaderProps) {
   return (
     <div className="sticky top-14 z-20 bg-white border-b border-slate-200">
@@ -75,6 +79,20 @@ export function UserHeader({
                 {(user.agentProfile?.isVerified || user.clubProfile?.isVerified) && (
                   <StatusBadge status="verified" />
                 )}
+                {user.onboardingSession && user.onboardingSession.currentStep !== "DONE" && (
+                  <Badge className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
+                    Onboarding en cours
+                  </Badge>
+                )}
+                {isClubRole(user.role) && user.clubProfile && (() => {
+                  const status = user.onboardingSession?.club?.status
+                  if (status === "PENDING_REVIEW") return (
+                    <Badge className="bg-orange-100 text-orange-800 border-orange-200 text-xs">
+                      En attente de validation
+                    </Badge>
+                  )
+                  return null
+                })()}
               </div>
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm text-slate-500">
@@ -108,6 +126,12 @@ export function UserHeader({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {onMessage && user.role !== "ADMIN" && (
+              <Button variant="outline" size="sm" onClick={onMessage}>
+                <MessageCircle className="h-4 w-4 mr-1.5" />
+                Message
+              </Button>
+            )}
             {isEditing ? (
               <>
                 <Button

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Send, Linkedin, Twitter, Instagram, Shield, MapPin, Mail, ArrowRight, ArrowUpRight, Heart } from "lucide-react"
+import { FootballIcon } from "@/components/auth/icons"
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -106,9 +107,7 @@ export function Footer() {
           {/* Brand column */}
           <div className="col-span-2 md:col-span-3 lg:col-span-2">
             <Link href="/" className="inline-flex items-center gap-2.5 mb-5">
-              <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-                <span className="text-[11px] font-bold text-[#0a0a0a]">PF</span>
-              </div>
+              <FootballIcon className="w-8 h-8 rounded-lg" variant="light" />
               <span className="text-[15px] font-bold text-white">
                 Profoot Profile
               </span>

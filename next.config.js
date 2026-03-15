@@ -54,7 +54,6 @@ const nextConfig = {
     ],
     formats: ['image/avif', 'image/webp'],
   },
-  poweredBy: false,
   experimental: {
     optimizePackageImports: [
       'framer-motion',
@@ -70,7 +69,7 @@ const nextConfig = {
       '@dnd-kit/sortable',
     ],
     serverActions: {
-      bodySizeLimit: '100mb',
+      bodySizeLimit: '10mb',
     },
   },
   async headers() {
@@ -97,6 +96,26 @@ const nextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(self)',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.vercel-scripts.com https://*.sentry.io",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "img-src 'self' data: blob: https: http:",
+              "font-src 'self' https://fonts.gstatic.com",
+              "connect-src 'self' https://*.stripe.com https://*.sentry.io https://*.r2.cloudflarestorage.com https://*.amazonaws.com https://*.vercel-insights.com wss:",
+              "frame-src 'self' https://js.stripe.com",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'self'",
+            ].join('; '),
           },
         ],
       },

@@ -22,9 +22,10 @@ import type {
   SubmissionEntry,
   ListingEntry,
 } from "./types"
+import { isClubRole } from "@/lib/utils/role-helpers"
 
 interface UserApplicationsSectionProps {
-  role: "PLAYER" | "AGENT" | "CLUB" | "ADMIN"
+  role: "PLAYER" | "AGENT" | "CLUB" | "CLUB_STAFF" | "ADMIN"
   applications?: ApplicationEntry[]
   mandates?: MandateEntry[]
   submissions?: SubmissionEntry[]
@@ -291,7 +292,7 @@ export function UserApplicationsSection({
       )}
 
       {/* Club: Listings */}
-      {role === "CLUB" && (
+      {isClubRole(role) && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <ListChecks className="h-5 w-5 text-slate-500" />

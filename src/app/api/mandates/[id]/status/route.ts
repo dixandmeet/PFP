@@ -34,10 +34,10 @@ export async function PATCH(
       where: { id },
       include: {
         agentProfile: {
-          include: { user: true },
+          include: { user: { select: { id: true, email: true, name: true, role: true, image: true } } },
         },
         playerProfile: {
-          include: { user: true },
+          include: { user: { select: { id: true, email: true, name: true, role: true, image: true } } },
         },
       },
     })
@@ -101,10 +101,10 @@ export async function PATCH(
       },
       include: {
         agentProfile: {
-          include: { user: true },
+          include: { user: { select: { id: true, email: true, name: true, role: true, image: true } } },
         },
         playerProfile: {
-          include: { user: true },
+          include: { user: { select: { id: true, email: true, name: true, role: true, image: true } } },
         },
       },
     })

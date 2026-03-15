@@ -1,5 +1,7 @@
 // API: User by ID avec statistiques
 import { NextResponse } from "next/server"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { handleApiError } from "@/lib/utils/api-helpers"
 
@@ -8,13 +10,21 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 })
+    }
+
     const { id: userId } = await params
+
+    // Ne renvoyer l'email que si c'est l'utilisateur lui-même ou un admin
+    const includeEmail = session.user.id === userId || session.user.role === "ADMIN"
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
-        email: true,
+        email: includeEmail,
         role: true,
         createdAt: true,
         playerProfile: {

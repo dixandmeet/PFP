@@ -77,6 +77,18 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "view:credit_history",
     "request:withdrawal",
   ],
+  CLUB_STAFF: [
+    "create:profile",
+    "edit:own_profile",
+    "view:profiles",
+    "create:post",
+    "edit:own_post",
+    "delete:own_post",
+    "use:ai_assistant",
+    "manage:credits",
+    "view:credit_history",
+    "consult:listing",
+  ],
   ADMIN: [
     "create:profile",
     "edit:own_profile",

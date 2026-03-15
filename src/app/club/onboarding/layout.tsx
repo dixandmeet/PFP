@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { FootballIcon } from "@/components/auth/icons"
 
 export default async function ClubOnboardingLayout({
   children,
@@ -13,6 +14,11 @@ export default async function ClubOnboardingLayout({
 
   if (!session) {
     redirect("/login")
+  }
+
+  // Les CLUB_STAFF doivent aller sur l'onboarding staff
+  if (session.user.role === "CLUB_STAFF") {
+    redirect("/club/staff-onboarding")
   }
 
   if (session.user.role !== "CLUB") {
@@ -38,9 +44,7 @@ export default async function ClubOnboardingLayout({
       {/* Header minimal */}
       <header className="border-b border-pitch-100 bg-white/80 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-pitch-600 flex items-center justify-center">
-            <span className="text-white text-sm font-bold">PF</span>
-          </div>
+          <FootballIcon className="w-8 h-8 rounded-lg" />
           <span className="font-semibold text-pitch-900">Profoot Profile</span>
           <span className="text-sm text-pitch-500 ml-2">Enregistrement Club</span>
         </div>

@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "name": "Profoot Profile",
+    "slug": "profoot-profile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "pfp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#09090b"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.profootprofile.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Profoot Profile a besoin de votre caméra pour les photos de profil.",
+        "NSPhotoLibraryUsageDescription": "Profoot Profile a besoin d'accéder à vos photos pour les uploads."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#09090b"
+      },
+      "package": "com.profootprofile.app"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#22c55e"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Profoot Profile a besoin d'accéder à vos photos pour les uploads."
+        }
+      ],
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

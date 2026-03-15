@@ -93,14 +93,18 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     let fileUrl: string
 
+    const ALLOWED_EXTENSIONS = ["pdf", "jpg", "jpeg", "png"]
+    const rawExt = file.name.split(".").pop()?.toLowerCase() || "pdf"
+    const safeExt = ALLOWED_EXTENSIONS.includes(rawExt) ? rawExt : "pdf"
+
     if (USE_LOCAL_STORAGE || !s3Client) {
-      const uploadDir = path.join(process.cwd(), "public", "uploads", "clubs", clubId)
+      // Stockage privé (hors public/ pour éviter l'accès non authentifié)
+      const uploadDir = path.join(process.cwd(), "private-uploads", "clubs", clubId)
       await mkdir(uploadDir, { recursive: true })
-      const ext = file.name.split(".").pop()?.toLowerCase() || "pdf"
-      const safeName = `${docType}-${Date.now()}.${ext}`
+      const safeName = `${docType}-${Date.now()}.${safeExt}`
       const filePath = path.join(uploadDir, safeName)
       await writeFile(filePath, buffer)
-      fileUrl = `/uploads/clubs/${clubId}/${safeName}`
+      fileUrl = `/api/uploads/clubs/${clubId}/${safeName}`
     } else {
       try {
         await s3Client.send(
@@ -114,14 +118,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
         fileUrl = getPublicUrl(key)
       } catch (s3Err: unknown) {
         console.error("[KYC upload] S3 error:", s3Err)
-        // Fallback vers stockage local si S3 échoue
-        const uploadDir = path.join(process.cwd(), "public", "uploads", "clubs", clubId)
+        // Fallback vers stockage privé si S3 échoue
+        const uploadDir = path.join(process.cwd(), "private-uploads", "clubs", clubId)
         await mkdir(uploadDir, { recursive: true })
-        const ext = file.name.split(".").pop()?.toLowerCase() || "pdf"
-        const safeName = `${docType}-${Date.now()}.${ext}`
+        const safeName = `${docType}-${Date.now()}.${safeExt}`
         const filePath = path.join(uploadDir, safeName)
         await writeFile(filePath, buffer)
-        fileUrl = `/uploads/clubs/${clubId}/${safeName}`
+        fileUrl = `/api/uploads/clubs/${clubId}/${safeName}`
       }
     }
 

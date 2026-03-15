@@ -34,34 +34,6 @@ export function AuthBranding({ variant }: AuthBrandingProps) {
         <div className="absolute top-1/2 left-0 right-0 h-[3px] bg-white/20" />
       </div>
 
-      {/* Éléments décoratifs animés - Ballons flottants */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.5 }}
-        animate={{ opacity: 0.12, scale: 1 }}
-        transition={{ duration: 1.2, delay: 0.5 }}
-        className="absolute top-16 right-16"
-      >
-        <FootballIcon className="w-36 h-36 text-white animate-float" />
-      </motion.div>
-      
-      <motion.div
-        initial={{ opacity: 0, scale: 0.5 }}
-        animate={{ opacity: 0.08, scale: 1 }}
-        transition={{ duration: 1.2, delay: 0.8 }}
-        className="absolute bottom-28 left-12"
-      >
-        <FootballIcon className="w-28 h-28 text-white animate-float-slow" />
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, scale: 0.5 }}
-        animate={{ opacity: 0.05, scale: 1 }}
-        transition={{ duration: 1.2, delay: 1.1 }}
-        className="absolute top-1/3 right-1/3"
-      >
-        <FootballIcon className="w-16 h-16 text-white animate-float" />
-      </motion.div>
-
       {/* Contenu principal */}
       <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20 w-full">
         <motion.div
@@ -72,9 +44,7 @@ export function AuthBranding({ variant }: AuthBrandingProps) {
         >
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-lg">
-              <FootballIcon className="w-7 h-7 text-white" />
-            </div>
+            <FootballIcon className="w-12 h-12 rounded-2xl" variant="light" />
             <span className="text-2xl font-bold text-white tracking-tight">Profoot Profile</span>
           </Link>
 

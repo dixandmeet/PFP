@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { MoreVertical, Trash2, User, Shield, Building2 } from "lucide-react"
 import { getRelativeTime } from "@/lib/utils/post-utils"
+import { isClubRole } from "@/lib/utils/role-helpers"
 
 interface CommentUser {
   id: string
@@ -111,8 +112,8 @@ export function CommentItem({ comment, currentUserId, onDelete }: CommentItemPro
             >
               {comment.user.role === "PLAYER" && <User className="h-3 w-3 mr-1" />}
               {comment.user.role === "AGENT" && <Shield className="h-3 w-3 mr-1" />}
-              {comment.user.role === "CLUB" && <Building2 className="h-3 w-3 mr-1" />}
-              {comment.user.role}
+              {isClubRole(comment.user.role) && <Building2 className="h-3 w-3 mr-1" />}
+              {isClubRole(comment.user.role) ? "CLUB" : comment.user.role}
             </Badge>
           </div>
           <p className="text-sm text-stadium-800 whitespace-pre-wrap break-words">

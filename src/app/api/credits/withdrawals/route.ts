@@ -4,6 +4,7 @@ import { handleApiError } from "@/lib/utils/api-helpers"
 import { WithdrawalService } from "@/lib/services/credits"
 import { requestWithdrawalSchema } from "@/lib/validators/credit-schemas"
 import { prisma } from "@/lib/prisma"
+import { notifyAdmins } from "@/lib/notifications/notify-admins"
 
 // GET — lister les retraits de l'utilisateur
 export async function GET() {
@@ -34,6 +35,14 @@ export async function POST(request: NextRequest) {
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 })
     }
+
+    // Notifier les admins
+    notifyAdmins({
+      type: "ADMIN_WITHDRAWAL_REQUEST",
+      title: "Retrait à valider",
+      message: `Demande de retrait de ${amount} crédits`,
+      link: `/admin/withdrawals`,
+    }).catch(console.error)
 
     return NextResponse.json({ withdrawal: result.withdrawal }, { status: 201 })
   } catch (error) {

@@ -30,6 +30,7 @@ import { CommentSection } from "./CommentSection"
 import { ShareModal } from "./ShareModal"
 import { useToast } from "@/components/ui/use-toast"
 import { getRelativeTime } from "@/lib/utils/post-utils"
+import { isClubRole } from "@/lib/utils/role-helpers"
 
 interface PostUser {
   id: string
@@ -274,7 +275,7 @@ export function FeedCard({ post, currentUserId, onUpdate }: FeedCardProps) {
                 <div className="absolute -bottom-1 -right-1 p-1 bg-white rounded-full shadow-md">
                   {post.user.role === "PLAYER" && <User className="h-3 w-3 text-pitch-600" />}
                   {post.user.role === "AGENT" && <Shield className="h-3 w-3 text-gold-600" />}
-                  {post.user.role === "CLUB" && <Building2 className="h-3 w-3 text-victory-600" />}
+                  {isClubRole(post.user.role) && <Building2 className="h-3 w-3 text-victory-600" />}
                 </div>
               </div>
 

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { handleApiError } from "@/lib/utils/api-helpers"
+import { isClubRole } from "@/lib/utils/role-helpers"
 import { createSubmissionSchema } from "@/lib/validators/schemas"
 
 export async function GET(request: NextRequest) {
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
       }
 
       where.agentProfileId = agentProfile.id
-    } else if (session.user.role === "CLUB") {
+    } else if (isClubRole(session.user.role)) {
       // Récupérer le profil club
       const clubProfile = await prisma.clubProfile.findUnique({
         where: { userId: session.user.id },

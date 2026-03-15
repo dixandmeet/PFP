@@ -1,177 +1,556 @@
-import type { Metadata } from "next"
-import Link from "next/link"
-import { Check, ArrowRight, Star, Zap, Crown } from "lucide-react"
+"use client"
 
-export const metadata: Metadata = {
-  title: "Tarifs | Profoot Profile",
-  description: "Découvrez nos offres et tarifs pour joueurs, agents et clubs sur Profoot Profile.",
+import { useState } from "react"
+import Link from "next/link"
+import { motion, AnimatePresence } from "framer-motion"
+import { Check, ArrowRight, Star, Zap, Crown, HelpCircle, Users, Shield, TrendingUp, Coins, BarChart3 } from "lucide-react"
+import { TopNav } from "@/components/nav/TopNav"
+import { Footer } from "@/components/footer/Footer"
+import { ShimmerButton } from "@/components/ui/shimmer-button"
+import { BorderBeam } from "@/components/ui/border-beam"
+import { AnimatedGradientText } from "@/components/ui/animated-gradient-text"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.15 },
+  },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const },
+  },
 }
 
 const plans = [
   {
-    name: "Starter",
-    description: "Pour commencer sur la plateforme",
-    price: "Gratuit",
-    period: "",
-    icon: Zap,
-    color: "bg-stadium-100 text-stadium-600",
+    name: "Gratuit",
+    description: "Accédez à la plateforme",
+    monthlyPrice: 0,
+    yearlyPrice: 0,
+    icon: Users,
+    iconBg: "bg-stadium-100",
+    iconColor: "text-stadium-600",
+    credits: 0,
+    redistribution: null,
     features: [
-      "Profil vérifié",
-      "Recherche de base",
-      "5 crédits offerts",
-      "Messagerie limitée",
-      "Accès au fil d'actualité",
+      "Accès à la plateforme",
+      "Profil visible sans crédits inclus",
     ],
+    extraInfo: "Recharge possible à l\u2019unité",
     cta: "Commencer gratuitement",
     href: "/register",
     popular: false,
+    borderColor: "",
+  },
+  {
+    name: "Starter",
+    description: "Lancez votre visibilité football",
+    monthlyPrice: 10,
+    yearlyPrice: 8,
+    icon: Zap,
+    iconBg: "bg-stadium-100",
+    iconColor: "text-stadium-700",
+    credits: 10,
+    redistribution: 25,
+    features: [
+      "Lancez votre visibilité football",
+      "Premiers contacts avec les clubs",
+    ],
+    extraInfo: null,
+    cta: "Passer à Starter",
+    href: "/register",
+    popular: false,
+    borderColor: "",
+  },
+  {
+    name: "Growth",
+    description: "Multipliez vos opportunités",
+    monthlyPrice: 50,
+    yearlyPrice: 40,
+    icon: TrendingUp,
+    iconBg: "bg-primary/10",
+    iconColor: "text-primary",
+    credits: 50,
+    redistribution: 30,
+    features: [
+      "Multipliez vos opportunités de recrutement",
+      "Suivez vos performances avec les analytics",
+    ],
+    extraInfo: null,
+    cta: "Passer à Growth",
+    href: "/register",
+    popular: true,
+    borderColor: "",
   },
   {
     name: "Pro",
-    description: "Pour les professionnels actifs",
-    price: "29€",
-    period: "/mois",
+    description: "Analytics avancés et support prioritaire",
+    monthlyPrice: 200,
+    yearlyPrice: 160,
     icon: Star,
-    color: "bg-primary/10 text-primary",
+    iconBg: "bg-blue-100",
+    iconColor: "text-blue-600",
+    credits: 200,
+    redistribution: 40,
     features: [
-      "Tout Starter inclus",
-      "50 crédits/mois",
-      "Messagerie illimitée",
-      "Assistant intelligent",
-      "Rapports de performance",
-      "Visibilité améliorée",
-      "Alertes mercato",
+      "Accès complet aux analytics avancés",
+      "Support prioritaire pour vos démarches",
     ],
-    cta: "Essai gratuit 14 jours",
+    extraInfo: null,
+    cta: "Passer à Pro",
     href: "/register",
-    popular: true,
+    popular: false,
+    borderColor: "",
   },
   {
     name: "Elite",
-    description: "Pour les acteurs majeurs du mercato",
-    price: "99€",
-    period: "/mois",
+    description: "Accompagnement premium dédié",
+    monthlyPrice: 500,
+    yearlyPrice: 400,
     icon: Crown,
-    color: "bg-amber-100 text-amber-600",
+    iconBg: "bg-amber-100",
+    iconColor: "text-amber-600",
+    credits: 500,
+    redistribution: 50,
     features: [
-      "Tout Pro inclus",
-      "200 crédits/mois",
-      "Assistant avancé",
-      "Rapports détaillés illimités",
-      "Accès prioritaire aux annonces",
-      "Badge vérifié premium",
-      "Support dédié",
-      "API access",
+      "Accompagnement premium avec manager dédié",
+      "Visibilité et accès illimités",
     ],
-    cta: "Contacter l'équipe",
+    extraInfo: null,
+    cta: "Passer à Elite",
     href: "/contact",
     popular: false,
+    borderColor: "",
+  },
+]
+
+const faqs = [
+  {
+    question: "Comment fonctionne le système de crédits\u00a0?",
+    answer:
+      "1 crédit = 1\u00a0\u20ac. Chaque plan inclut un nombre de crédits mensuels. Les crédits servent à débloquer des profils, envoyer des propositions, accéder à des rapports et utiliser les outils de la plateforme. Le plan Gratuit permet la recharge à l\u2019unité.",
+  },
+  {
+    question: "Qu\u2019est-ce que la redistribution\u00a0?",
+    answer:
+      "La redistribution est le pourcentage de la valeur des crédits utilisés qui est reversé aux créateurs de contenu et aux profils consultés sur la plateforme. Plus votre plan est élevé, plus votre taux de redistribution est important (de 25\u00a0% à 50\u00a0%).",
+  },
+  {
+    question: "Puis-je changer de plan à tout moment\u00a0?",
+    answer:
+      "Oui, vous pouvez passer à un plan supérieur ou inférieur à tout moment. Le changement prend effet immédiatement et le montant est ajusté au prorata de votre période de facturation en cours.",
+  },
+  {
+    question: "Quels moyens de paiement acceptez-vous\u00a0?",
+    answer:
+      "Nous acceptons les cartes Visa, Mastercard, American Express, ainsi que les virements SEPA pour les abonnements annuels. Tous les paiements sont sécurisés via Stripe.",
+  },
+  {
+    question: "Y a-t-il un engagement minimum\u00a0?",
+    answer:
+      "Aucun engagement minimum pour les abonnements mensuels. Vous pouvez annuler à tout moment. Les abonnements annuels sont facturés pour 12 mois avec une réduction de 20\u00a0%.",
+  },
+  {
+    question: "Le plan Gratuit donne-t-il vraiment accès à la plateforme\u00a0?",
+    answer:
+      "Oui, le plan Gratuit vous permet de créer votre profil et d\u2019accéder à la plateforme. Cependant, aucun crédit mensuel n\u2019est inclus. Vous pouvez acheter des crédits à l\u2019unité pour débloquer les fonctionnalités payantes.",
   },
 ]
 
 export default function PricingPage() {
+  const [isYearly, setIsYearly] = useState(false)
+
   return (
-    <div className="min-h-screen bg-white">
-      <header className="border-b border-stadium-200">
-        <div className="max-w-6xl mx-auto px-6 py-6">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-pitch-500 flex items-center justify-center">
-              <span className="text-sm font-bold text-white">PF</span>
-            </div>
-            <span className="text-xl font-bold text-stadium-900">Profoot Profile</span>
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-screen">
+      <TopNav />
 
-      <main className="max-w-6xl mx-auto px-6 py-16">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-stadium-900 mb-4">
-            Des tarifs simples et transparents
-          </h1>
-          <p className="text-lg text-stadium-500 max-w-2xl mx-auto">
-            Choisissez l&apos;offre adapt&eacute;e &agrave; votre activit&eacute;. 
-            Tous les plans incluent un profil v&eacute;rifi&eacute; et l&apos;acc&egrave;s &agrave; la plateforme.
-          </p>
-        </div>
+      <main>
+        {/* Hero section */}
+        <section className="relative pt-32 pb-20 sm:pt-40 sm:pb-28 overflow-hidden">
+          {/* Background */}
+          <div
+            className="absolute inset-0 bg-[#fafafa]"
+            style={{
+              backgroundImage: `radial-gradient(circle, rgba(0,0,0,0.03) 1px, transparent 1px)`,
+              backgroundSize: "24px 24px",
+            }}
+          />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(34,197,94,0.07),transparent_50%)]" />
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {plans.map((plan) => (
-            <div
-              key={plan.name}
-              className={`relative rounded-2xl border ${
-                plan.popular
-                  ? "border-primary shadow-lg shadow-primary/10 scale-105"
-                  : "border-stadium-200"
-              } bg-white p-8 flex flex-col`}
+          <motion.div
+            className="relative container px-4 md:px-6 text-center"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.div variants={itemVariants}>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 mb-8">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <span className="text-[13px] font-medium text-stadium-500">
+                  Sans engagement &middot; Annulez à tout moment
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.h1
+              variants={itemVariants}
+              className="text-4xl sm:text-5xl md:text-6xl font-bold text-stadium-900 tracking-[-0.02em] leading-[1.1] mb-5"
             >
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-semibold px-4 py-1.5 rounded-full">
-                  Le plus populaire
-                </div>
-              )}
+              Des tarifs{" "}
+              <AnimatedGradientText>simples et transparents</AnimatedGradientText>
+            </motion.h1>
 
-              <div className={`w-12 h-12 rounded-xl ${plan.color} flex items-center justify-center mb-4`}>
-                <plan.icon className="w-6 h-6" />
-              </div>
+            <motion.p
+              variants={itemVariants}
+              className="text-[17px] text-stadium-500 max-w-2xl mx-auto mb-10 leading-relaxed"
+            >
+              Facturation mensuelle &middot; 1 crédit = 1&nbsp;&euro;.
+              Choisissez l&apos;offre adaptée à votre activité.
+            </motion.p>
 
-              <h2 className="text-2xl font-bold text-stadium-900">{plan.name}</h2>
-              <p className="text-stadium-500 text-sm mt-1 mb-6">{plan.description}</p>
-
-              <div className="mb-6">
-                <span className="text-4xl font-bold text-stadium-900">{plan.price}</span>
-                {plan.period && (
-                  <span className="text-stadium-400 text-sm">{plan.period}</span>
-                )}
-              </div>
-
-              <ul className="space-y-3 mb-8 flex-1">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm text-stadium-600">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Link
-                href={plan.href}
-                className={`inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-colors ${
-                  plan.popular
-                    ? "bg-primary text-white hover:bg-primary/90"
-                    : "bg-stadium-100 text-stadium-700 hover:bg-stadium-200"
+            {/* Toggle mensuel/annuel */}
+            <motion.div variants={itemVariants} className="flex items-center justify-center gap-4 mb-4">
+              <span
+                className={`text-sm font-medium transition-colors ${
+                  !isYearly ? "text-stadium-900" : "text-stadium-400"
                 }`}
               >
-                {plan.cta}
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          ))}
-        </div>
+                Mensuel
+              </span>
+              <button
+                onClick={() => setIsYearly(!isYearly)}
+                className={`relative w-14 h-7 rounded-full transition-colors duration-300 ${
+                  isYearly ? "bg-primary" : "bg-stadium-300"
+                }`}
+                aria-label="Basculer entre mensuel et annuel"
+              >
+                <motion.div
+                  className="absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow-md"
+                  animate={{ x: isYearly ? 28 : 0 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                />
+              </button>
+              <span
+                className={`text-sm font-medium transition-colors ${
+                  isYearly ? "text-stadium-900" : "text-stadium-400"
+                }`}
+              >
+                Annuel
+              </span>
+              <AnimatePresence>
+                {isYearly && (
+                  <motion.span
+                    initial={{ opacity: 0, scale: 0.8, x: -8 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, x: -8 }}
+                    className="inline-flex items-center px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold"
+                  >
+                    -20%
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </motion.div>
+        </section>
 
-        <div className="mt-16 text-center">
-          <p className="text-stadium-400 text-sm">
-            Tous les prix sont HT. TVA applicable selon votre pays de r&eacute;sidence.
-          </p>
-          <p className="text-stadium-400 text-sm mt-2">
-            Besoin d&apos;une offre sur mesure ?{" "}
-            <Link href="/contact" className="text-primary hover:underline">
-              Contactez-nous
-            </Link>
-          </p>
-        </div>
+        {/* Plans */}
+        <section className="relative pb-20 sm:pb-28 bg-[#fafafa]">
+          <div className="container px-4 md:px-6">
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 max-w-7xl mx-auto -mt-2"
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-100px" }}
+            >
+              {plans.map((plan) => (
+                <motion.div
+                  key={plan.name}
+                  variants={itemVariants}
+                  whileHover={{ y: -6 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                  className={`relative rounded-2xl border bg-white p-6 flex flex-col transition-shadow duration-300 ${
+                    plan.popular
+                      ? "border-primary/30 shadow-xl shadow-primary/[0.08] lg:scale-[1.03]"
+                      : "border-stadium-200 hover:shadow-lg hover:shadow-stadium-200/50"
+                  }`}
+                >
+                  {plan.popular && <BorderBeam size={200} duration={12} delay={0} />}
 
-        <div className="mt-12 pt-8 border-t border-stadium-200">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-pitch-600 hover:text-pitch-700 font-medium"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Retour &agrave; l&apos;accueil
-          </Link>
-        </div>
+                  {plan.popular && (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-semibold px-4 py-1.5 rounded-full shadow-lg shadow-primary/25 whitespace-nowrap">
+                      Recommandé
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3 mb-4">
+                    <div
+                      className={`w-10 h-10 rounded-xl ${plan.iconBg} flex items-center justify-center`}
+                    >
+                      <plan.icon className={`w-5 h-5 ${plan.iconColor}`} />
+                    </div>
+                    <h2 className="text-xl font-bold text-stadium-900">{plan.name}</h2>
+                  </div>
+
+                  <div className="mb-1">
+                    {plan.monthlyPrice === 0 ? (
+                      <span className="text-3xl font-bold text-stadium-900">Gratuit</span>
+                    ) : (
+                      <div className="flex items-baseline gap-1">
+                        <AnimatePresence mode="wait">
+                          <motion.span
+                            key={isYearly ? "yearly" : "monthly"}
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            transition={{ duration: 0.2 }}
+                            className="text-3xl font-bold text-stadium-900"
+                          >
+                            {isYearly ? plan.yearlyPrice : plan.monthlyPrice}&nbsp;&euro;
+                          </motion.span>
+                        </AnimatePresence>
+                        <span className="text-stadium-400 text-sm">/mois</span>
+                      </div>
+                    )}
+                    {plan.monthlyPrice > 0 && isYearly && (
+                      <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-xs text-primary mt-0.5 font-medium"
+                      >
+                        Facturé {plan.yearlyPrice * 12}&nbsp;&euro;/an
+                      </motion.p>
+                    )}
+                  </div>
+
+                  <p className="text-stadium-400 text-xs mb-5">
+                    {plan.credits > 0 ? `${plan.credits} cr./mois` : "Recharge à l\u2019unité"}
+                  </p>
+
+                  <ul className="space-y-3 mb-5 flex-1">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-2.5">
+                        <Check className={`w-4 h-4 shrink-0 mt-0.5 ${plan.popular ? "text-primary" : "text-primary"}`} />
+                        <span className="text-sm text-stadium-600 leading-snug">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Credits & redistribution info */}
+                  <div className="space-y-2 mb-5 pt-4 border-t border-stadium-100">
+                    <div className="flex items-center gap-2 text-xs text-stadium-400">
+                      <Coins className="w-3.5 h-3.5" />
+                      <span>{plan.credits > 0 ? `${plan.credits} crédits/mois` : "0 crédit/mois inclus"}</span>
+                    </div>
+                    {plan.redistribution ? (
+                      <div className="flex items-center gap-2 text-xs text-stadium-400">
+                        <BarChart3 className="w-3.5 h-3.5" />
+                        <span>Redistribution {plan.redistribution}%</span>
+                      </div>
+                    ) : plan.extraInfo ? (
+                      <div className="flex items-center gap-2 text-xs text-stadium-400">
+                        <BarChart3 className="w-3.5 h-3.5" />
+                        <span>{plan.extraInfo}</span>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {plan.popular ? (
+                    <Link href={plan.href}>
+                      <ShimmerButton className="w-full text-sm py-3">
+                        {plan.cta}
+                      </ShimmerButton>
+                    </Link>
+                  ) : (
+                    <Link
+                      href={plan.href}
+                      className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-200 w-full ${
+                        plan.monthlyPrice === 0
+                          ? "bg-stadium-100 text-stadium-700 hover:bg-stadium-200"
+                          : plan.name === "Elite"
+                            ? "bg-amber-500 text-white hover:bg-amber-600"
+                            : plan.name === "Pro"
+                              ? "bg-blue-600 text-white hover:bg-blue-700"
+                              : "bg-stadium-900 text-white hover:bg-stadium-800"
+                      }`}
+                    >
+                      {plan.cta}
+                    </Link>
+                  )}
+                </motion.div>
+              ))}
+            </motion.div>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.5 }}
+              className="text-center text-stadium-400 text-sm mt-10"
+            >
+              Tous les prix sont HT. TVA applicable selon votre pays de résidence.
+            </motion.p>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="relative py-20 sm:py-28 bg-white">
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-base-content/[0.06] to-transparent" />
+
+          <div className="container px-4 md:px-6">
+            <motion.div
+              className="max-w-3xl mx-auto"
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-4">
+                  <HelpCircle className="w-6 h-6 text-primary" />
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-bold text-stadium-900 tracking-[-0.02em]">
+                  Questions fréquentes
+                </h2>
+                <p className="text-stadium-500 mt-3 text-[17px]">
+                  Tout ce que vous devez savoir sur nos offres
+                </p>
+              </div>
+
+              <Accordion type="single" collapsible className="space-y-0">
+                {faqs.map((faq, i) => (
+                  <AccordionItem
+                    key={i}
+                    value={`faq-${i}`}
+                    className="border-b border-stadium-200 last:border-b-0"
+                  >
+                    <AccordionTrigger className="text-base font-medium text-stadium-800 hover:no-underline hover:text-stadium-900 py-5">
+                      {faq.question}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-stadium-500 text-[15px] leading-relaxed">
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* CTA final */}
+        <section className="relative py-20 sm:py-28 overflow-hidden bg-white">
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-base-content/[0.06] to-transparent" />
+
+          <div className="container px-4 md:px-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              className="max-w-4xl mx-auto"
+            >
+              <div className="relative rounded-[2rem] bg-[#0a0a0a] overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_-10%,rgba(34,197,94,0.1),transparent)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_30%_at_50%_110%,rgba(34,197,94,0.06),transparent)]" />
+                <div
+                  className="absolute inset-0 opacity-[0.2]"
+                  style={{
+                    backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)`,
+                    backgroundSize: "20px 20px",
+                  }}
+                />
+
+                <div className="relative px-8 py-14 md:px-16 md:py-20 text-center">
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] border border-white/[0.06] mb-8">
+                      <Users className="w-4 h-4 text-primary" />
+                      <span className="text-[13px] font-medium text-white/50">
+                        Offres sur mesure disponibles
+                      </span>
+                    </div>
+                  </motion.div>
+
+                  <motion.h2
+                    className="text-3xl md:text-4xl font-bold text-white leading-[1.1] tracking-[-0.02em] mb-4"
+                    initial={{ opacity: 0, y: 12 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.15, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    Besoin d&apos;une offre personnalisée&nbsp;?
+                  </motion.h2>
+
+                  <motion.p
+                    className="text-white/50 text-[17px] max-w-lg mx-auto mb-10 leading-relaxed"
+                    initial={{ opacity: 0, y: 12 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.2, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    Académies, fédérations, groupes d&apos;agents — contactez-nous pour une offre adaptée à la taille de votre structure.
+                  </motion.p>
+
+                  <motion.div
+                    className="flex flex-col sm:flex-row items-center justify-center gap-4"
+                    initial={{ opacity: 0, y: 12 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.25, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <Link
+                      href="/contact"
+                      className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-white text-stadium-900 text-sm font-semibold hover:bg-white/90 transition-colors"
+                    >
+                      Contactez-nous
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full border border-white/10 text-white/70 text-sm font-medium hover:bg-white/5 transition-colors"
+                    >
+                      Créer un compte gratuit
+                    </Link>
+                  </motion.div>
+
+                  <motion.div
+                    className="flex items-center justify-center gap-6 mt-8 text-white/30 text-xs"
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.35, duration: 0.5 }}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5" /> Paiements sécurisés
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Check className="w-3.5 h-3.5" /> Sans engagement
+                    </span>
+                  </motion.div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
       </main>
+
+      <Footer />
     </div>
   )
 }

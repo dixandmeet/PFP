@@ -6,6 +6,7 @@ import { handleApiError, parseBody } from "@/lib/utils/api-helpers"
 import { createApplicationSchema } from "@/lib/validators/schemas"
 import { sendEmail, emailTemplates } from "@/lib/email"
 import { getBaseUrl } from "@/lib/url"
+import { isClubRole } from "@/lib/utils/role-helpers"
 
 export async function GET(request: Request) {
   try {
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ applications: [] })
       }
       where.playerProfileId = playerProfile.id
-    } else if (user.role === "CLUB") {
+    } else if (isClubRole(user.role)) {
       // Club voit les candidatures reçues
       const clubProfile = await prisma.clubProfile.findUnique({
         where: { userId: user.id }

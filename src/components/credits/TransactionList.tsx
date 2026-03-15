@@ -45,6 +45,8 @@ const typeLabels: Record<string, string> = {
   CREDIT_EARNED_SIGNATURE: "Revenu signature",
   DEBIT_FOLLOW: "Debit follow",
   DEBIT_LISTING_CONSULT: "Debit consultation",
+  DEBIT_PROFILE_VIEW: "Consultation profil",
+  CREDIT_EARNED_PROFILE_VIEW: "Revenu consultation profil",
   DEBIT_WITHDRAWAL: "Retrait",
   EXPIRATION: "Expiration",
   REFUND: "Remboursement",

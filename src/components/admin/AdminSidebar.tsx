@@ -21,6 +21,7 @@ import {
   KeyRound,
   Coins,
   Clock,
+  BookOpen,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
@@ -159,6 +160,19 @@ export function AdminSidebar() {
           >
             <Settings className="h-4 w-4" />
             <span>Paramètres</span>
+          </Link>
+
+          <Link
+            href="/admin/documentation"
+            className={cn(
+              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors mb-1",
+              pathname.includes("/documentation")
+                ? "bg-slate-100 text-slate-900"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+            )}
+          >
+            <BookOpen className="h-4 w-4" />
+            <span>Documentation</span>
           </Link>
 
           <Separator className="my-2" />

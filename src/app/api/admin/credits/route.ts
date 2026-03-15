@@ -19,8 +19,11 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status") || ""
     const dateFrom = searchParams.get("dateFrom") || ""
     const dateTo = searchParams.get("dateTo") || ""
-    const sortBy = searchParams.get("sortBy") || "createdAt"
-    const sortOrder = (searchParams.get("sortOrder") || "desc") as "asc" | "desc"
+    const ALLOWED_SORT_FIELDS = ["createdAt", "amount", "type", "status", "walletType"] as const
+    const rawSortBy = searchParams.get("sortBy") || "createdAt"
+    const sortBy = ALLOWED_SORT_FIELDS.includes(rawSortBy as any) ? rawSortBy : "createdAt"
+    const rawSortOrder = searchParams.get("sortOrder") || "desc"
+    const sortOrder = rawSortOrder === "asc" ? "asc" : "desc"
 
     const where: any = {}
 

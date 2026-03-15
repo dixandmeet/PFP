@@ -309,9 +309,7 @@ function RegisterContent() {
           >
             {/* Logo mobile */}
             <Link href="/" className="flex lg:hidden items-center justify-center gap-2 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-pitch-500 flex items-center justify-center">
-                <FootballIcon className="w-6 h-6 text-white" />
-              </div>
+              <FootballIcon className="w-10 h-10 rounded-xl" />
               <span className="text-xl font-bold text-stadium-900">Profoot Profile</span>
             </Link>
 

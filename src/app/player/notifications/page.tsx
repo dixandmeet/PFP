@@ -48,6 +48,7 @@ const notificationIcons: Record<string, any> = {
   POST_COMMENT: MessageSquare,
   FOLLOW: UserPlus,
   AI_ACTION_COMPLETED: CheckCircle,
+  PROFILE_VIEWED: Eye,
 }
 
 export default function PlayerNotificationsPage() {

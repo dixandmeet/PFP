@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { approveClub } from "@/lib/services/club-onboarding-service"
-import { sendEmail, emailTemplates } from "@/lib/email"
+import { sendTrackedEmail, emailTemplates } from "@/lib/email"
 import { getBaseUrl } from "@/lib/url"
 
 type RouteContext = { params: Promise<{ id: string }> }
@@ -51,10 +51,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
         userName,
         dashboardUrl
       )
-      await sendEmail({
+      await sendTrackedEmail({
         to: club.user.email,
         subject: emailContent.subject,
         html: emailContent.html,
+        userId: club.userId,
+        template: "club_approved",
       })
     }
 

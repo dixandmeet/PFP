@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
-import { getSession, signIn } from "next-auth/react"
+import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
@@ -106,14 +106,16 @@ function LoginContent() {
       if (result?.error) {
         setError("Email ou mot de passe incorrect")
       } else {
-        const session = await getSession()
-        const role = session?.user?.role
         const callbackUrl = searchParams.get("callbackUrl")
+        // Validate callback URL: must start with "/" but not "//" (protocol-relative) or "/\"
         const safeCallbackUrl =
-          callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : null
-        const fallbackUrl = role === "ADMIN" ? "/admin" : role ? `/${role.toLowerCase()}/dashboard` : "/player/dashboard"
+          callbackUrl && /^\/[a-zA-Z0-9]/.test(callbackUrl) ? callbackUrl : null
 
-        router.push(safeCallbackUrl ?? fallbackUrl)
+        if (safeCallbackUrl) {
+          router.push(safeCallbackUrl)
+        } else {
+          router.push("/welcome")
+        }
         router.refresh()
       }
     } catch (err) {
@@ -128,7 +130,8 @@ function LoginContent() {
     setError("")
 
     try {
-      const callbackUrl = searchParams.get("callbackUrl") || "/welcome"
+      const rawCallbackUrl = searchParams.get("callbackUrl")
+      const callbackUrl = rawCallbackUrl && rawCallbackUrl.startsWith("/") ? rawCallbackUrl : "/welcome"
       await signIn("google", { callbackUrl })
     } catch (err) {
       setError("Erreur lors de la connexion avec Google")
@@ -166,9 +169,7 @@ function LoginContent() {
           >
             {/* Logo mobile */}
             <Link href="/" className="flex lg:hidden items-center justify-center gap-2 mb-8">
-              <div className="w-10 h-10 rounded-xl bg-pitch-500 flex items-center justify-center">
-                <FootballIcon className="w-6 h-6 text-white" />
-              </div>
+              <FootballIcon className="w-10 h-10 rounded-xl" />
               <span className="text-xl font-bold text-stadium-900">Profoot Profile</span>
             </Link>
 

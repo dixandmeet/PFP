@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 
-type Role = "PLAYER" | "AGENT" | "CLUB" | "ADMIN"
+type Role = "PLAYER" | "AGENT" | "CLUB" | "CLUB_STAFF" | "ADMIN"
 
 interface UserBadgeProps {
   role: Role
@@ -20,6 +20,10 @@ const roleConfig: Record<Role, { label: string; className: string }> = {
   CLUB: {
     label: "Club",
     className: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100",
+  },
+  CLUB_STAFF: {
+    label: "Staff Club",
+    className: "bg-teal-50 text-teal-700 border-teal-200 hover:bg-teal-100",
   },
   ADMIN: {
     label: "Admin",

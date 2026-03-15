@@ -31,11 +31,22 @@ export async function POST(request: NextRequest) {
       session.user.email
     )
 
-    // Permettre l'accès à l'espace club : mettre à jour le rôle en CLUB si ce n'est pas déjà le cas
-    if (session.user.role !== "CLUB") {
+    const isOwner = member.role === "OWNER"
+    const newRole = isOwner ? "CLUB" : "CLUB_STAFF"
+
+    // Mettre à jour le rôle utilisateur
+    if (session.user.role !== "CLUB" && session.user.role !== "CLUB_STAFF") {
       await prisma.user.update({
         where: { id: session.user.id },
-        data: { role: "CLUB" },
+        data: { role: newRole },
+      })
+    }
+
+    // Initialiser l'onboarding staff pour les non-owners
+    if (!isOwner) {
+      await prisma.clubMember.update({
+        where: { id: member.id },
+        data: { staffOnboardingStep: "PROFILE" },
       })
     }
 
@@ -43,6 +54,7 @@ export async function POST(request: NextRequest) {
       accepted: true,
       clubProfileId: member.clubProfileId,
       role: member.role,
+      staffOnboarding: !isOwner,
     })
   } catch (error) {
     return handleApiError(error)

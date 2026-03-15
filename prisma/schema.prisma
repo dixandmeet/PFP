@@ -14,15 +14,16 @@ enum Role {
   PLAYER
   AGENT
   CLUB
+  CLUB_STAFF
   ADMIN
 }
 
 enum MandateStatus {
-  PENDING      // En attente acceptation joueur
-  ACTIVE       // Actif
-  EXPIRED      // Expiré (date dépassée)
-  TERMINATED   // Résilié
-  REJECTED     // Refusé par le joueur
+  PENDING // En attente acceptation joueur
+  ACTIVE // Actif
+  EXPIRED // Expiré (date dépassée)
+  TERMINATED // Résilié
+  REJECTED // Refusé par le joueur
 }
 
 enum ApplicationStatus {
@@ -49,9 +50,9 @@ enum TeamLevel {
 }
 
 enum ClubType {
-  PRO            // Club professionnel
-  AMATEUR        // Club amateur
-  ACADEMY        // Centre de formation
+  PRO // Club professionnel
+  AMATEUR // Club amateur
+  ACADEMY // Centre de formation
 }
 
 enum ClubStatus {
@@ -77,10 +78,10 @@ enum OnboardingStep {
 }
 
 enum ClubKycDocumentType {
-  PROOF_LEGAL        // KBIS ou récépissé association
-  REPRESENTATIVE_ID  // Pièce d'identité du représentant
-  POWER_PROOF        // Statuts ou PV
-  BANK_RIB           // RIB (optionnel sauf si paiements)
+  PROOF_LEGAL // KBIS ou récépissé association
+  REPRESENTATIVE_ID // Pièce d'identité du représentant
+  POWER_PROOF // Statuts ou PV
+  BANK_RIB // RIB (optionnel sauf si paiements)
 }
 
 enum OtpPurpose {
@@ -108,6 +109,11 @@ enum NotificationType {
   MENTION
   FOLLOW
   AI_ACTION_COMPLETED
+  PROFILE_VIEWED
+  ADMIN_NEW_USER
+  ADMIN_CLUB_SUBMITTED
+  ADMIN_PAYMENT_RECEIVED
+  ADMIN_WITHDRAWAL_REQUEST
 }
 
 enum FileAssetType {
@@ -123,23 +129,23 @@ model User {
   id            String    @id @default(cuid())
   email         String    @unique
   emailVerified DateTime?
-  password      String?   // Nullable si OAuth
+  password      String? // Nullable si OAuth
   name          String?
   image         String?
   role          Role      @default(PLAYER)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // NextAuth OAuth
-  accounts      Account[]
-  sessions      Session[]
-  
+  accounts Account[]
+  sessions Session[]
+
   // Relations 1-to-1 avec profils
   playerProfile PlayerProfile?
   agentProfile  AgentProfile?
   clubProfile   ClubProfile?
-  
+
   // Social
   posts         Post[]
   comments      Comment[]
@@ -147,43 +153,46 @@ model User {
   shares        Share[]
   bookmarks     Bookmark[]
   mentions      Mention[]
-  followedBy    Follow[]  @relation("Following")
-  following     Follow[]  @relation("Follower")
+  followedBy    Follow[]       @relation("Following")
+  following     Follow[]       @relation("Follower")
   entityFollows EntityFollow[] @relation("EntityFollows")
-  
+
   // Notifications
   notifications Notification[]
-  
+
   // Audit
-  auditLogs     AuditLog[]
+  auditLogs AuditLog[]
+  emailLogs EmailLog[]
 
   // Messaging
   conversations ConversationParticipant[]
   sentMessages  Message[]
 
   // Système de crédits
-  subscription       Subscription?
-  wallets            Wallet[]
-  creditTransactions CreditTransaction[]
-  withdrawals        Withdrawal[]
-  stripeConnect      StripeConnectAccount?
-  deviceFingerprints DeviceFingerprint[]
-  fraudFlags         FraudFlag[]
-  creditFollowsAsFollower  CreditFollow[] @relation("CreditFollower")
-  creditFollowsAsFollowing CreditFollow[] @relation("CreditFollowing")
+  subscription             Subscription?
+  wallets                  Wallet[]
+  creditTransactions       CreditTransaction[]
+  withdrawals              Withdrawal[]
+  stripeConnect            StripeConnectAccount?
+  deviceFingerprints       DeviceFingerprint[]
+  fraudFlags               FraudFlag[]
+  creditFollowsAsFollower  CreditFollow[]        @relation("CreditFollower")
+  creditFollowsAsFollowing CreditFollow[]        @relation("CreditFollowing")
+  profileViewsGiven        ProfileView[]         @relation("ProfileViewer")
+  profileViewsReceived     ProfileView[]         @relation("ProfileViewed")
 
   // Documents KYC
-  kycDocuments   KycDocument[]
+  kycDocuments KycDocument[]
 
   // Club Onboarding
-  otpTokens                OtpToken[]
-  clubOnboardingSessions   ClubOnboardingSession[]
+  otpTokens              OtpToken[]
+  clubOnboardingSessions ClubOnboardingSession[]
 
   // Profil staff personnel (pour les users CLUB)
-  clubStaffProfile   ClubStaffProfile?
+  clubStaffProfile ClubStaffProfile?
 
   // Membres admin du club
-  clubMemberships    ClubMember[]
+  clubMemberships ClubMember[]
 
   @@index([email])
   @@index([role])
@@ -203,9 +212,9 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-  
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([provider, providerAccountId])
   @@index([userId])
 }
@@ -215,9 +224,9 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-  
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId])
 }
 
@@ -225,7 +234,7 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
-  
+
   @@unique([identifier, token])
 }
 
@@ -233,51 +242,51 @@ model PlayerProfile {
   id     String @id @default(cuid())
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   // Slug pour URL lisible (ex: amadou-diallo)
-  slug            String?     @unique
-  
+  slug String? @unique
+
   // Identité sportive
-  firstName       String
-  lastName        String
-  displayName     String?
-  dateOfBirth     DateTime
-  nationality     String
+  firstName         String
+  lastName          String
+  displayName       String?
+  dateOfBirth       DateTime
+  nationality       String
   secondNationality String?
-  
+
   // Physique
-  height          Int?        // cm
-  weight          Int?        // kg
-  strongFoot      String?     // LEFT, RIGHT, BOTH
-  
+  height     Int? // cm
+  weight     Int? // kg
+  strongFoot String? // LEFT, RIGHT, BOTH
+
   // Poste
-  primaryPosition String      // GK, DF, MF, FW
-  secondaryPositions String[]  // Array de positions
-  
+  primaryPosition    String // GK, DF, MF, FW
+  secondaryPositions String[] // Array de positions
+
   // Disponibilité
   availableFrom   DateTime?
   contractEndDate DateTime?
   currentClub     String?
   currentLeague   String?
-  
+
   // Médias
-  profilePicture  String?
-  coverPhoto      String?
-  videoLinks      String[]    // URLs YouTube, etc.
-  
+  profilePicture String?
+  coverPhoto     String?
+  videoLinks     String[] // URLs YouTube, etc.
+
   // Statistiques (JSON flexible)
-  statistics      Json?       // { season: "2023/24", goals: 12, assists: 5, ... }
-  
+  statistics Json? // { season: "2023/24", goals: 12, assists: 5, ... }
+
   // Bio
-  bio             String?     @db.Text
-  
+  bio String? @db.Text
+
   // Metadata
-  isPublic        Boolean     @default(true)
-  isSearchable    Boolean     @default(true)
-  
+  isPublic     Boolean @default(true)
+  isSearchable Boolean @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Relations
   careerEntries   CareerEntry[]
   applications    Application[]
@@ -286,121 +295,121 @@ model PlayerProfile {
   authoredReports PlayerReport[] @relation("ReportAuthor")
   fileAssets      FileAsset[]
   teamPlayers     TeamPlayer[]
-  
+
   @@index([userId])
   @@index([isSearchable])
 }
 
 model CareerEntry {
-  id              String   @id @default(cuid())
+  id              String        @id @default(cuid())
   playerProfileId String
   playerProfile   PlayerProfile @relation(fields: [playerProfileId], references: [id], onDelete: Cascade)
-  
-  clubName        String
-  league          String?
-  country         String?
-  season          String   // "2022/23"
-  startDate       DateTime
-  endDate         DateTime?
-  
-  position        String?
-  appearances     Int?
-  minutesPlayed   Int?
-  goals           Int?
-  assists         Int?
-  
+
+  clubName  String
+  league    String?
+  country   String?
+  season    String // "2022/23"
+  startDate DateTime
+  endDate   DateTime?
+
+  position      String?
+  appearances   Int?
+  minutesPlayed Int?
+  goals         Int?
+  assists       Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([playerProfileId])
 }
 
 model AgentProfile {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   // Slug pour URL lisible (ex: jean-dupont-agent)
-  slug            String?  @unique
-  
-  firstName       String
-  lastName        String
-  agencyName      String?
-  licenseNumber   String?
-  licenseCountry  String?
-  
-  bio             String?  @db.Text
-  specialties     String[] // ["Forwards", "African Players", ...]
-  
-  phoneNumber     String?
-  website         String?
-  profilePicture  String?
-  coverPhoto      String?
-  
-  isVerified      Boolean  @default(false)
-  
+  slug String? @unique
+
+  firstName      String
+  lastName       String
+  agencyName     String?
+  licenseNumber  String?
+  licenseCountry String?
+
+  bio         String?  @db.Text
+  specialties String[] // ["Forwards", "African Players", ...]
+
+  phoneNumber    String?
+  website        String?
+  profilePicture String?
+  coverPhoto     String?
+
+  isVerified Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  mandates        Mandate[]
-  submissions     Submission[]
-  
+
+  mandates    Mandate[]
+  submissions Submission[]
+
   @@index([userId])
   @@index([isVerified])
 }
 
 model ClubProfile {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   // Créateur vérifié (peut être différent du userId si un admin crée pour un club)
   createdByUserId String?
-  
+
   // Slug pour URL lisible (ex: fc-paris)
-  slug            String?  @unique
-  
-  clubName        String
-  shortName       String?
-  clubType        ClubType?
-  country         String
-  city            String?
-  league          String?
-  division        String?
-  
-  logo            String?
-  coverPhoto      String?
-  website         String?
-  bio             String?  @db.Text
-  
-  foundedYear     Int?
-  
+  slug String? @unique
+
+  clubName  String
+  shortName String?
+  clubType  ClubType?
+  country   String
+  city      String?
+  league    String?
+  division  String?
+
+  logo       String?
+  coverPhoto String?
+  website    String?
+  bio        String? @db.Text
+
+  foundedYear Int?
+
   // Onboarding & KYC
-  status          ClubStatus    @default(DRAFT)
-  kycStatus       ClubKycStatus @default(NOT_SUBMITTED)
-  rejectReason    String?       @db.Text
-  
+  status       ClubStatus    @default(DRAFT)
+  kycStatus    ClubKycStatus @default(NOT_SUBMITTED)
+  rejectReason String?       @db.Text
+
   // Informations légales
-  legalForm           String?
-  registrationNumber  String?
-  federation          String?
-  federationNumber    String?
-  officialEmail       String?
-  officialPhone       String?
-  address             String?   @db.Text
-  
-  isVerified      Boolean  @default(false)
-  
+  legalForm          String?
+  registrationNumber String?
+  federation         String?
+  federationNumber   String?
+  officialEmail      String?
+  officialPhone      String?
+  address            String? @db.Text
+
+  isVerified Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  teams               Team[]
-  listings            Listing[]
-  applications        Application[]
-  submissions         Submission[]
-  kycDocuments        ClubKycDocument[]
-  onboardingSession   ClubOnboardingSession?
-  members             ClubMember[]
+
+  teams             Team[]
+  listings          Listing[]
+  applications      Application[]
+  submissions       Submission[]
+  kycDocuments      ClubKycDocument[]
+  onboardingSession ClubOnboardingSession?
+  members           ClubMember[]
 
   @@index([userId])
   @@index([country])
@@ -408,38 +417,38 @@ model ClubProfile {
 }
 
 model Team {
-  id              String      @id @default(cuid())
-  clubProfileId   String
-  clubProfile     ClubProfile @relation(fields: [clubProfileId], references: [id], onDelete: Cascade)
-  
-  name            String      // "First Team", "U19", "Reserve"
-  level           TeamLevel   // PRO, AMATEUR, ACADEMY
-  division        String?     // D1-D12 (pour PRO/AMATEUR/ACADEMY hors FR)
-  category        String?     // U19, U17, U16... (FR + ACADEMY uniquement)
-  competitionName String?     // Nom compétition (FR + ACADEMY uniquement)
-  
+  id            String      @id @default(cuid())
+  clubProfileId String
+  clubProfile   ClubProfile @relation(fields: [clubProfileId], references: [id], onDelete: Cascade)
+
+  name            String // "First Team", "U19", "Reserve"
+  level           TeamLevel // PRO, AMATEUR, ACADEMY
+  division        String? // D1-D12 (pour PRO/AMATEUR/ACADEMY hors FR)
+  category        String? // U19, U17, U16... (FR + ACADEMY uniquement)
+  competitionName String? // Nom compétition (FR + ACADEMY uniquement)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  staffMembers  StaffMember[]
-  teamPlayers   TeamPlayer[]
-  listings      Listing[]
+
+  staffMembers StaffMember[]
+  teamPlayers  TeamPlayer[]
+  listings     Listing[]
 
   @@index([clubProfileId])
 }
 
 model StaffMember {
-  id        String @id @default(cuid())
-  teamId    String
-  team      Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  
-  name      String
-  role      String // "Head Coach", "Scout", "Director"
-  email     String?
-  
+  id     String @id @default(cuid())
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  name  String
+  role  String // "Head Coach", "Scout", "Director"
+  email String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([teamId])
 }
 
@@ -460,67 +469,67 @@ model TeamPlayer {
 }
 
 model Mandate {
-  id              String         @id @default(cuid())
+  id              String        @id @default(cuid())
   agentProfileId  String
-  agentProfile    AgentProfile   @relation(fields: [agentProfileId], references: [id], onDelete: Cascade)
+  agentProfile    AgentProfile  @relation(fields: [agentProfileId], references: [id], onDelete: Cascade)
   playerProfileId String
-  playerProfile   PlayerProfile  @relation(fields: [playerProfileId], references: [id], onDelete: Cascade)
-  
-  status          MandateStatus  @default(PENDING)
-  
-  startDate       DateTime
-  endDate         DateTime
-  
-  terms           String?        @db.Text // Clauses, commission, etc.
-  document        String?        // S3 key du contrat signé
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  acceptedAt DateTime?
+  playerProfile   PlayerProfile @relation(fields: [playerProfileId], references: [id], onDelete: Cascade)
+
+  status MandateStatus @default(PENDING)
+
+  startDate DateTime
+  endDate   DateTime
+
+  terms    String? @db.Text // Clauses, commission, etc.
+  document String? // S3 key du contrat signé
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  acceptedAt   DateTime?
   terminatedAt DateTime?
-  
+
+  @@unique([agentProfileId, playerProfileId, startDate])
   @@index([agentProfileId])
   @@index([playerProfileId])
   @@index([status])
   @@index([agentProfileId, playerProfileId, status])
-  @@unique([agentProfileId, playerProfileId, startDate])
 }
 
 model Listing {
-  id            String        @id @default(cuid())
+  id            String      @id @default(cuid())
   clubProfileId String
-  clubProfile   ClubProfile   @relation(fields: [clubProfileId], references: [id], onDelete: Cascade)
-  
-  teamId        String?
-  team          Team?         @relation(fields: [teamId], references: [id], onDelete: SetNull)
-  
-  title         String
-  description   String        @db.Text
-  
-  position      String        // Position recherchée
-  minAge        Int?
-  maxAge        Int?
-  nationality   String[]
-  
-  salaryMin     Int?
-  salaryMax     Int?
-  currency      String?       @default("EUR")
-  
-  contractType  String?       // "Permanent", "Loan", "Trial"
-  startDate     DateTime?
-  
-  requirements  String?       @db.Text // JSON ou texte libre
-  
-  status        ListingStatus @default(DRAFT)
-  publishedAt   DateTime?
-  closedAt      DateTime?
-  
+  clubProfile   ClubProfile @relation(fields: [clubProfileId], references: [id], onDelete: Cascade)
+
+  teamId String?
+  team   Team?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
+  title       String
+  description String @db.Text
+
+  position    String // Position recherchée
+  minAge      Int?
+  maxAge      Int?
+  nationality String[]
+
+  salaryMin Int?
+  salaryMax Int?
+  currency  String? @default("EUR")
+
+  contractType String? // "Permanent", "Loan", "Trial"
+  startDate    DateTime?
+
+  requirements String? @db.Text // JSON ou texte libre
+
+  status      ListingStatus @default(DRAFT)
+  publishedAt DateTime?
+  closedAt    DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  applications  Application[]
-  submissions   Submission[]
-  
+
+  applications Application[]
+  submissions  Submission[]
+
   @@index([clubProfileId])
   @@index([teamId])
   @@index([status])
@@ -528,51 +537,51 @@ model Listing {
 }
 
 model Application {
-  id              String            @id @default(cuid())
+  id              String        @id @default(cuid())
   playerProfileId String
-  playerProfile   PlayerProfile     @relation(fields: [playerProfileId], references: [id], onDelete: Cascade)
+  playerProfile   PlayerProfile @relation(fields: [playerProfileId], references: [id], onDelete: Cascade)
   listingId       String
-  listing         Listing           @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listing         Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
   clubProfileId   String
-  clubProfile     ClubProfile       @relation(fields: [clubProfileId], references: [id], onDelete: Cascade)
-  
-  status          ApplicationStatus @default(SUBMITTED)
-  
-  coverLetter     String?           @db.Text
-  attachments     String[]          // S3 keys
-  
+  clubProfile     ClubProfile   @relation(fields: [clubProfileId], references: [id], onDelete: Cascade)
+
+  status ApplicationStatus @default(SUBMITTED)
+
+  coverLetter String?  @db.Text
+  attachments String[] // S3 keys
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
+  @@unique([playerProfileId, listingId])
   @@index([playerProfileId])
   @@index([listingId])
   @@index([clubProfileId])
   @@index([status])
   @@index([clubProfileId, status])
   @@index([playerProfileId, status])
-  @@unique([playerProfileId, listingId])
 }
 
 model Submission {
-  id              String            @id @default(cuid())
+  id              String       @id @default(cuid())
   agentProfileId  String
-  agentProfile    AgentProfile      @relation(fields: [agentProfileId], references: [id], onDelete: Cascade)
-  playerProfileId String            // Référence indirect via JSON ou string
+  agentProfile    AgentProfile @relation(fields: [agentProfileId], references: [id], onDelete: Cascade)
+  playerProfileId String // Référence indirect via JSON ou string
   listingId       String?
-  listing         Listing?          @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  listing         Listing?     @relation(fields: [listingId], references: [id], onDelete: SetNull)
   clubProfileId   String
-  clubProfile     ClubProfile       @relation(fields: [clubProfileId], references: [id], onDelete: Cascade)
-  
-  status          ApplicationStatus @default(SUBMITTED)
-  
-  message         String?           @db.Text
-  playerData      Json              // Snapshot du profil joueur
-  reportIds       String[]          // IDs des rapports joints
-  attachments     String[]
-  
+  clubProfile     ClubProfile  @relation(fields: [clubProfileId], references: [id], onDelete: Cascade)
+
+  status ApplicationStatus @default(SUBMITTED)
+
+  message     String?  @db.Text
+  playerData  Json // Snapshot du profil joueur
+  reportIds   String[] // IDs des rapports joints
+  attachments String[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([agentProfileId])
   @@index([clubProfileId])
   @@index([listingId])
@@ -580,40 +589,40 @@ model Submission {
 }
 
 model PlayerReport {
-  id              String        @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // Sujet du rapport
-  subjectId       String
-  subject         PlayerProfile @relation("ReportSubject", fields: [subjectId], references: [id], onDelete: Cascade)
-  
+  subjectId String
+  subject   PlayerProfile @relation("ReportSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+
   // Auteur du rapport (peut être le joueur lui-même ou un tiers)
-  authorId        String
-  author          PlayerProfile @relation("ReportAuthor", fields: [authorId], references: [id], onDelete: Cascade)
-  
-  authorType      String        // "PLAYER", "AGENT", "SCOUT", "COACH"
-  
-  title           String
-  shareSlug       String?       @unique // slug lisible pour les liens partagés
-  version         Int           @default(1)
-  status          ReportStatus  @default(DRAFT)
-  
+  authorId String
+  author   PlayerProfile @relation("ReportAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  authorType String // "PLAYER", "AGENT", "SCOUT", "COACH"
+
+  title     String
+  shareSlug String?      @unique // slug lisible pour les liens partagés
+  version   Int          @default(1)
+  status    ReportStatus @default(DRAFT)
+
   // Structure du rapport
-  sections        ReportSection[]
-  
-  attachments     String[]      // S3 keys
-  
+  sections ReportSection[]
+
+  attachments String[] // S3 keys
+
   // Permissions d'accès (JSON: { userIds: [...], roles: [...] })
-  accessPolicy    Json?
-  
-  approvedBy      String?       // UserId qui a approuvé (si tiers)
-  approvedAt      DateTime?
-  
+  accessPolicy Json?
+
+  approvedBy String? // UserId qui a approuvé (si tiers)
+  approvedAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Messaging
   messageAttachments MessageAttachment[]
-  
+
   @@index([subjectId])
   @@index([authorId])
   @@index([status])
@@ -623,192 +632,192 @@ model ReportSection {
   id       String       @id @default(cuid())
   reportId String
   report   PlayerReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  
-  order    Int
-  title    String
-  content  String       @db.Text // Markdown ou JSON
-  
+
+  order   Int
+  title   String
+  content String @db.Text // Markdown ou JSON
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([reportId])
 }
 
 // Social Feed
 model Post {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   content   String   @db.Text
   mediaUrls String[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   comments  Comment[]
   likes     Like[]
   shares    Share[]
   bookmarks Bookmark[]
   mentions  Mention[]
   hashtags  PostHashtag[]
-  
+
   @@index([userId])
   @@index([createdAt])
   @@index([userId, createdAt])
 }
 
 model Comment {
-  id        String   @id @default(cuid())
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  content   String   @db.Text
-  
+  id     String @id @default(cuid())
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  content String @db.Text
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([postId])
   @@index([userId])
 }
 
 model Like {
-  id        String   @id @default(cuid())
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id     String @id @default(cuid())
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
-  
+
   @@unique([postId, userId])
   @@index([postId])
   @@index([userId])
 }
 
 model Follow {
-  id          String   @id @default(cuid())
+  id          String @id @default(cuid())
   followerId  String
-  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  follower    User   @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
   followingId String
-  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
-  
+  following   User   @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
-  
+
   @@unique([followerId, followingId])
   @@index([followerId])
   @@index([followingId])
 }
 
 model Share {
-  id        String   @id @default(cuid())
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  comment   String?  @db.Text // Commentaire optionnel lors du partage
-  
+  id     String @id @default(cuid())
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  comment String? @db.Text // Commentaire optionnel lors du partage
+
   createdAt DateTime @default(now())
-  
+
   @@unique([postId, userId])
   @@index([postId])
   @@index([userId])
 }
 
 model Bookmark {
-  id        String   @id @default(cuid())
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id     String @id @default(cuid())
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
-  
+
   @@unique([postId, userId])
   @@index([postId])
   @@index([userId])
 }
 
 model Mention {
-  id        String   @id @default(cuid())
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId    String   // Utilisateur mentionné
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id     String @id @default(cuid())
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId String // Utilisateur mentionné
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
-  
+
   @@index([postId])
   @@index([userId])
 }
 
 model Hashtag {
-  id        String   @id @default(cuid())
-  tag       String   @unique
-  
-  posts     PostHashtag[]
-  
+  id  String @id @default(cuid())
+  tag String @unique
+
+  posts PostHashtag[]
+
   createdAt DateTime @default(now())
-  
+
   @@index([tag])
 }
 
 model PostHashtag {
   postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
   hashtagId String
-  hashtag   Hashtag  @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
-  
+  hashtag   Hashtag @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
-  
+
   @@id([postId, hashtagId])
   @@index([postId])
   @@index([hashtagId])
 }
 
 model FileAsset {
-  id              String        @id @default(cuid())
-  key             String        @unique // S3 key
-  url             String
-  filename        String
-  mimeType        String
-  size            Int
-  type            FileAssetType
-  
+  id       String        @id @default(cuid())
+  key      String        @unique // S3 key
+  url      String
+  filename String
+  mimeType String
+  size     Int
+  type     FileAssetType
+
   // Owner
-  ownerId         String
-  ownerType       String        // "USER", "PLAYER", "CLUB", etc.
-  
+  ownerId   String
+  ownerType String // "USER", "PLAYER", "CLUB", etc.
+
   // Permissions (JSON: { public: bool, allowedUsers: [...] })
-  accessPolicy    Json?
-  
+  accessPolicy Json?
+
   // Relations optionnelles
   playerProfileId String?
   playerProfile   PlayerProfile? @relation(fields: [playerProfileId], references: [id], onDelete: SetNull)
-  
+
   createdAt DateTime @default(now())
-  
+
   @@index([ownerId])
   @@index([playerProfileId])
 }
 
 model Notification {
-  id        String           @id @default(cuid())
-  userId    String
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  type      NotificationType
-  title     String
-  message   String           @db.Text
-  link      String?
-  
-  isRead    Boolean          @default(false)
-  
-  createdAt DateTime         @default(now())
-  
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type    NotificationType
+  title   String
+  message String           @db.Text
+  link    String?
+
+  isRead Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
   @@index([userId])
   @@index([isRead])
   @@index([createdAt])
@@ -816,22 +825,38 @@ model Notification {
 }
 
 model AuditLog {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  action    String   // "CREATE_POST", "AI_APPLY_TO_LISTING", etc.
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  action     String // "CREATE_POST", "AI_APPLY_TO_LISTING", etc.
   targetType String? // "POST", "APPLICATION", "MANDATE"
   targetId   String?
-  
-  metadata  Json?    // Détails supplémentaires
+
+  metadata  Json? // Détails supplémentaires
   ipAddress String?
   userAgent String?
-  
+
   createdAt DateTime @default(now())
-  
+
   @@index([userId])
   @@index([action])
+  @@index([createdAt])
+}
+
+model EmailLog {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  to       String
+  subject  String
+  template String // "welcome", "otp", "club_submitted", "club_approved", etc.
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
   @@index([createdAt])
 }
 
@@ -841,9 +866,9 @@ model PasswordResetToken {
   token     String   @unique
   expiresAt DateTime
   used      Boolean  @default(false)
-  
+
   createdAt DateTime @default(now())
-  
+
   @@index([email])
   @@index([token])
 }
@@ -859,11 +884,11 @@ model EntityFollow {
   id         String     @id @default(cuid())
   userId     String
   user       User       @relation("EntityFollows", fields: [userId], references: [id], onDelete: Cascade)
-  entityId   String     // ID de l'entité suivie (club, joueur ou agent)
+  entityId   String // ID de l'entité suivie (club, joueur ou agent)
   entityType EntityType // Type de l'entité
-  
+
   createdAt DateTime @default(now())
-  
+
   @@unique([userId, entityId, entityType])
   @@index([userId])
   @@index([entityId])
@@ -885,35 +910,35 @@ enum MatchStatus {
 
 // Table de mapping des IDs entre les différentes APIs de football
 model FootballTeam {
-  id              String   @id @default(cuid())
-  name            String
-  shortName       String?
-  country         String
-  league          String?
-  
+  id        String  @id @default(cuid())
+  name      String
+  shortName String?
+  country   String
+  league    String?
+
   // IDs des différentes APIs externes
-  apiFootballId   Int?     @unique  // API-Football (api-sports.io)
-  footballDataId  Int?     @unique  // Football-Data.org
-  sportsDbId      String?  @unique  // TheSportsDB
-  
+  apiFootballId  Int?    @unique // API-Football (api-sports.io)
+  footballDataId Int?    @unique // Football-Data.org
+  sportsDbId     String? @unique // TheSportsDB
+
   // Assets cachés depuis TheSportsDB
-  logo            String?
-  banner          String?
-  stadiumImage    String?
-  jersey          String?
-  venue           String?
-  founded         Int?
-  
+  logo         String?
+  banner       String?
+  stadiumImage String?
+  jersey       String?
+  venue        String?
+  founded      Int?
+
   // Metadata de synchronisation
-  lastSyncedAt    DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
+  lastSyncedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
   // Relations
-  homeMatches     FootballMatch[] @relation("HomeTeam")
-  awayMatches     FootballMatch[] @relation("AwayTeam")
-  players         FootballPlayer[]
-  
+  homeMatches FootballMatch[]  @relation("HomeTeam")
+  awayMatches FootballMatch[]  @relation("AwayTeam")
+  players     FootballPlayer[]
+
   @@index([name])
   @@index([country])
   @@index([league])
@@ -921,31 +946,31 @@ model FootballTeam {
 
 // Table des joueurs externes (TheSportsDB)
 model FootballPlayer {
-  id              String    @id @default(cuid())
-  name            String
-  position        String?
-  nationality     String?
-  dateOfBirth     DateTime?
-  number          Int?
-  
+  id          String    @id @default(cuid())
+  name        String
+  position    String?
+  nationality String?
+  dateOfBirth DateTime?
+  number      Int?
+
   // IDs des différentes APIs externes
-  sportsDbId      String?   @unique  // TheSportsDB
-  apiFootballId   Int?      @unique  // API-Football (api-sports.io)
-  
+  sportsDbId    String? @unique // TheSportsDB
+  apiFootballId Int?    @unique // API-Football (api-sports.io)
+
   // Assets
-  image           String?
-  cutout          String?
-  
+  image  String?
+  cutout String?
+
   // Équipe actuelle (optionnel)
-  teamId          String?
-  team            FootballTeam? @relation(fields: [teamId], references: [id])
-  teamName        String?       // Nom de l'équipe (si pas de relation)
-  
+  teamId   String?
+  team     FootballTeam? @relation(fields: [teamId], references: [id])
+  teamName String? // Nom de l'équipe (si pas de relation)
+
   // Metadata de synchronisation
-  lastSyncedAt    DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
+  lastSyncedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
   @@index([name])
   @@index([nationality])
   @@index([teamId])
@@ -953,35 +978,35 @@ model FootballPlayer {
 
 // Table des matchs avec IDs de toutes les APIs
 model FootballMatch {
-  id              String      @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // IDs des différentes APIs externes
-  apiFootballId   Int?        @unique  // API-Football (api-sports.io)
-  footballDataId  Int?        @unique  // Football-Data.org
-  sportsDbId      String?     @unique  // TheSportsDB
-  
+  apiFootballId  Int?    @unique // API-Football (api-sports.io)
+  footballDataId Int?    @unique // Football-Data.org
+  sportsDbId     String? @unique // TheSportsDB
+
   // Relations équipes
-  homeTeamId      String
-  homeTeam        FootballTeam @relation("HomeTeam", fields: [homeTeamId], references: [id], onDelete: Cascade)
-  awayTeamId      String
-  awayTeam        FootballTeam @relation("AwayTeam", fields: [awayTeamId], references: [id], onDelete: Cascade)
-  
+  homeTeamId String
+  homeTeam   FootballTeam @relation("HomeTeam", fields: [homeTeamId], references: [id], onDelete: Cascade)
+  awayTeamId String
+  awayTeam   FootballTeam @relation("AwayTeam", fields: [awayTeamId], references: [id], onDelete: Cascade)
+
   // Données du match
   homeScore       Int?
   awayScore       Int?
-  status          MatchStatus  @default(SCHEDULED)
+  status          MatchStatus @default(SCHEDULED)
   matchDate       DateTime
   competition     String
-  competitionCode String?      // Code de la compétition (ex: "PL", "FL1")
+  competitionCode String? // Code de la compétition (ex: "PL", "FL1")
   matchday        Int?
   venue           String?
-  season          String?      // "2024/25"
-  
+  season          String? // "2024/25"
+
   // Metadata de synchronisation
-  lastSyncedAt    DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
+  lastSyncedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
   @@index([homeTeamId])
   @@index([awayTeamId])
   @@index([matchDate])
@@ -992,14 +1017,14 @@ model FootballMatch {
 
 // Cache générique pour les réponses API
 model ApiCache {
-  id              String   @id @default(cuid())
-  cacheKey        String   @unique   // Clé unique pour identifier le cache
-  source          String             // "api-football" | "football-data" | "thesportsdb"
-  dataType        String             // "live" | "schedule" | "standings" | "team" | "assets"
-  data            Json               // Données JSON cachées
-  expiresAt       DateTime           // Date d'expiration du cache
-  createdAt       DateTime @default(now())
-  
+  id        String   @id @default(cuid())
+  cacheKey  String   @unique // Clé unique pour identifier le cache
+  source    String // "api-football" | "football-data" | "thesportsdb"
+  dataType  String // "live" | "schedule" | "standings" | "team" | "assets"
+  data      Json // Données JSON cachées
+  expiresAt DateTime // Date d'expiration du cache
+  createdAt DateTime @default(now())
+
   @@index([cacheKey])
   @@index([source])
   @@index([dataType])
@@ -1025,27 +1050,27 @@ enum RecoveryEntityType {
 }
 
 model ProfileRecoveryRequest {
-  id              String                @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   requesterEmail  String
   requesterName   String
   requesterUserId String?
-  
-  entityType      RecoveryEntityType
-  entityName      String
-  entityId        String?
-  
-  message         String                @db.Text
-  proofDocuments  String[]
-  
-  status          RecoveryRequestStatus @default(PENDING)
-  adminNote       String?               @db.Text
-  reviewedBy      String?
-  reviewedAt      DateTime?
-  
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
-  
+
+  entityType RecoveryEntityType
+  entityName String
+  entityId   String?
+
+  message        String   @db.Text
+  proofDocuments String[]
+
+  status     RecoveryRequestStatus @default(PENDING)
+  adminNote  String?               @db.Text
+  reviewedBy String?
+  reviewedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([status])
   @@index([entityType])
   @@index([requesterEmail])
@@ -1062,16 +1087,16 @@ enum MessageAttachmentType {
 }
 
 model Conversation {
-  id           String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   participants ConversationParticipant[]
   messages     Message[]
-  
+
   lastMessageAt DateTime?
-  
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([lastMessageAt])
 }
 
@@ -1081,11 +1106,11 @@ model ConversationParticipant {
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   userId         String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  lastReadAt     DateTime?
-  
-  createdAt      DateTime     @default(now())
-  
+
+  lastReadAt DateTime?
+
+  createdAt DateTime @default(now())
+
   @@unique([conversationId, userId])
   @@index([conversationId])
   @@index([userId])
@@ -1097,38 +1122,38 @@ model Message {
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   senderId       String
   sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
-  
-  content        String?      @db.Text
-  
-  attachments    MessageAttachment[]
-  
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  
+
+  content String? @db.Text
+
+  attachments MessageAttachment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([conversationId])
   @@index([senderId])
   @@index([createdAt])
 }
 
 model MessageAttachment {
-  id        String                @id @default(cuid())
+  id        String  @id @default(cuid())
   messageId String
-  message   Message               @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  
-  type      MessageAttachmentType
-  
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  type MessageAttachmentType
+
   // Pour les fichiers (FILE)
-  fileUrl   String?
-  fileName  String?
-  fileSize  Int?
-  mimeType  String?
-  
+  fileUrl  String?
+  fileName String?
+  fileSize Int?
+  mimeType String?
+
   // Pour les rapports (REPORT)
-  reportId  String?
-  report    PlayerReport?         @relation(fields: [reportId], references: [id], onDelete: SetNull)
-  
-  createdAt DateTime              @default(now())
-  
+  reportId String?
+  report   PlayerReport? @relation(fields: [reportId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
   @@index([messageId])
   @@index([reportId])
 }
@@ -1138,11 +1163,11 @@ model MessageAttachment {
 // ============================================
 
 enum SubscriptionPlan {
-  FREE     // Formule gratuite par défaut (0€, 0 crédits inclus, pas de redistribution)
-  STARTER  // 10€/mois → 10 crédits, 25% redistribution
-  GROWTH   // 50€/mois → 50 crédits, 30% redistribution
-  PRO      // 200€/mois → 200 crédits, 40% redistribution
-  ELITE    // 500€/mois → 500 crédits, 50% redistribution
+  FREE // Formule gratuite par défaut (0€, 0 crédits inclus, pas de redistribution)
+  STARTER // 10€/mois → 10 crédits, 25% redistribution
+  GROWTH // 50€/mois → 50 crédits, 30% redistribution
+  PRO // 200€/mois → 200 crédits, 40% redistribution
+  ELITE // 500€/mois → 500 crédits, 50% redistribution
 }
 
 enum SubscriptionStatus {
@@ -1153,24 +1178,26 @@ enum SubscriptionStatus {
 }
 
 enum WalletType {
-  SUBSCRIPTION   // Crédits mensuels inclus dans l'abonnement
-  PURCHASED      // Crédits achetés via recharge
-  EARNED         // Crédits gagnés (followers, annonces) — retirables
-  BONUS          // Crédits promotionnels
+  SUBSCRIPTION // Crédits mensuels inclus dans l'abonnement
+  PURCHASED // Crédits achetés via recharge
+  EARNED // Crédits gagnés (followers, annonces) — retirables
+  BONUS // Crédits promotionnels
 }
 
 enum TransactionType {
-  CREDIT_SUBSCRIPTION     // Allocation mensuelle abonnement
-  CREDIT_PURCHASE         // Achat de crédits (recharge)
-  CREDIT_BONUS            // Bonus promotionnel
-  CREDIT_EARNED_FOLLOW    // Gagné via redistribution follower
-  CREDIT_EARNED_LISTING   // Gagné via consultation annonce (part club)
+  CREDIT_SUBSCRIPTION // Allocation mensuelle abonnement
+  CREDIT_PURCHASE // Achat de crédits (recharge)
+  CREDIT_BONUS // Bonus promotionnel
+  CREDIT_EARNED_FOLLOW // Gagné via redistribution follower
+  CREDIT_EARNED_LISTING // Gagné via consultation annonce (part club)
   CREDIT_EARNED_SIGNATURE // Gagné via complément signature validée
-  DEBIT_FOLLOW            // Coût mensuel follow (1 crédit/mois)
-  DEBIT_LISTING_CONSULT   // Coût consultation annonce
-  DEBIT_WITHDRAWAL        // Retrait vers compte bancaire
-  EXPIRATION              // Expiration annuelle (1er janvier)
-  REFUND                  // Remboursement admin
+  DEBIT_FOLLOW // Coût mensuel follow (1 crédit/mois)
+  DEBIT_LISTING_CONSULT // Coût consultation annonce
+  DEBIT_PROFILE_VIEW // Coût consultation profil (1 crédit)
+  CREDIT_EARNED_PROFILE_VIEW // Revenu consultation profil
+  DEBIT_WITHDRAWAL // Retrait vers compte bancaire
+  EXPIRATION // Expiration annuelle (1er janvier)
+  REFUND // Remboursement admin
 }
 
 enum TransactionStatus {
@@ -1181,12 +1208,12 @@ enum TransactionStatus {
 }
 
 enum WithdrawalStatus {
-  PENDING_REVIEW    // Soumis, délai 7 jours
-  APPROVED          // Vérifié, prêt pour paiement
-  PROCESSING        // Paiement en cours via Stripe
-  COMPLETED         // Argent transféré
-  REJECTED          // Rejeté (fraude ou insuffisant)
-  CANCELLED         // Annulé par l'utilisateur
+  PENDING_REVIEW // Soumis, délai 7 jours
+  APPROVED // Vérifié, prêt pour paiement
+  PROCESSING // Paiement en cours via Stripe
+  COMPLETED // Argent transféré
+  REJECTED // Rejeté (fraude ou insuffisant)
+  CANCELLED // Annulé par l'utilisateur
 }
 
 enum FraudFlagType {
@@ -1214,28 +1241,28 @@ enum KycStatus {
 
 // Abonnement utilisateur (1-to-1 avec User)
 model Subscription {
-  id                    String             @id @default(cuid())
-  userId                String             @unique
-  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  plan                  SubscriptionPlan
-  status                SubscriptionStatus @default(ACTIVE)
+  plan   SubscriptionPlan
+  status SubscriptionStatus @default(ACTIVE)
 
   // Stripe
-  stripeCustomerId      String?            @unique
-  stripeSubscriptionId  String?            @unique
-  stripePriceId         String?
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+  stripePriceId        String?
 
   // Cycle de facturation
-  currentPeriodStart    DateTime
-  currentPeriodEnd      DateTime
-  cancelledAt           DateTime?
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelledAt        DateTime?
 
   // Crédits alloués cette période
-  creditsAllocated      Int                @default(0)
+  creditsAllocated Int @default(0)
 
-  createdAt             DateTime           @default(now())
-  updatedAt             DateTime           @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([status])
@@ -1244,18 +1271,18 @@ model Subscription {
 
 // Wallet — 4 par utilisateur (SUBSCRIPTION, PURCHASED, EARNED, BONUS)
 model Wallet {
-  id        String     @id @default(cuid())
-  userId    String
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  type      WalletType
-  balance   Int        @default(0) // En crédits (1 crédit = 1€)
+  type    WalletType
+  balance Int        @default(0) // En crédits (1 crédit = 1€)
 
   // Version pour optimistic locking (protection race conditions)
-  version   Int        @default(0)
+  version Int @default(0)
 
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, type])
   @@index([userId])
@@ -1263,30 +1290,30 @@ model Wallet {
 
 // Transaction de crédits — log immutable
 model CreditTransaction {
-  id              String            @id @default(cuid())
-  userId          String
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  walletType      WalletType        // Quel wallet est affecté
-  type            TransactionType
-  status          TransactionStatus @default(COMPLETED)
+  walletType WalletType // Quel wallet est affecté
+  type       TransactionType
+  status     TransactionStatus @default(COMPLETED)
 
-  amount          Int               // Toujours positif; sens déterminé par le type
-  balanceBefore   Int               // Solde avant cette transaction
-  balanceAfter    Int               // Solde après cette transaction
+  amount        Int // Toujours positif; sens déterminé par le type
+  balanceBefore Int // Solde avant cette transaction
+  balanceAfter  Int // Solde après cette transaction
 
   // Contexte / références
-  referenceId     String?           // ex: followId, listingId, withdrawalId
-  referenceType   String?           // "FOLLOW", "LISTING", "WITHDRAWAL", etc.
-  counterpartyId  String?           // Autre utilisateur impliqué
+  referenceId    String? // ex: followId, listingId, withdrawalId
+  referenceType  String? // "FOLLOW", "LISTING", "WITHDRAWAL", etc.
+  counterpartyId String? // Autre utilisateur impliqué
 
-  description     String?
-  metadata        Json?
+  description String?
+  metadata    Json?
 
   // Idempotence — empêche les double-débits
-  idempotencyKey  String?           @unique
+  idempotencyKey String? @unique
 
-  createdAt       DateTime          @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([userId, walletType])
@@ -1298,21 +1325,21 @@ model CreditTransaction {
 
 // Liaison Follow ↔ Facturation mensuelle
 model CreditFollow {
-  id             String   @id @default(cuid())
-  followerId     String
-  follower       User     @relation("CreditFollower", fields: [followerId], references: [id], onDelete: Cascade)
-  followingId    String
-  following      User     @relation("CreditFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+  id          String @id @default(cuid())
+  followerId  String
+  follower    User   @relation("CreditFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User   @relation("CreditFollowing", fields: [followingId], references: [id], onDelete: Cascade)
 
   // Référence vers EntityFollow
-  entityFollowId String   @unique
+  entityFollowId String @unique
 
-  isActive       Boolean  @default(true)
-  lastChargedAt  DateTime?
-  nextChargeAt   DateTime?
+  isActive      Boolean   @default(true)
+  lastChargedAt DateTime?
+  nextChargeAt  DateTime?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([followerId, followingId])
   @@index([followerId])
@@ -1323,16 +1350,16 @@ model CreditFollow {
 
 // Consultation payante d'annonce
 model ListingConsultation {
-  id            String   @id @default(cuid())
+  id            String @id @default(cuid())
   userId        String
   listingId     String
   clubProfileId String
 
-  creditsCost   Int      // Crédits débités de l'utilisateur
-  creditsToClub Int      // Crédits crédités au club (25%)
-  divisionRate  String?  // D1, D2, D3, OTHER
+  creditsCost   Int // Crédits débités de l'utilisateur
+  creditsToClub Int // Crédits crédités au club (25%)
+  divisionRate  String? // D1, D2, D3, OTHER
 
-  createdAt     DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([userId, listingId])
   @@index([userId])
@@ -1340,27 +1367,45 @@ model ListingConsultation {
   @@index([clubProfileId])
 }
 
+// Consultation payante de profil
+model ProfileView {
+  id        String   @id @default(cuid())
+  viewerId  String
+  viewedId  String
+  viewer    User     @relation("ProfileViewer", fields: [viewerId], references: [id], onDelete: Cascade)
+  viewed    User     @relation("ProfileViewed", fields: [viewedId], references: [id], onDelete: Cascade)
+
+  viewerRole  Role   // Rôle du visiteur au moment de la consultation
+  creditsCost Int    // Crédits débités du visiteur (1)
+
+  createdAt DateTime @default(now())
+
+  @@index([viewerId])
+  @@index([viewedId])
+  @@index([viewedId, createdAt])
+}
+
 // Validation de signature (preuve + complément 50%)
 model SignatureValidation {
-  id                String   @id @default(cuid())
-  listingId         String
-  clubProfileId     String
-  playerUserId      String
+  id            String @id @default(cuid())
+  listingId     String
+  clubProfileId String
+  playerUserId  String
 
   // Preuve
-  proofDocument     String?  // Clé S3
-  proofStatus       String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  proofDocument String? // Clé S3
+  proofStatus   String  @default("PENDING") // PENDING, APPROVED, REJECTED
 
   // Crédits complémentaires
-  totalApplications Int      @default(0)
-  complementPaid    Boolean  @default(false)
-  complementAmount  Int      @default(0)
+  totalApplications Int     @default(0)
+  complementPaid    Boolean @default(false)
+  complementAmount  Int     @default(0)
 
-  approvedBy        String?
-  approvedAt        DateTime?
+  approvedBy String?
+  approvedAt DateTime?
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([listingId])
   @@index([clubProfileId])
@@ -1369,32 +1414,32 @@ model SignatureValidation {
 
 // Demande de retrait
 model Withdrawal {
-  id              String           @id @default(cuid())
-  userId          String
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  amount          Int              // Crédits à retirer
-  commission      Int              // Commission 20%
-  netAmount       Int              // amount - commission (en centimes EUR)
+  amount     Int // Crédits à retirer
+  commission Int // Commission 20%
+  netAmount  Int // amount - commission (en centimes EUR)
 
-  status          WithdrawalStatus @default(PENDING_REVIEW)
+  status WithdrawalStatus @default(PENDING_REVIEW)
 
   // Stripe Connect
   stripeConnectAccountId String?
   stripePayoutId         String?
 
   // Délai de sécurité
-  requestedAt     DateTime         @default(now())
-  availableAt     DateTime         // requestedAt + 7 jours
-  processedAt     DateTime?
-  completedAt     DateTime?
+  requestedAt DateTime  @default(now())
+  availableAt DateTime // requestedAt + 7 jours
+  processedAt DateTime?
+  completedAt DateTime?
 
   // Revue admin
-  reviewedBy      String?
-  reviewNote      String?
+  reviewedBy String?
+  reviewNote String?
 
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([status])
@@ -1403,19 +1448,19 @@ model Withdrawal {
 
 // Compte Stripe Connect (pour les retraits)
 model StripeConnectAccount {
-  id                    String    @id @default(cuid())
-  userId                String    @unique
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  stripeAccountId       String    @unique
-  kycStatus             KycStatus @default(NOT_STARTED)
+  stripeAccountId String    @unique
+  kycStatus       KycStatus @default(NOT_STARTED)
 
-  chargesEnabled        Boolean   @default(false)
-  payoutsEnabled        Boolean   @default(false)
-  detailsSubmitted      Boolean   @default(false)
+  chargesEnabled   Boolean @default(false)
+  payoutsEnabled   Boolean @default(false)
+  detailsSubmitted Boolean @default(false)
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([stripeAccountId])
@@ -1423,17 +1468,17 @@ model StripeConnectAccount {
 
 // Empreinte device (anti-fraude)
 model DeviceFingerprint {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  fingerprint     String   // Hash empreinte device
-  ipAddress       String?
-  userAgent       String?  @db.Text
-  metadata        Json?    // Résolution écran, timezone, etc.
+  fingerprint String // Hash empreinte device
+  ipAddress   String?
+  userAgent   String? @db.Text
+  metadata    Json? // Résolution écran, timezone, etc.
 
-  firstSeenAt     DateTime @default(now())
-  lastSeenAt      DateTime @default(now())
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
 
   @@unique([userId, fingerprint])
   @@index([userId])
@@ -1443,22 +1488,22 @@ model DeviceFingerprint {
 
 // Flag de fraude
 model FraudFlag {
-  id              String            @id @default(cuid())
-  userId          String
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  type            FraudFlagType
-  severity        FraudFlagSeverity @default(LOW)
+  type     FraudFlagType
+  severity FraudFlagSeverity @default(LOW)
 
-  description     String            @db.Text
-  evidence        Json?
+  description String @db.Text
+  evidence    Json?
 
-  isResolved      Boolean           @default(false)
-  resolvedBy      String?
-  resolvedAt      DateTime?
-  resolution      String?           @db.Text
+  isResolved Boolean   @default(false)
+  resolvedBy String?
+  resolvedAt DateTime?
+  resolution String?   @db.Text
 
-  createdAt       DateTime          @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([type])
@@ -1468,13 +1513,13 @@ model FraudFlag {
 
 // Log des expirations annuelles (1er janvier)
 model CreditExpiration {
-  id            String     @id @default(cuid())
-  userId        String
-  walletType    WalletType // SUBSCRIPTION ou BONUS
-  amount        Int        // Crédits expirés
-  year          Int        // Année d'expiration
+  id         String     @id @default(cuid())
+  userId     String
+  walletType WalletType // SUBSCRIPTION ou BONUS
+  amount     Int // Crédits expirés
+  year       Int // Année d'expiration
 
-  createdAt     DateTime   @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([year])
@@ -1482,27 +1527,27 @@ model CreditExpiration {
 
 // Documents KYC soumis par l'utilisateur
 model KycDocument {
-  id              String              @id @default(cuid())
-  userId          String
-  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  type            KycDocumentType
-  status          KycDocumentStatus   @default(PENDING)
+  type   KycDocumentType
+  status KycDocumentStatus @default(PENDING)
 
-  fileName        String              // Nom original du fichier
-  fileUrl         String              // URL S3 / stockage
-  fileSize        Int?                // Taille en octets
-  mimeType        String?             // ex: application/pdf, image/jpeg
+  fileName String // Nom original du fichier
+  fileUrl  String // URL S3 / stockage
+  fileSize Int? // Taille en octets
+  mimeType String? // ex: application/pdf, image/jpeg
 
   // Review admin
   reviewedBy      String?
   reviewedAt      DateTime?
-  rejectionReason String?             @db.Text
+  rejectionReason String?   @db.Text
 
-  expiresAt       DateTime?           // Date d'expiration du document
+  expiresAt DateTime? // Date d'expiration du document
 
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([type])
@@ -1510,21 +1555,21 @@ model KycDocument {
 }
 
 enum KycDocumentType {
-  IDENTITY_CARD       // Carte d'identité
-  PASSPORT            // Passeport
-  DRIVING_LICENSE     // Permis de conduire
-  PROOF_OF_ADDRESS    // Justificatif de domicile
-  AGENT_LICENSE       // Licence d'agent
-  CLUB_REGISTRATION   // Enregistrement du club
-  BANK_DETAILS        // RIB / coordonnées bancaires
-  OTHER               // Autre document
+  IDENTITY_CARD // Carte d'identité
+  PASSPORT // Passeport
+  DRIVING_LICENSE // Permis de conduire
+  PROOF_OF_ADDRESS // Justificatif de domicile
+  AGENT_LICENSE // Licence d'agent
+  CLUB_REGISTRATION // Enregistrement du club
+  BANK_DETAILS // RIB / coordonnées bancaires
+  OTHER // Autre document
 }
 
 enum KycDocumentStatus {
-  PENDING             // En attente de vérification
-  APPROVED            // Approuvé
-  REJECTED            // Rejeté
-  EXPIRED             // Expiré
+  PENDING // En attente de vérification
+  APPROVED // Approuvé
+  REJECTED // Rejeté
+  EXPIRED // Expiré
 }
 
 // ============================================
@@ -1532,20 +1577,20 @@ enum KycDocumentStatus {
 // ============================================
 
 model ClubKycDocument {
-  id              String              @id @default(cuid())
-  clubId          String
-  club            ClubProfile         @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  
-  type            ClubKycDocumentType
-  url             String              // S3 URL
-  filename        String
-  mime            String
-  size            Int                 // Taille en octets
-  
-  uploadedAt      DateTime            @default(now())
-  verifiedAt      DateTime?
+  id     String      @id @default(cuid())
+  clubId String
+  club   ClubProfile @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  type     ClubKycDocumentType
+  url      String // S3 URL
+  filename String
+  mime     String
+  size     Int // Taille en octets
+
+  uploadedAt       DateTime  @default(now())
+  verifiedAt       DateTime?
   verifiedByUserId String?
-  
+
   @@unique([clubId, type])
   @@index([clubId])
   @@index([type])
@@ -1556,22 +1601,22 @@ model ClubKycDocument {
 // ============================================
 
 model ClubOnboardingSession {
-  id                    String          @id @default(cuid())
-  userId                String
-  user                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  clubId                String?         @unique
-  club                  ClubProfile?    @relation(fields: [clubId], references: [id], onDelete: SetNull)
-  
-  currentStep           OnboardingStep  @default(CREATOR)
-  creatorOtpVerifiedAt  DateTime?
-  
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  clubId String?      @unique
+  club   ClubProfile? @relation(fields: [clubId], references: [id], onDelete: SetNull)
+
+  currentStep          OnboardingStep @default(CREATOR)
+  creatorOtpVerifiedAt DateTime?
+
   // Email du créateur vérifié par OTP
-  verifiedCreatorEmail  String?
-  
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
-  
+  verifiedCreatorEmail String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([userId])
   @@index([clubId])
 }
@@ -1581,20 +1626,20 @@ model ClubOnboardingSession {
 // ============================================
 
 model OtpToken {
-  id          String      @id @default(cuid())
-  userId      String
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   email       String
-  otpHash     String      // bcrypt hash du code OTP
+  otpHash     String // bcrypt hash du code OTP
   purpose     OtpPurpose
   expiresAt   DateTime
-  attempts    Int         @default(0)
-  maxAttempts Int         @default(5)
-  used        Boolean     @default(false)
-  
-  createdAt   DateTime    @default(now())
-  
+  attempts    Int        @default(0)
+  maxAttempts Int        @default(5)
+  used        Boolean    @default(false)
+
+  createdAt DateTime @default(now())
+
   @@index([email, purpose])
   @@index([expiresAt])
   @@index([userId])
@@ -1605,23 +1650,23 @@ model OtpToken {
 // ============================================
 
 model ClubStaffProfile {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   firstName      String?
   lastName       String?
-  jobTitle       String?  // "Directeur Sportif", "Entraineur", etc.
-  bio            String?  @db.Text
+  jobTitle       String? // "Directeur Sportif", "Entraineur", etc.
+  bio            String? @db.Text
   phone          String?
   profilePicture String?
 
   // Experience professionnelle (JSON array)
-  experience     Json?    // [{club, role, startDate, endDate, description}]
-  skills         String[] // Tags de competences
+  experience Json? // [{club, role, startDate, endDate, description}]
+  skills     String[] // Tags de competences
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
 }
@@ -1641,22 +1686,29 @@ enum MembershipStatus {
   REMOVED
 }
 
-model ClubMember {
-  id               String           @id @default(cuid())
-  clubProfileId    String
-  clubProfile      ClubProfile      @relation(fields: [clubProfileId], references: [id], onDelete: Cascade)
-  userId           String?
-  user             User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  email            String
-  role             ClubRole         @default(STAFF)
-  status           MembershipStatus @default(INVITED)
-  inviteToken      String?          @unique
-  invitedByUserId  String?
-  acceptedAt       DateTime?
-  removedAt        DateTime?
+enum StaffOnboardingStep {
+  PROFILE
+  KYC
+  DONE
+}
 
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+model ClubMember {
+  id              String           @id @default(cuid())
+  clubProfileId   String
+  clubProfile     ClubProfile      @relation(fields: [clubProfileId], references: [id], onDelete: Cascade)
+  userId          String?
+  user            User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email           String
+  role            ClubRole         @default(STAFF)
+  status          MembershipStatus @default(INVITED)
+  inviteToken     String?          @unique
+  invitedByUserId String?
+  acceptedAt      DateTime?
+  removedAt       DateTime?
+  staffOnboardingStep StaffOnboardingStep?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([clubProfileId, userId])
   @@unique([clubProfileId, email])

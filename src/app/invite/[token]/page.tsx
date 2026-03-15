@@ -48,10 +48,11 @@ export default function InviteAcceptPage() {
           return
         }
 
-        // Mettre à jour le JWT avec le nouveau rôle CLUB
-        await updateSession({ role: "CLUB" })
+        // Mettre à jour le JWT avec le nouveau rôle
+        const newRole = data.staffOnboarding ? "CLUB_STAFF" : "CLUB"
+        await updateSession({ role: newRole })
         if (cancelled) return
-        router.replace("/club/dashboard")
+        router.replace(data.staffOnboarding ? "/club/staff-onboarding" : "/club/dashboard")
       } catch {
         if (!cancelled) {
           setStatus("error")

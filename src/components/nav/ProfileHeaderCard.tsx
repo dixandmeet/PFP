@@ -13,6 +13,7 @@ import {
   MessageCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { isClubRole } from "@/lib/utils/role-helpers"
 import { calculateClubCompletion } from "@/lib/utils/club-completion"
 
 interface ProfileData {
@@ -62,7 +63,7 @@ interface ProfileData {
 }
 
 interface ProfileHeaderCardProps {
-  role: "PLAYER" | "AGENT" | "CLUB"
+  role: "PLAYER" | "AGENT" | "CLUB" | "CLUB_STAFF"
   messageCount?: number
   opportunityCount?: number
   staffContext?: boolean
@@ -88,7 +89,7 @@ const statusConfig: Record<StatusType, { label: string; className: string }> = {
 function calculateCompletion(role: string, profile: ProfileData | null, staffContext = false): { percentage: number; missing: { label: string; href: string }[] } {
   if (!profile) return { percentage: 0, missing: [{ label: "Creer votre profil", href: `/${role.toLowerCase()}/profile` }] }
 
-  if (role === "CLUB" && staffContext && profile.clubStaffProfile) {
+  if (isClubRole(role) && staffContext && profile.clubStaffProfile) {
     const p = profile.clubStaffProfile
     const experienceArr = Array.isArray(p.experience) ? p.experience : []
     const skillsArr = Array.isArray(p.skills) ? p.skills : []
@@ -140,7 +141,7 @@ function calculateCompletion(role: string, profile: ProfileData | null, staffCon
     return { percentage: Math.round((completed / fields.length) * 100), missing }
   }
 
-  if (role === "CLUB" && profile.clubProfile) {
+  if (isClubRole(role) && profile.clubProfile) {
     const result = calculateClubCompletion(profile.clubProfile)
     return { percentage: result.percentage, missing: result.missingLabels.map(label => ({ label, href: "/club/profile" })) }
   }
@@ -191,7 +192,7 @@ export function ProfileHeaderCard({ role, messageCount = 0, opportunityCount = 0
   // TODO: status should come from profile data when available
   let status: StatusType = "available"
 
-  if (role === "CLUB" && staffContext) {
+  if (isClubRole(role) && staffContext) {
     // Contexte Staff : afficher le profil personnel
     const sp = profile?.clubStaffProfile
     if (sp?.firstName || sp?.lastName) {
@@ -214,7 +215,7 @@ export function ProfileHeaderCard({ role, messageCount = 0, opportunityCount = 0
     subtitle = p.agencyName || "Agent"
     profilePicture = p.profilePicture
     profileLink = "/agent/profile"
-  } else if (role === "CLUB" && profile?.clubProfile) {
+  } else if (isClubRole(role) && profile?.clubProfile) {
     const p = profile.clubProfile
     displayName = p.clubName || profile.email?.split("@")[0] || ""
     subtitle = p.city && p.country ? `${p.city}, ${p.country}` : "Club"
@@ -222,7 +223,7 @@ export function ProfileHeaderCard({ role, messageCount = 0, opportunityCount = 0
     profileLink = "/club/profile"
   } else {
     displayName = profile?.email?.split("@")[0] || "Utilisateur"
-    subtitle = role === "PLAYER" ? "Joueur" : role === "AGENT" ? "Agent" : "Club"
+    subtitle = role === "PLAYER" ? "Joueur" : role === "AGENT" ? "Agent" : isClubRole(role) ? "Club" : role
     profileLink = `/${role.toLowerCase()}/profile`
   }
 

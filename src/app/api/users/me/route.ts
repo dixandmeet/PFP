@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
+import { isClubRole } from "@/lib/utils/role-helpers"
 
 export async function GET() {
   try {
@@ -114,7 +115,7 @@ export async function GET() {
       hasProfile = true
     } else if (fullUser.role === "AGENT" && fullUser.agentProfile) {
       hasProfile = true
-    } else if (fullUser.role === "CLUB" && fullUser.clubProfile) {
+    } else if (isClubRole(fullUser.role) && fullUser.clubProfile) {
       hasProfile = true
     }
     

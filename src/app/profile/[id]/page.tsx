@@ -245,6 +245,31 @@ export default function PublicProfilePage() {
     }
   }, [currentUser, loadCreditBalance])
 
+  // Tracker la consultation de profil (1 crédit, silencieux)
+  useEffect(() => {
+    if (!user || !currentUser || currentUser.id === user.id) return
+
+    const trackView = async () => {
+      try {
+        const res = await fetch("/api/profile-views", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ profileId: user.id }),
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.cost > 0) {
+            loadCreditBalance()
+          }
+        }
+      } catch {
+        // Silencieux - ne pas perturber la navigation
+      }
+    }
+    trackView()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, currentUser?.id])
+
   // Ouvrir le popup de confirmation de crédit
   const handleFollowClick = async () => {
     if (!currentUser) {

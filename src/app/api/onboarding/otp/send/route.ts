@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { sendOtpSchema } from "@/lib/validators/club-onboarding-schemas"
 import { checkOtpRateLimit, createOtp } from "@/lib/services/otp-service"
-import { sendEmail, emailTemplates } from "@/lib/email"
+import { sendTrackedEmail, emailTemplates } from "@/lib/email"
 
 export async function POST(request: NextRequest) {
   try {
@@ -76,10 +76,12 @@ export async function POST(request: NextRequest) {
     // Envoyer l'email OTP
     const userName = targetUser.name || email.split("@")[0]
     const emailContent = emailTemplates.clubOtpEmail(userName, code)
-    await sendEmail({
+    await sendTrackedEmail({
       to: email,
       subject: emailContent.subject,
       html: emailContent.html,
+      userId: targetUser.id,
+      template: "otp",
     })
 
     return NextResponse.json({

@@ -6,6 +6,8 @@ import { sendEmail, emailTemplates } from "@/lib/email"
 import { SubscriptionService } from "./subscription.service"
 import { WalletService } from "./wallet.service"
 import { PLAN_CONFIG } from "./types"
+import { notifyAdmins } from "@/lib/notifications/notify-admins"
+import { validateReturnUrl } from "@/lib/url"
 
 const PLAN_DISPLAY_NAMES: Record<SubscriptionPlan, string> = {
   FREE: "Gratuit",
@@ -81,12 +83,13 @@ export class StripeService {
       customerId = customer.id
     }
 
+    const safeReturnUrl = validateReturnUrl(returnUrl)
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
       line_items: [{ price: config.stripePriceId, quantity: 1 }],
-      success_url: `${returnUrl}?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${returnUrl}?cancelled=true`,
+      success_url: `${safeReturnUrl}?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${safeReturnUrl}?cancelled=true`,
       metadata: { userId, plan },
       subscription_data: {
         metadata: { userId, plan },
@@ -113,6 +116,12 @@ export class StripeService {
 
     if (!user) throw new Error("Utilisateur non trouvé")
 
+    // Valider le montant de crédits (min 1, max 10 000)
+    if (!Number.isInteger(credits) || credits < 1 || credits > 10000) {
+      throw new Error("Le nombre de crédits doit être entre 1 et 10 000.")
+    }
+
+    const safeReturnUrl = validateReturnUrl(returnUrl)
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: [{
@@ -127,8 +136,8 @@ export class StripeService {
         quantity: 1,
       }],
       customer_email: user.email,
-      success_url: `${returnUrl}?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${returnUrl}?cancelled=true`,
+      success_url: `${safeReturnUrl}?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${safeReturnUrl}?cancelled=true`,
       metadata: {
         userId,
         type: "TOPUP",
@@ -370,6 +379,14 @@ export class StripeService {
             }
           )
         })
+
+        // Notifier les admins du topup
+        notifyAdmins({
+          type: "ADMIN_PAYMENT_RECEIVED",
+          title: "Paiement reçu",
+          message: `Achat de ${credits} crédits (topup)`,
+          link: `/admin/users/${userId}`,
+        }).catch(console.error)
       }
     } else if (session.mode === "subscription") {
       const plan = session.metadata?.plan as SubscriptionPlan
@@ -412,6 +429,14 @@ export class StripeService {
       sendEmail({ to: user.email, subject, html }).catch((err) =>
         console.error("[Stripe] Envoi email confirmation abonnement:", err)
       )
+
+      // Notifier les admins du nouvel abonnement
+      notifyAdmins({
+        type: "ADMIN_PAYMENT_RECEIVED",
+        title: "Nouvel abonnement",
+        message: `${user.email} a souscrit au plan ${planName}`,
+        link: `/admin/users/${userId}`,
+      }).catch(console.error)
     }
   }
 

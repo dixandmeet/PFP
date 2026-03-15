@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import { getClubForUser, transferOwnership } from "@/lib/services/club-members"
 import { transferOwnershipSchema } from "@/lib/validators/club-member-schemas"
 import { handleApiError } from "@/lib/utils/api-helpers"
+import { isClubRole } from "@/lib/utils/role-helpers"
 
 /**
  * POST /api/club/members/transfer — Transfer club ownership
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 })
     }
 
-    if (session.user.role !== "CLUB") {
+    if (!isClubRole(session.user.role)) {
       return NextResponse.json({ error: "Acces refuse" }, { status: 403 })
     }
 

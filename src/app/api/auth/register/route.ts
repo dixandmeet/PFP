@@ -4,9 +4,10 @@ import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import crypto from "crypto"
 import { z } from "zod"
-import { sendEmail, emailTemplates } from "@/lib/email"
+import { sendTrackedEmail, emailTemplates } from "@/lib/email"
 import { passwordSchema } from "@/lib/validators/schemas"
 import { getBaseUrl } from "@/lib/url"
+import { notifyAdmins } from "@/lib/notifications/notify-admins"
 
 const registerSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -27,14 +28,13 @@ export async function POST(request: Request) {
     })
 
     if (existingUser) {
-      return NextResponse.json(
-        { error: "Cet email est déjà utilisé" },
-        { status: 400 }
-      )
+      // Message générique pour éviter l'énumération d'emails
+      return NextResponse.json({
+        message: "Compte créé avec succès. Vérifiez votre email pour activer votre compte.",
+      }, { status: 201 })
     }
 
-    // Hasher le mot de passe
-    const hashedPassword = await bcrypt.hash(validatedData.password, 10)
+    const hashedPassword = await bcrypt.hash(validatedData.password, 12)
 
     // Créer l'utilisateur
     const user = await prisma.user.create({
@@ -69,7 +69,15 @@ export async function POST(request: Request) {
     // Envoyer email de bienvenue avec lien de vérification
     const userName = validatedData.email.split("@")[0]
     const { subject, html } = emailTemplates.welcomeEmail(userName, verificationUrl)
-    sendEmail({ to: validatedData.email, subject, html }).catch(console.error)
+    sendTrackedEmail({ to: validatedData.email, subject, html, userId: user.id, template: "welcome" }).catch(console.error)
+
+    // Notifier les admins
+    notifyAdmins({
+      type: "ADMIN_NEW_USER",
+      title: "Nouvel utilisateur",
+      message: `${user.email} s'est inscrit en tant que ${user.role}`,
+      link: `/admin/users/${user.id}`,
+    }).catch(console.error)
 
     return NextResponse.json({
       message: "Compte créé avec succès",

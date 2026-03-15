@@ -28,6 +28,7 @@ import {
   CheckCircle,
 } from "lucide-react"
 import type { UserDetail } from "./types"
+import { isClubRole } from "@/lib/utils/role-helpers"
 
 interface UserActionsMenuProps {
   user: UserDetail
@@ -78,7 +79,7 @@ export function UserActionsMenu({ user, onAction, disabled }: UserActionsMenuPro
               Verifier agent
             </DropdownMenuItem>
           )}
-          {user.role === "CLUB" && user.clubProfile && !user.clubProfile.isVerified && (
+          {isClubRole(user.role) && user.clubProfile && !user.clubProfile.isVerified && (
             <DropdownMenuItem
               onClick={() => onAction("verifyClub", { verified: true })}
             >

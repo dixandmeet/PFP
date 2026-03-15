@@ -5,6 +5,7 @@ import Link from "next/link"
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { useSession } from "next-auth/react"
 import { Menu, X, ChevronDown, Users, Building2, Briefcase, ArrowRight } from "lucide-react"
+import { FootballIcon } from "@/components/auth/icons"
 import { cn } from "@/lib/utils"
 
 const navLinks = [
@@ -62,9 +63,7 @@ export function TopNav() {
           <div className="flex h-16 md:h-[68px] items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-lg bg-base-content flex items-center justify-center">
-                <span className="text-[11px] font-bold text-white tracking-tight">PF</span>
-              </div>
+              <FootballIcon className="w-8 h-8" variant="dark" />
               <span className="hidden sm:block text-[15px] font-bold text-base-content tracking-[-0.01em]">
                 Profoot Profile
               </span>
@@ -200,9 +199,7 @@ export function TopNav() {
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-black/[0.04]">
                 <Link href="/" className="flex items-center gap-2.5" onClick={() => setMobileMenuOpen(false)}>
-                  <div className="w-8 h-8 rounded-lg bg-base-content flex items-center justify-center">
-                    <span className="text-[11px] font-bold text-white">PF</span>
-                  </div>
+                  <FootballIcon className="w-8 h-8 rounded-lg" />
                   <span className="text-[15px] font-bold text-base-content">Profoot Profile</span>
                 </Link>
                 <button

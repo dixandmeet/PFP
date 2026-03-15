@@ -41,3 +41,19 @@ prisma/migrations/*
 
 # uploads locaux (dev)
 /public/uploads
+
+# Expo / React Native
+mobile/.expo/
+mobile/dist/
+mobile/ios/
+mobile/android/
+mobile/web-build/
+
+# Turbo
+.turbo
+
+# pnpm store
+.pnpm-store/
+
+# Claude
+.claude/

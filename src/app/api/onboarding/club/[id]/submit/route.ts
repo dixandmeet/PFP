@@ -4,7 +4,8 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { validateClubCompleteness, submitClubForReview } from "@/lib/services/club-onboarding-service"
-import { sendEmail, emailTemplates } from "@/lib/email"
+import { sendTrackedEmail, emailTemplates } from "@/lib/email"
+import { notifyAdmins } from "@/lib/notifications/notify-admins"
 
 type RouteContext = { params: Promise<{ id: string }> }
 
@@ -68,12 +69,22 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const userName = club.user.name || club.user.email?.split("@")[0] || "Utilisateur"
     const emailContent = emailTemplates.clubSubmittedEmail(club.clubName, userName)
     if (club.user.email) {
-      await sendEmail({
+      await sendTrackedEmail({
         to: club.user.email,
         subject: emailContent.subject,
         html: emailContent.html,
+        userId: club.userId,
+        template: "club_submitted",
       })
     }
+
+    // Notifier les admins
+    notifyAdmins({
+      type: "ADMIN_CLUB_SUBMITTED",
+      title: "Club à valider",
+      message: `Le club "${club.clubName}" a été soumis pour vérification`,
+      link: `/admin/clubs/${clubId}`,
+    }).catch(console.error)
 
     return NextResponse.json({
       success: true,

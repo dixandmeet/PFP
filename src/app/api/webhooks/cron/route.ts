@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error(`Erreur job ${job}:`, error)
     return NextResponse.json(
-      { job, success: false, error: error instanceof Error ? error.message : "Erreur inconnue" },
+      { job, success: false, error: "Erreur lors de l'exécution du job" },
       { status: 500 }
     )
   }

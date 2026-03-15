@@ -7,6 +7,7 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { FootballIcon } from "@/components/auth/icons"
 
 // Icônes SVG
 const MailIcon = () => (
@@ -24,14 +25,6 @@ const ArrowLeftIcon = () => (
 const CheckCircleIcon = () => (
   <svg className="w-16 h-16 text-pitch-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-)
-
-// Icône de ballon de foot
-const FootballIcon = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-    <path d="M12 4l-1.41 1.41L12 6.83l1.41-1.42L12 4zm0 14l1.41-1.41L12 15.17l-1.41 1.42L12 18zm6-6l-1.41-1.41L15.17 12l1.42 1.41L18 12zM6 12l1.41 1.41L8.83 12l-1.42-1.41L6 12zm6-2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
   </svg>
 )
 
@@ -108,25 +101,6 @@ export default function ForgotPasswordPage() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-4 border-white/20 rounded-full" />
         </div>
 
-        {/* Éléments décoratifs animés */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 0.15, scale: 1 }}
-          transition={{ duration: 1, delay: 0.5 }}
-          className="absolute top-20 right-20"
-        >
-          <FootballIcon className="w-32 h-32 text-white animate-float" />
-        </motion.div>
-        
-        <motion.div
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 0.1, scale: 1 }}
-          transition={{ duration: 1, delay: 0.8 }}
-          className="absolute bottom-32 left-16"
-        >
-          <FootballIcon className="w-24 h-24 text-white animate-float-slow" />
-        </motion.div>
-
         {/* Contenu principal */}
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20">
           <motion.div
@@ -137,9 +111,7 @@ export default function ForgotPasswordPage() {
           >
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <FootballIcon className="w-7 h-7 text-white" />
-              </div>
+              <FootballIcon className="w-12 h-12 rounded-2xl" variant="light" />
               <span className="text-2xl font-bold text-white">Profoot Profile</span>
             </Link>
 
@@ -228,9 +200,7 @@ export default function ForgotPasswordPage() {
         >
           {/* Logo mobile */}
           <Link href="/" className="flex lg:hidden items-center justify-center gap-2 mb-8">
-            <div className="w-10 h-10 rounded-xl bg-pitch-500 flex items-center justify-center">
-              <FootballIcon className="w-6 h-6 text-white" />
-            </div>
+            <FootballIcon className="w-10 h-10 rounded-xl" />
             <span className="text-xl font-bold text-stadium-900">Profoot Profile</span>
           </Link>
 

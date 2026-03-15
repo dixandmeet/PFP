@@ -12,10 +12,10 @@ export const HERO_COPY = {
   ctaPrimary: "Créer mon profil gratuitement",
   ctaSecondary: "Voir comment ça marche",
   microcopy: "Gratuit • 2 min • Sans engagement",
-  metrics: [
-    { value: 1200, suffix: "+", label: "Joueurs vérifiés" },
-    { value: 85, suffix: "", label: "Clubs actifs" },
-    { value: 340, suffix: "", label: "Mandats en cours" },
+  highlights: [
+    { emoji: "✓", label: "Profils vérifiés" },
+    { emoji: "⚡", label: "Mandats sécurisés" },
+    { emoji: "🔒", label: "100% confidentiel" },
   ],
   features: [
     { label: "Joueurs vérifiés", icon: "Users" as const },

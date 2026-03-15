@@ -47,6 +47,12 @@ export const LISTING_COST_BY_DIVISION: Record<string, number> = {
 }
 export const LISTING_COST_DEFAULT = 2
 
+// Coût consultation profil
+export const PROFILE_VIEW_COST = 1
+
+// Plans avec révélation d'identité du visiteur (GROWTH et au-dessus)
+export const REVEAL_PLANS: SubscriptionPlan[] = ["GROWTH", "PRO", "ELITE"]
+
 // Taux de redistribution consultation annonce
 export const LISTING_CONSULT_REDISTRIBUTION_RATE = 0.25
 export const LISTING_SIGNATURE_MAX_REDISTRIBUTION_RATE = 0.50

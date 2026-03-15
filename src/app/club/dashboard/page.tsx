@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { isClubRole } from "@/lib/utils/role-helpers"
 import { prisma } from "@/lib/prisma"
 import { DashboardFeed } from "@/components/dashboard/DashboardFeed"
 import { SuggestionsColumn } from "@/components/dashboard/SuggestionsColumn"
@@ -8,7 +9,7 @@ import { SuggestionsColumn } from "@/components/dashboard/SuggestionsColumn"
 export default async function ClubDashboard() {
   const session = await getServerSession(authOptions)
 
-  if (!session || session.user.role !== "CLUB") {
+  if (!session || !isClubRole(session.user.role)) {
     redirect("/login")
   }
 

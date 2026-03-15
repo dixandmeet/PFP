@@ -7,6 +7,7 @@ import { handleApiError } from "@/lib/utils/api-helpers"
 import { generateUniqueSlug } from "@/lib/utils/slug"
 import { createClubProfileSchema } from "@/lib/validators/schemas"
 import { createOwnerMembership } from "@/lib/services/club-members"
+import { isClubRole } from "@/lib/utils/role-helpers"
 
 export async function GET(request: NextRequest) {
   try {
@@ -54,7 +55,6 @@ export async function GET(request: NextRequest) {
           user: {
             select: {
               id: true,
-              email: true,
             },
           },
           _count: {
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (session.user.role !== "CLUB") {
+    if (!isClubRole(session.user.role)) {
       return NextResponse.json(
         { error: "Accès refusé" },
         { status: 403 }

@@ -15,3 +15,26 @@ export function getBaseUrl(): string {
 
   return url.replace(/\/+$/, "")
 }
+
+/**
+ * Validate that a return URL belongs to our application domain.
+ * Prevents open redirects via returnUrl / callbackUrl parameters.
+ */
+export function validateReturnUrl(url: string): string {
+  const baseUrl = getBaseUrl()
+  try {
+    const parsed = new URL(url)
+    const base = new URL(baseUrl)
+    // Seuls les URLs de notre domaine sont autorisés
+    if (parsed.origin === base.origin) {
+      return url
+    }
+  } catch {
+    // Si c'est un chemin relatif, c'est OK
+    if (url.startsWith("/") && !url.startsWith("//")) {
+      return `${baseUrl}${url}`
+    }
+  }
+  // Fallback vers la page d'accueil
+  return baseUrl
+}

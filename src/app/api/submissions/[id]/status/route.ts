@@ -44,7 +44,9 @@ export async function PATCH(
       include: {
         agentProfile: {
           include: {
-            user: true,
+            user: {
+              select: { id: true, email: true, name: true, role: true },
+            },
           },
         },
         clubProfile: true,
@@ -76,12 +78,16 @@ export async function PATCH(
       include: {
         agentProfile: {
           include: {
-            user: true,
+            user: {
+              select: { id: true, email: true, name: true, role: true, image: true },
+            },
           },
         },
         clubProfile: {
           include: {
-            user: true,
+            user: {
+              select: { id: true, email: true, name: true, role: true, image: true },
+            },
           },
         },
       },

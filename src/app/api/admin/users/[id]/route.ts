@@ -3,6 +3,10 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { Role } from "@prisma/client"
+import { approveClub, rejectClub } from "@/lib/services/club-onboarding-service"
+import { sendTrackedEmail, emailTemplates } from "@/lib/email"
+import { getBaseUrl } from "@/lib/url"
+import { isClubRole } from "@/lib/utils/role-helpers"
 
 // GET - Get single user details
 export async function GET(
@@ -221,6 +225,60 @@ export async function GET(
           orderBy: { createdAt: "desc" },
         },
         stripeConnect: true,
+        // Club memberships (pour CLUB_STAFF et pour résoudre le club associé)
+        clubMemberships: {
+          where: { status: "ACTIVE" },
+          take: 1,
+          orderBy: { createdAt: "desc" as const },
+          select: {
+            id: true,
+            role: true,
+            staffOnboardingStep: true,
+            clubProfile: {
+              select: {
+                id: true,
+                clubName: true,
+                status: true,
+              },
+            },
+          },
+        },
+        // Staff profile
+        clubStaffProfile: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            jobTitle: true,
+            bio: true,
+            phone: true,
+          },
+        },
+        // Onboarding
+        clubOnboardingSessions: {
+          take: 1,
+          orderBy: { createdAt: "desc" as const },
+          include: {
+            club: {
+              select: {
+                clubName: true,
+                status: true,
+                kycStatus: true,
+                rejectReason: true,
+              },
+            },
+          },
+        },
+        // Email logs
+        emailLogs: {
+          take: 50,
+          orderBy: { createdAt: "desc" as const },
+        },
+        // Notifications
+        notifications: {
+          take: 50,
+          orderBy: { createdAt: "desc" as const },
+        },
         _count: {
           select: {
             posts: true,
@@ -282,7 +340,7 @@ export async function PATCH(
       const { role: newRole, verified } = body
       switch (action) {
         case "changeRole":
-          if (!newRole || !["PLAYER", "AGENT", "CLUB", "ADMIN"].includes(newRole)) {
+          if (!newRole || !["PLAYER", "AGENT", "CLUB", "CLUB_STAFF", "ADMIN"].includes(newRole)) {
             return NextResponse.json({ error: "Rôle invalide" }, { status: 400 })
           }
           await prisma.user.update({
@@ -302,7 +360,7 @@ export async function PATCH(
           break
 
         case "verifyClub":
-          if (user.role !== "CLUB" || !user.clubProfile) {
+          if (!isClubRole(user.role) || !user.clubProfile) {
             return NextResponse.json({ error: "Utilisateur n'est pas un club" }, { status: 400 })
           }
           await prisma.clubProfile.update({
@@ -393,6 +451,66 @@ export async function PATCH(
           break
         }
 
+        case "approveOnboarding": {
+          if (!isClubRole(user.role) || !user.clubProfile) {
+            return NextResponse.json({ error: "Utilisateur n'est pas un club" }, { status: 400 })
+          }
+          const clubToApprove = await prisma.clubProfile.findUnique({
+            where: { id: user.clubProfile.id },
+            include: { user: { select: { name: true, email: true } } },
+          })
+          if (!clubToApprove || clubToApprove.status !== "PENDING_REVIEW") {
+            return NextResponse.json({ error: "Le club n'est pas en attente de validation" }, { status: 400 })
+          }
+          await approveClub(user.clubProfile.id)
+          // Send approval email
+          const approveUserName = clubToApprove.user.name || clubToApprove.user.email?.split("@")[0] || "Utilisateur"
+          const baseUrl = getBaseUrl()
+          const dashboardUrl = `${baseUrl}/club/dashboard`
+          if (clubToApprove.user.email) {
+            const emailContent = emailTemplates.clubApprovedEmail(clubToApprove.clubName, approveUserName, dashboardUrl)
+            await sendTrackedEmail({
+              to: clubToApprove.user.email,
+              subject: emailContent.subject,
+              html: emailContent.html,
+              userId: id,
+              template: "club_approved",
+            })
+          }
+          break
+        }
+
+        case "rejectOnboarding": {
+          if (!isClubRole(user.role) || !user.clubProfile) {
+            return NextResponse.json({ error: "Utilisateur n'est pas un club" }, { status: 400 })
+          }
+          const { reason } = body
+          if (!reason || typeof reason !== "string" || reason.trim().length === 0) {
+            return NextResponse.json({ error: "Le motif de rejet est obligatoire" }, { status: 400 })
+          }
+          const clubToReject = await prisma.clubProfile.findUnique({
+            where: { id: user.clubProfile.id },
+            include: { user: { select: { name: true, email: true } } },
+          })
+          if (!clubToReject || clubToReject.status !== "PENDING_REVIEW") {
+            return NextResponse.json({ error: "Le club n'est pas en attente de validation" }, { status: 400 })
+          }
+          await rejectClub(user.clubProfile.id, reason.trim())
+          // Send rejection email
+          const rejectUserName = clubToReject.user.name || clubToReject.user.email?.split("@")[0] || "Utilisateur"
+          if (clubToReject.user.email) {
+            const emailContent = emailTemplates.clubRejectedEmail(clubToReject.clubName, rejectUserName, reason.trim())
+            await sendTrackedEmail({
+              to: clubToReject.user.email,
+              subject: emailContent.subject,
+              html: emailContent.html,
+              userId: id,
+              template: "club_rejected",
+            })
+          }
+          break
+        }
+
         case "suspend":
         case "reactivate":
         case "resetPassword":
@@ -406,10 +524,10 @@ export async function PATCH(
       await prisma.auditLog.create({
         data: {
           userId: session.user.id,
-          action: `ADMIN_${action.toUpperCase()}`,
+          action: `ADMIN_${action.replace(/[^a-zA-Z_]/g, '').toUpperCase()}`,
           targetType: "USER",
           targetId: id,
-          metadata: body,
+          metadata: { action, targetId: id },
         },
       })
 
@@ -420,7 +538,7 @@ export async function PATCH(
 
     const userUpdate: Record<string, any> = {}
     if (name !== undefined) userUpdate.name = name
-    if (role !== undefined && ["PLAYER", "AGENT", "CLUB", "ADMIN"].includes(role)) {
+    if (role !== undefined && ["PLAYER", "AGENT", "CLUB", "CLUB_STAFF", "ADMIN"].includes(role)) {
       userUpdate.role = role as Role
     }
 
@@ -485,46 +603,63 @@ export async function PATCH(
       }
     }
 
-    // Career entries management
+    // Career entries management — champs autorisés uniquement (évite le mass assignment)
+    const ALLOWED_CAREER_FIELDS = ["clubName", "league", "country", "position", "startDate", "endDate", "appearances", "goals", "assists", "isCurrent"]
     const { careerEntries } = body
     if (careerEntries && user.playerProfile) {
       for (const entry of careerEntries) {
         if (entry._delete && entry.id) {
-          // Delete career entry
-          await prisma.careerEntry.delete({
-            where: { id: entry.id },
+          // Vérifier que l'entrée appartient bien au profil du joueur
+          const existing = await prisma.careerEntry.findFirst({
+            where: { id: entry.id, playerProfileId: user.playerProfile.id },
           })
+          if (existing) {
+            await prisma.careerEntry.delete({ where: { id: entry.id } })
+          }
         } else if (entry.id) {
-          // Update existing career entry
-          const { id: entryId, _delete, ...updateData } = entry
-          if (updateData.startDate) updateData.startDate = new Date(updateData.startDate)
-          if (updateData.endDate) updateData.endDate = new Date(updateData.endDate)
-          await prisma.careerEntry.update({
-            where: { id: entryId },
-            data: updateData,
+          // Vérifier l'appartenance et filtrer les champs
+          const existing = await prisma.careerEntry.findFirst({
+            where: { id: entry.id, playerProfileId: user.playerProfile.id },
           })
+          if (existing) {
+            const sanitized: Record<string, any> = {}
+            for (const key of ALLOWED_CAREER_FIELDS) {
+              if (entry[key] !== undefined) sanitized[key] = entry[key]
+            }
+            if (sanitized.startDate) sanitized.startDate = new Date(sanitized.startDate)
+            if (sanitized.endDate) sanitized.endDate = new Date(sanitized.endDate)
+            await prisma.careerEntry.update({
+              where: { id: entry.id },
+              data: sanitized,
+            })
+          }
         } else {
-          // Create new career entry
-          const { _delete, ...createData } = entry
-          if (createData.startDate) createData.startDate = new Date(createData.startDate)
-          if (createData.endDate) createData.endDate = new Date(createData.endDate)
+          // Créer avec uniquement les champs autorisés
+          const sanitized: Record<string, any> = {}
+          for (const key of ALLOWED_CAREER_FIELDS) {
+            if (entry[key] !== undefined) sanitized[key] = entry[key]
+          }
+          if (sanitized.startDate) sanitized.startDate = new Date(sanitized.startDate)
+          if (sanitized.endDate) sanitized.endDate = new Date(sanitized.endDate)
           await prisma.careerEntry.create({
             data: {
-              ...createData,
+              ...sanitized,
               playerProfileId: user.playerProfile.id,
-            },
+            } as any,
           })
         }
       }
     }
 
+    // Nettoyer les données sensibles avant de les stocker dans l'audit log
+    const { password, ...safeBody } = body || {}
     await prisma.auditLog.create({
       data: {
         userId: session.user.id,
         action: "ADMIN_UPDATE_USER_FIELDS",
         targetType: "USER",
         targetId: id,
-        metadata: body,
+        metadata: safeBody,
       },
     })
 

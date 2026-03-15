@@ -16,11 +16,6 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Profoot Profile - Le réseau professionnel du football",
   description: "Profoot Profile connecte joueurs, agents mandatés et clubs autour de profils structurés, d'un feed professionnel et d'opportunités mercato.",
-  icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
-  },
 }
 
 export default function RootLayout({

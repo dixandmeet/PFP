@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { Prisma } from "@prisma/client"
 import { z } from "zod"
+import { isClubRole } from "@/lib/utils/role-helpers"
 
 const staffProfileUpdateSchema = z.object({
   firstName: z.string().max(100).optional().transform((v) => v?.trim()),
@@ -41,7 +42,7 @@ export async function GET() {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
     }
 
-    if (session.user.role !== "CLUB") {
+    if (!isClubRole(session.user.role)) {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
     }
 
@@ -90,7 +91,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
     }
 
-    if (session.user.role !== "CLUB") {
+    if (!isClubRole(session.user.role)) {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
     }
 

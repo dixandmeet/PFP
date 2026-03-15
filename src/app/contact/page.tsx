@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Mail, MapPin, Send, MessageSquare, Building2, User } from "lucide-react"
+import { FootballIcon } from "@/components/auth/icons"
 
 const subjects = [
   "Question générale",
@@ -33,9 +34,7 @@ export default function ContactPage() {
       <header className="border-b border-stadium-200">
         <div className="max-w-4xl mx-auto px-6 py-6">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-pitch-500 flex items-center justify-center">
-              <span className="text-sm font-bold text-white">PF</span>
-            </div>
+            <FootballIcon className="w-10 h-10 rounded-xl" />
             <span className="text-xl font-bold text-stadium-900">Profoot Profile</span>
           </Link>
         </div>

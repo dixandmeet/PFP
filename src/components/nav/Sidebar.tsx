@@ -22,12 +22,15 @@ import {
   Coins,
   Film,
   UserCircle,
+  Eye,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
+import { FootballIcon } from "@/components/auth/icons"
 import { ProfileHeaderCard } from "./ProfileHeaderCard"
 import { ProfileSwitcher } from "./ProfileSwitcher"
 import { SidebarItem } from "./SidebarItem"
 import { SidebarSectionTitle } from "./SidebarSectionTitle"
+import { isClubRole } from "@/lib/utils/role-helpers"
 
 
 interface NavItem {
@@ -44,7 +47,7 @@ interface NavSection {
 }
 
 interface SidebarProps {
-  role: "PLAYER" | "AGENT" | "CLUB"
+  role: "PLAYER" | "AGENT" | "CLUB" | "CLUB_STAFF"
   /** Quand false ou non fourni, la section GESTION (Club) est masquée. */
   clubActive?: boolean
 }
@@ -121,6 +124,7 @@ function getSections(role: string, isStaffContext: boolean, clubActive?: boolean
           { title: "Parcours", href: "/player/career", icon: Trophy },
           { title: "Agents", href: "/player/agents", icon: Users },
           { title: "Rapports", href: "/player/reports", icon: FileText },
+          { title: "Consultations", href: "/player/profile-views", icon: Eye },
           { title: "Recherche", href: "/search", icon: Search },
         ],
       },
@@ -144,6 +148,7 @@ function getSections(role: string, isStaffContext: boolean, clubActive?: boolean
           { title: "Joueurs", href: "/agent/players", icon: Users },
           { title: "Soumissions", href: "/agent/submissions", icon: Send },
           { title: "Rapports", href: "/agent/reports", icon: FileText },
+          { title: "Consultations", href: "/agent/profile-views", icon: Eye },
           { title: "Recherche", href: "/search", icon: Search },
         ],
       },
@@ -156,7 +161,7 @@ function getSections(role: string, isStaffContext: boolean, clubActive?: boolean
 
 export function Sidebar({ role, clubActive }: SidebarProps) {
   const pathname = usePathname()
-  const isStaffContext = role === "CLUB" && pathname.startsWith("/club/staff")
+  const isStaffContext = isClubRole(role) && pathname.startsWith("/club/staff")
   const sections = getSections(role, isStaffContext, clubActive)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [notifCount, setNotifCount] = useState(0)
@@ -249,9 +254,7 @@ export function Sidebar({ role, clubActive }: SidebarProps) {
       >
         <div className="flex h-14 items-center justify-between px-5 border-b border-stadium-100 bg-gradient-to-r from-pitch-600 to-pitch-500">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
-              <span className="text-white font-black text-sm">P</span>
-            </div>
+            <FootballIcon className="w-7 h-7 rounded-lg" variant="light" />
             <span className="text-[15px] font-bold text-white tracking-tight">
               Profoot Profile
             </span>
@@ -272,7 +275,7 @@ export function Sidebar({ role, clubActive }: SidebarProps) {
           staffContext={isStaffContext}
         />
 
-        {role === "CLUB" && <ProfileSwitcher />}
+        {isClubRole(role) && <ProfileSwitcher />}
 
         <nav className="flex-1 overflow-y-auto pb-2 scrollbar-thin">
           {sections.map((section, sIdx) => (

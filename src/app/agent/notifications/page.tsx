@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2, Bell, CheckCircle, FileText, Users, Target, Heart, MessageSquare, UserPlus } from "lucide-react"
+import { Loader2, Bell, CheckCircle, FileText, Users, Target, Heart, MessageSquare, UserPlus, Eye } from "lucide-react"
 import Link from "next/link"
 
 interface Notification {
@@ -30,6 +30,7 @@ const icons: Record<string, any> = {
   POST_COMMENT: MessageSquare,
   FOLLOW: UserPlus,
   AI_ACTION_COMPLETED: CheckCircle,
+  PROFILE_VIEWED: Eye,
 }
 
 export default function AgentNotificationsPage() {

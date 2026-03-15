@@ -19,6 +19,7 @@ import {
   ArrowRight,
   Clock,
 } from "lucide-react"
+import { isClubRole } from "@/lib/utils/role-helpers"
 
 interface Post {
   id: string
@@ -56,7 +57,7 @@ interface Post {
 }
 
 interface DashboardFeedProps {
-  role: "PLAYER" | "AGENT" | "CLUB"
+  role: "PLAYER" | "AGENT" | "CLUB" | "CLUB_STAFF"
   showOnboardingCard?: boolean
   clubStatus?: string | null
 }
@@ -146,7 +147,7 @@ export function DashboardFeed({ role, showOnboardingCard = false, clubStatus }: 
   return (
     <div className="space-y-6">
       {/* Carte onboarding club - DRAFT */}
-      {role === "CLUB" && showOnboardingCard && (
+      {isClubRole(role) && showOnboardingCard && (
         <Link
           href="/club/onboarding"
           className="block p-5 rounded-xl border-2 border-pitch-200 bg-pitch-50/80 hover:bg-pitch-100/80 hover:border-pitch-300 transition-colors"
@@ -170,7 +171,7 @@ export function DashboardFeed({ role, showOnboardingCard = false, clubStatus }: 
       )}
 
       {/* Carte en attente de validation - PENDING_REVIEW */}
-      {role === "CLUB" && clubStatus === "PENDING_REVIEW" && (
+      {isClubRole(role) && clubStatus === "PENDING_REVIEW" && (
         <div className="p-5 rounded-xl border-2 border-amber-200 bg-amber-50/80">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-amber-500 flex items-center justify-center shrink-0">
@@ -187,7 +188,7 @@ export function DashboardFeed({ role, showOnboardingCard = false, clubStatus }: 
       )}
 
       {/* Carte rejetée - REJECTED */}
-      {role === "CLUB" && clubStatus === "REJECTED" && (
+      {isClubRole(role) && clubStatus === "REJECTED" && (
         <Link
           href="/club/onboarding"
           className="block p-5 rounded-xl border-2 border-red-200 bg-red-50/80 hover:bg-red-100/80 hover:border-red-300 transition-colors"

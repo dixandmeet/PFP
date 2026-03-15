@@ -1,11 +1,5 @@
 import Link from "next/link"
-
-const FootballIcon = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-    <path d="M12 4l-1.41 1.41L12 6.83l1.41-1.42L12 4zm0 14l1.41-1.41L12 15.17l-1.41 1.42L12 18zm6-6l-1.41-1.41L15.17 12l1.42 1.41L18 12zM6 12l1.41 1.41L8.83 12l-1.42-1.41L6 12zm6-2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-  </svg>
-)
+import { FootballIcon } from "@/components/auth/icons"
 
 export default function TermsPage() {
   return (
@@ -13,9 +7,7 @@ export default function TermsPage() {
       <header className="border-b border-stadium-200">
         <div className="max-w-4xl mx-auto px-6 py-6">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-pitch-500 flex items-center justify-center">
-              <FootballIcon className="w-6 h-6 text-white" />
-            </div>
+            <FootballIcon className="w-10 h-10 rounded-xl" />
             <span className="text-xl font-bold text-stadium-900">Profoot Profile</span>
           </Link>
         </div>

@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getClubForUser } from "@/lib/services/club-members"
+import { isClubRole } from "@/lib/utils/role-helpers"
 import { Sidebar } from "@/components/nav/Sidebar"
 import { GlobalSearch } from "@/components/nav/GlobalSearch"
 
@@ -18,14 +19,15 @@ export default async function ClubLayout({
     redirect("/login")
   }
 
-  if (session.user.role !== "CLUB") {
+  if (!isClubRole(session.user.role)) {
     redirect(session.user.role === "ADMIN" ? "/admin" : `/${session.user.role.toLowerCase()}/dashboard`)
   }
 
-  // Route onboarding : pas de sidebar club classique
+  // Routes spéciales : pas de sidebar
   const headersList = await headers()
   const pathname = headersList.get("x-next-pathname") || ""
   const isOnboardingRoute = pathname.startsWith("/club/onboarding")
+  const isStaffOnboardingRoute = pathname.startsWith("/club/staff-onboarding")
 
   // Résoudre le club via ownership OU membership (membres invités)
   const clubInfo = await getClubForUser(session.user.id)
@@ -36,8 +38,22 @@ export default async function ClubLayout({
       })
     : null
 
-  // Pas de club du tout → rediriger vers onboarding
-  if (!club && !isOnboardingRoute) {
+  // CLUB_STAFF : forcer l'onboarding staff si pas terminé
+  if (session.user.role === "CLUB_STAFF" && !isStaffOnboardingRoute) {
+    const member = await prisma.clubMember.findFirst({
+      where: { userId: session.user.id, status: "ACTIVE" },
+      select: { staffOnboardingStep: true },
+    })
+    if (member && member.staffOnboardingStep && member.staffOnboardingStep !== "DONE") {
+      redirect("/club/staff-onboarding")
+    }
+  }
+
+  // Pas de club du tout → rediriger vers onboarding (CLUB) ou accueil (CLUB_STAFF)
+  if (!club && !isOnboardingRoute && !isStaffOnboardingRoute) {
+    if (session.user.role === "CLUB_STAFF") {
+      redirect("/welcome")
+    }
     redirect("/club/onboarding")
   }
 

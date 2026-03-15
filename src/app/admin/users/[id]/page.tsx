@@ -12,6 +12,7 @@ import {
   Activity,
   FileText,
   User,
+  Users,
   Briefcase,
   MessageCircle,
   Handshake,
@@ -31,6 +32,10 @@ import { UserApplicationsSection } from "@/components/admin/user-detail/UserAppl
 import { UserCreditsSection } from "@/components/admin/user-detail/UserCreditsSection"
 import { UserDocumentsSection } from "@/components/admin/user-detail/UserDocumentsSection"
 import { PostDetailDialog } from "@/components/admin/user-detail/PostDetailDialog"
+import { UserOnboardingSection } from "@/components/admin/user-detail/UserOnboardingSection"
+import { UserActivitySection } from "@/components/admin/user-detail/UserActivitySection"
+import { UserClubMembersSection } from "@/components/admin/user-detail/UserClubMembersSection"
+import { isClubRole } from "@/lib/utils/role-helpers"
 import {
   deepClone,
   getChangedFields,
@@ -40,6 +45,9 @@ import {
 } from "@/lib/utils/admin-helpers"
 import type { UserDetail, FormUser, ValidationErrors } from "@/components/admin/user-detail/types"
 import { userToFormUser } from "@/components/admin/user-detail/types"
+import { useSession } from "next-auth/react"
+import { MessagingPanel } from "@/components/messaging/MessagingPanel"
+import { AnimatePresence, motion } from "framer-motion"
 
 export default function AdminUserDetailPage({
   params,
@@ -49,9 +57,11 @@ export default function AdminUserDetailPage({
   const resolvedParams = use(params)
   const router = useRouter()
   const { toast } = useToast()
+  const { data: session } = useSession()
 
   const [user, setUser] = useState<UserDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [showMessaging, setShowMessaging] = useState(false)
 
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -77,7 +87,27 @@ export default function AdminUserDetailPage({
       const res = await fetch(`/api/admin/users/${resolvedParams.id}`)
       if (res.ok) {
         const data = await res.json()
-        setUser(data.user)
+        // Map clubOnboardingSessions array to single onboardingSession
+        const userData = {
+          ...data.user,
+          onboardingSession: data.user.clubOnboardingSessions?.[0] || null,
+        }
+        delete userData.clubOnboardingSessions
+
+        // Pour CLUB_STAFF sans clubProfile direct, résoudre via membership
+        if (!userData.clubProfile && userData.clubMemberships?.[0]?.clubProfile) {
+          const membership = userData.clubMemberships[0]
+          userData.clubProfile = {
+            id: membership.clubProfile.id,
+            clubName: membership.clubProfile.clubName,
+            country: "",
+            isVerified: false,
+            teams: [],
+            listings: [],
+          }
+        }
+
+        setUser(userData)
         const form = userToFormUser(data.user)
         setInitialForm(deepClone(form))
         setFormUser(deepClone(form))
@@ -372,6 +402,7 @@ export default function AdminUserDetailPage({
         onCancel={handleCancel}
         onAction={handleAction}
         onDelete={handleDelete}
+        onMessage={() => setShowMessaging(true)}
       />
 
       <div className="p-4 lg:p-6 space-y-6">
@@ -410,31 +441,48 @@ export default function AdminUserDetailPage({
             {user.role !== "ADMIN" && (
               <TabsTrigger value="business" className="gap-1.5">
                 <Handshake className="h-3.5 w-3.5" />
-                {user.role === "PLAYER" ? "Candidatures" : user.role === "AGENT" ? "Mandats" : "Annonces"}
+                {user.role === "PLAYER" ? "Candidatures" : user.role === "AGENT" ? "Mandats" : isClubRole(user.role) ? "Annonces" : "Business"}
               </TabsTrigger>
             )}
             <TabsTrigger value="documents" className="gap-1.5">
               <FolderOpen className="h-3.5 w-3.5" />
               Documents ({user.kycDocuments?.length || 0})
             </TabsTrigger>
+            {isClubRole(user.role) && user.clubProfile && (
+              <TabsTrigger value="members" className="gap-1.5">
+                <Users className="h-3.5 w-3.5" />
+                Membres
+              </TabsTrigger>
+            )}
             <TabsTrigger value="credits" className="gap-1.5">
               <Coins className="h-3.5 w-3.5" />
               Credits
             </TabsTrigger>
             <TabsTrigger value="activity" className="gap-1.5">
               <Activity className="h-3.5 w-3.5" />
-              Activite ({user.auditLogs.length})
+              Activite ({user.auditLogs.length + (user.emailLogs?.length || 0) + (user.notifications?.length || 0)})
             </TabsTrigger>
           </TabsList>
 
           {/* Profil */}
           <TabsContent value="profile">
-            <UserProfileSection
-              formUser={formUser}
-              isEditing={isEditing}
-              errors={errors}
-              onChange={handleFieldChange}
-            />
+            <div className="space-y-6">
+              {/* Onboarding section for CLUB users */}
+              {isClubRole(user.role) && user.onboardingSession && (
+                <UserOnboardingSection
+                  session={user.onboardingSession}
+                  clubStatus={user.onboardingSession.club?.status}
+                  clubRejectReason={user.onboardingSession.club?.rejectReason}
+                  onAction={handleAction}
+                />
+              )}
+              <UserProfileSection
+                formUser={formUser}
+                isEditing={isEditing}
+                errors={errors}
+                onChange={handleFieldChange}
+              />
+            </div>
           </TabsContent>
 
           {/* Carriere (Joueur uniquement) */}
@@ -554,6 +602,13 @@ export default function AdminUserDetailPage({
             />
           </TabsContent>
 
+          {/* Membres du club */}
+          {isClubRole(user.role) && user.clubProfile && (
+            <TabsContent value="members">
+              <UserClubMembersSection clubProfileId={user.clubProfile.id} />
+            </TabsContent>
+          )}
+
           {/* Credits */}
           <TabsContent value="credits">
             <UserCreditsSection
@@ -569,48 +624,33 @@ export default function AdminUserDetailPage({
 
           {/* Activite */}
           <TabsContent value="activity">
-            <Card className="p-6">
-              {user.auditLogs.length === 0 ? (
-                <p className="text-slate-500 text-sm text-center py-8">
-                  Aucune activite
-                </p>
-              ) : (
-                <div className="relative">
-                  <div className="absolute left-4 top-0 bottom-0 w-px bg-slate-200" />
-                  <div className="space-y-0">
-                    {user.auditLogs.map((log, i) => (
-                      <div key={log.id} className="relative pl-10 py-3">
-                        <div className="absolute left-2.5 top-4 h-3 w-3 rounded-full border-2 border-slate-300 bg-white" />
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-slate-900">
-                              {log.action.replace(/_/g, " ")}
-                            </p>
-                            {log.targetType && (
-                              <p className="text-xs text-slate-500 mt-0.5">
-                                {log.targetType}{" "}
-                                {log.targetId
-                                  ? `#${log.targetId.slice(0, 8)}`
-                                  : ""}
-                              </p>
-                            )}
-                          </div>
-                          <span className="text-xs text-slate-400 shrink-0 ml-4">
-                            {formatDistanceToNow(new Date(log.createdAt), {
-                              addSuffix: true,
-                              locale: fr,
-                            })}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </Card>
+            <UserActivitySection
+              auditLogs={user.auditLogs}
+              emailLogs={user.emailLogs || []}
+              notifications={user.notifications || []}
+            />
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Panneau de messagerie flottant */}
+      <AnimatePresence>
+        {showMessaging && session?.user?.id && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed bottom-6 right-6 z-50 w-[380px] h-[560px] rounded-2xl shadow-2xl border border-slate-200 overflow-hidden bg-white"
+          >
+            <MessagingPanel
+              currentUserId={session.user.id}
+              recipientId={user.id}
+              onClose={() => setShowMessaging(false)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

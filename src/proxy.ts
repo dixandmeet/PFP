@@ -77,7 +77,10 @@ export async function proxy(request: NextRequest) {
   // Redirection si non authentifié
   if (!token) {
     const loginUrl = new URL("/login", request.url)
-    loginUrl.searchParams.set("callbackUrl", pathname)
+    // Only set callback if it's a safe relative path (prevent open redirect)
+    if (/^\/[a-zA-Z0-9]/.test(pathname)) {
+      loginUrl.searchParams.set("callbackUrl", pathname)
+    }
     return NextResponse.redirect(loginUrl)
   }
 
@@ -89,6 +92,7 @@ export async function proxy(request: NextRequest) {
   // Helper pour obtenir le dashboard selon le rôle
   const getDashboardPath = (userRole: string) => {
     if (userRole === "ADMIN") return "/admin"
+    if (userRole === "CLUB_STAFF") return "/club/dashboard"
     return `/${userRole.toLowerCase()}/dashboard`
   }
 
@@ -111,7 +115,7 @@ export async function proxy(request: NextRequest) {
 
   // Routes Club (exclure /clubs qui est une route publique)
   if (pathname.startsWith("/club") && !pathname.startsWith("/clubs")) {
-    if (role !== "CLUB") {
+    if (role !== "CLUB" && role !== "CLUB_STAFF") {
       return NextResponse.redirect(new URL(getDashboardPath(role), request.url))
     }
   }
@@ -123,10 +127,17 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // Ajouter le pathname dans les headers pour les layouts server-side
+  // Ajouter le pathname dans les headers internes (non exposé au client)
   const response = NextResponse.next()
   response.headers.set("x-next-pathname", pathname)
-  return response
+  // Supprimer le header de la réponse client pour ne pas exposer les routes internes
+  response.headers.delete("x-next-pathname")
+  // Utiliser un header interne Next.js pour le transfert au server component
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set("x-next-pathname", pathname)
+  return NextResponse.next({
+    request: { headers: requestHeaders },
+  })
 }
 
 export const config = {
