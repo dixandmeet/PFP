@@ -48,7 +48,12 @@ async function main() {
   const playerProfileIds = playerProfiles.map((p) => p.id)
 
   const reports = await prisma.playerReport.findMany({
-    where: { playerId: { in: playerProfileIds } },
+    where: {
+      OR: [
+        { subjectId: { in: playerProfileIds } },
+        { authorId: { in: playerProfileIds } },
+      ],
+    },
     select: { id: true },
   })
   const reportIds = reports.map((r) => r.id)
@@ -56,8 +61,16 @@ async function main() {
   await prisma.reportSection.deleteMany({ where: { reportId: { in: reportIds } } })
   await prisma.playerReport.deleteMany({ where: { id: { in: reportIds } } })
 
-  await prisma.application.deleteMany({ where: { applicantId: { in: userIds } } })
-  await prisma.submission.deleteMany({ where: { userId: { in: userIds } } })
+  // Récupérer les agentProfiles pour les soumissions et mandats
+  const agentProfiles = await prisma.agentProfile.findMany({
+    where: { userId: { in: userIds } },
+    select: { id: true },
+  })
+  const agentProfileIds = agentProfiles.map((a) => a.id)
+
+  // Applications liées aux joueurs de démo
+  await prisma.application.deleteMany({ where: { playerProfileId: { in: playerProfileIds } } })
+  await prisma.submission.deleteMany({ where: { agentProfileId: { in: agentProfileIds } } })
 
   // Listings des clubs de démo
   const clubProfiles = await prisma.clubProfile.findMany({
@@ -67,7 +80,7 @@ async function main() {
   const clubProfileIds = clubProfiles.map((c) => c.id)
 
   const listings = await prisma.listing.findMany({
-    where: { clubId: { in: clubProfileIds } },
+    where: { clubProfileId: { in: clubProfileIds } },
     select: { id: true },
   })
   const listingIds = listings.map((l) => l.id)
@@ -78,16 +91,22 @@ async function main() {
   await prisma.mandate.deleteMany({
     where: {
       OR: [
-        { playerId: { in: playerProfileIds } },
-        { agentProfile: { userId: { in: userIds } } },
+        { playerProfileId: { in: playerProfileIds } },
+        { agentProfileId: { in: agentProfileIds } },
       ],
     },
   })
 
   await prisma.careerEntry.deleteMany({ where: { playerProfileId: { in: playerProfileIds } } })
-  await prisma.fileAsset.deleteMany({ where: { uploadedById: { in: userIds } } })
+  await prisma.fileAsset.deleteMany({ where: { ownerId: { in: userIds } } })
 
-  await prisma.staffMember.deleteMany({ where: { clubProfileId: { in: clubProfileIds } } })
+  // StaffMembers liés aux équipes des clubs de démo
+  const teams = await prisma.team.findMany({
+    where: { clubProfileId: { in: clubProfileIds } },
+    select: { id: true },
+  })
+  const teamIds = teams.map((t) => t.id)
+  await prisma.staffMember.deleteMany({ where: { teamId: { in: teamIds } } })
   await prisma.team.deleteMany({ where: { clubProfileId: { in: clubProfileIds } } })
 
   await prisma.playerProfile.deleteMany({ where: { userId: { in: userIds } } })
