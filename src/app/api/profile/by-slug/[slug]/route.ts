@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { handleApiError } from "@/lib/utils/api-helpers"
-import { resolveProfileSlug } from "@/lib/utils/slug"
+import { resolveProfileSlug } from "@/lib/utils/slug.server"
 
 export async function GET(
   request: Request,

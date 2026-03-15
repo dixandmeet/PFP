@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { handleApiError } from "@/lib/utils/api-helpers"
-import { generateUniqueSlug } from "@/lib/utils/slug"
+import { generateUniqueSlug } from "@/lib/utils/slug.server"
 import { createAgentProfileSchema } from "@/lib/validators/schemas"
 
 export async function GET(request: NextRequest) {

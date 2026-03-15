@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/permissions/rbac"
 import { handleApiError } from "@/lib/utils/api-helpers"
-import { generateUniqueSlug } from "@/lib/utils/slug"
+import { generateUniqueSlug } from "@/lib/utils/slug.server"
 
 export async function POST() {
   try {

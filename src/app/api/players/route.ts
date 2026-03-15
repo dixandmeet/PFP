@@ -5,7 +5,7 @@ import { handleApiError } from "@/lib/utils/api-helpers"
 import { searchPlayersSchema, createPlayerProfileSchema } from "@/lib/validators/schemas"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
-import { generateUniqueSlug } from "@/lib/utils/slug"
+import { generateUniqueSlug } from "@/lib/utils/slug.server"
 
 export async function GET(request: Request) {
   try {
