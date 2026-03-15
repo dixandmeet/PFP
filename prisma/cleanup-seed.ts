@@ -34,8 +34,8 @@ async function main() {
   await prisma.auditLog.deleteMany({ where: { userId: { in: userIds } } })
   await prisma.notification.deleteMany({ where: { userId: { in: userIds } } })
   await prisma.like.deleteMany({ where: { userId: { in: userIds } } })
-  await prisma.comment.deleteMany({ where: { authorId: { in: userIds } } })
-  await prisma.post.deleteMany({ where: { authorId: { in: userIds } } })
+  await prisma.comment.deleteMany({ where: { userId: { in: userIds } } })
+  await prisma.post.deleteMany({ where: { userId: { in: userIds } } })
   await prisma.follow.deleteMany({
     where: { OR: [{ followerId: { in: userIds } }, { followingId: { in: userIds } }] },
   })
