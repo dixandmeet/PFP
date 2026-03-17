@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
-import { Sidebar } from "@/components/nav/Sidebar"
-import { GlobalSearch } from "@/components/nav/GlobalSearch"
+import { LayoutShell } from "@/components/layout/LayoutShell"
 
 export default async function PlayerLayout({
   children,
@@ -19,17 +18,12 @@ export default async function PlayerLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden w-full">
-      <Sidebar role="PLAYER" />
-      <main className="flex-1 min-w-0 overflow-y-auto bg-[#F6F7F9]">
-        <div className="h-16 lg:hidden" />
-        <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-sm border-b border-slate-200 px-4 py-3 hidden lg:block">
-          <div className="max-w-6xl mx-auto">
-            <GlobalSearch />
-          </div>
-        </div>
-        {children}
-      </main>
-    </div>
+    <LayoutShell
+      role="PLAYER"
+      mainClassName="flex-1 min-w-0 overflow-y-auto bg-[#F6F7F9]"
+      searchBorderColor="border-slate-200"
+    >
+      {children}
+    </LayoutShell>
   )
 }

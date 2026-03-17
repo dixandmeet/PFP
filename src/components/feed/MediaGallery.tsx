@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useCallback } from "react"
 import dynamic from "next/dynamic"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
@@ -35,6 +35,9 @@ export function MediaGallery({ mediaUrls, className, postId, postContent, postUs
   const [playingVideos, setPlayingVideos] = useState<Record<number, boolean>>({})
   const [mutedVideos, setMutedVideos] = useState<Record<number, boolean>>({})
   const [lightboxVideoError, setLightboxVideoError] = useState(false)
+  const [videoProgress, setVideoProgress] = useState<Record<number, number>>({})
+  const [videoDuration, setVideoDuration] = useState<Record<number, number>>({})
+  const [isSeeking, setIsSeeking] = useState(false)
   const videoRefs = useRef<Record<number, HTMLVideoElement | null>>({})
 
   if (!mediaUrls || mediaUrls.length === 0) {
@@ -112,6 +115,28 @@ export function MediaGallery({ mediaUrls, className, postId, postContent, postUs
     setMutedVideos(prev => ({ ...prev, [index]: !video.muted }))
   }
 
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60)
+    const s = Math.floor(seconds % 60)
+    return `${m}:${s.toString().padStart(2, '0')}`
+  }
+
+  const handleSeek = (index: number, e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation()
+    const video = videoRefs.current[index]
+    if (!video || !video.duration) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const pct = Math.max(0, Math.min(1, x / rect.width))
+    video.currentTime = pct * video.duration
+    setVideoProgress(prev => ({ ...prev, [index]: pct * 100 }))
+  }
+
+  const handleSeekDrag = (index: number, e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isSeeking) return
+    handleSeek(index, e)
+  }
+
   const hasVideos = media.some(m => m.type === 'video')
   const videos = media.filter(m => m.type === 'video')
   const images = media.filter(m => m.type === 'image')
@@ -137,7 +162,7 @@ export function MediaGallery({ mediaUrls, className, postId, postContent, postUs
     <>
       {/* Videos en format vertical */}
       {videos.length > 0 && (
-        <div className={cn("grid gap-2 mb-2", videos.length === 1 ? "grid-cols-1" : "grid-cols-2", className)}>
+        <div className={cn("grid mb-2", videos.length === 1 ? "grid-cols-1" : "grid-cols-2 gap-0.5", className)}>
           {videos.map((item, index) => {
             const globalIndex = media.indexOf(item)
             const isPlaying = playingVideos[globalIndex] ?? false
@@ -146,7 +171,7 @@ export function MediaGallery({ mediaUrls, className, postId, postContent, postUs
               <div
                 key={`video-${index}`}
                 className={cn(
-                  "relative rounded-xl overflow-hidden bg-black group w-full",
+                  "relative overflow-hidden bg-black group w-full",
                   videos.length === 1 ? "aspect-[9/14] sm:aspect-[9/16] max-h-[60vh] sm:max-h-[70vh]" : "aspect-[9/14] sm:aspect-[9/16]"
                 )}
               >
@@ -155,10 +180,22 @@ export function MediaGallery({ mediaUrls, className, postId, postContent, postUs
                   src={item.url}
                   className="w-full h-full object-cover"
                   muted
-                  autoPlay
                   loop
                   playsInline
-                  preload="none"
+                  onCanPlay={(e) => {
+                    const v = e.currentTarget
+                    if (v?.paused) v.play().catch(() => {})
+                  }}
+                  onLoadedMetadata={(e) => {
+                    const v = e.currentTarget
+                    if (v) setVideoDuration(prev => ({ ...prev, [globalIndex]: v.duration }))
+                  }}
+                  onTimeUpdate={(e) => {
+                    const v = e.currentTarget
+                    if (!isSeeking && v && v.duration) {
+                      setVideoProgress(prev => ({ ...prev, [globalIndex]: (v.currentTime / v.duration) * 100 }))
+                    }
+                  }}
                   onPlay={() => setPlayingVideos(prev => ({ ...prev, [globalIndex]: true }))}
                   onPause={() => setPlayingVideos(prev => ({ ...prev, [globalIndex]: false }))}
                   onError={(e) => {
@@ -169,12 +206,20 @@ export function MediaGallery({ mediaUrls, className, postId, postContent, postUs
                 />
 
                 {/* Fallback si format vidéo non supporté */}
-                <div data-video-fallback className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 p-4 text-center" style={{ display: "none" }}>
-                  <Film className="h-12 w-12 text-white/60 mb-3 flex-shrink-0" />
-                  <p className="text-sm text-white/70 font-medium">Format vidéo non supporté par le navigateur</p>
-                  <p className="text-xs text-white/50 mt-2 max-w-sm">{getSupportedFormatsMessage()}</p>
-                  <a href={item.url} download className="mt-4 px-4 py-1.5 rounded-full bg-white/10 text-white/80 text-xs hover:bg-white/20 transition-colors">
-                    Télécharger la vidéo
+                <div data-video-fallback className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900" style={{ display: "none" }}>
+                  <Film className="h-10 w-10 text-white/40 mb-2" />
+                  <p className="text-xs text-white/60 font-medium mb-3 px-4 text-center">
+                    Format non supporté par le navigateur
+                  </p>
+                  <p className="text-xs text-white/40 mt-1 max-w-sm px-4 text-center">{getSupportedFormatsMessage()}</p>
+                  <a
+                    href={item.url}
+                    download
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-3 px-4 py-2 rounded-xl bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors ring-1 ring-white/20"
+                  >
+                    <Download className="inline h-3 w-3 mr-1.5 -mt-0.5" />
+                    Télécharger
                   </a>
                 </div>
 
@@ -195,24 +240,65 @@ export function MediaGallery({ mediaUrls, className, postId, postContent, postUs
                   </button>
 
                   {/* Controles bas */}
-                  <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/60 to-transparent flex items-center justify-between">
-                    <button
-                      onClick={(e) => toggleMute(globalIndex, e)}
-                      className="p-2 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent pt-8 pb-3 px-3">
+                    {/* Barre de progression / seek */}
+                    <div
+                      className="group/seek w-full h-5 flex items-center cursor-pointer mb-2"
+                      onClick={(e) => handleSeek(globalIndex, e)}
+                      onMouseDown={(e) => { e.stopPropagation(); setIsSeeking(true) }}
+                      onMouseMove={(e) => handleSeekDrag(globalIndex, e)}
+                      onMouseUp={() => setIsSeeking(false)}
+                      onMouseLeave={() => setIsSeeking(false)}
                     >
-                      {isUnmuted ? (
-                        <Volume2 className="h-4 w-4 text-white" />
-                      ) : (
-                        <VolumeX className="h-4 w-4 text-white" />
-                      )}
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); openReels(index) }}
-                      className="p-2 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
-                    >
-                      <Maximize2 className="h-4 w-4 text-white" />
-                    </button>
+                      <div className="relative w-full h-1 group-hover/seek:h-1.5 bg-white/30 rounded-full transition-all">
+                        <div
+                          className="absolute inset-y-0 left-0 bg-white rounded-full transition-[width]"
+                          style={{ width: `${videoProgress[globalIndex] || 0}%` }}
+                        />
+                        <div
+                          className="absolute top-1/2 -translate-y-1/2 h-3 w-3 bg-white rounded-full shadow-md opacity-0 group-hover/seek:opacity-100 transition-opacity"
+                          style={{ left: `${videoProgress[globalIndex] || 0}%`, transform: `translate(-50%, -50%)` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Boutons + temps */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => toggleMute(globalIndex, e)}
+                          className="p-1.5 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
+                        >
+                          {isUnmuted ? (
+                            <Volume2 className="h-4 w-4 text-white" />
+                          ) : (
+                            <VolumeX className="h-4 w-4 text-white" />
+                          )}
+                        </button>
+                        {videoDuration[globalIndex] > 0 && (
+                          <span className="text-[10px] text-white/70 font-medium tabular-nums">
+                            {formatTime((videoProgress[globalIndex] || 0) / 100 * videoDuration[globalIndex])}
+                            {' / '}
+                            {formatTime(videoDuration[globalIndex])}
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); openReels(index) }}
+                        className="p-1.5 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60 transition-colors"
+                      >
+                        <Maximize2 className="h-4 w-4 text-white" />
+                      </button>
+                    </div>
                   </div>
+                </div>
+
+                {/* Barre de progression fine toujours visible (sans hover) */}
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/20 group-hover:opacity-0 transition-opacity">
+                  <div
+                    className="h-full bg-white/70"
+                    style={{ width: `${videoProgress[globalIndex] || 0}%` }}
+                  />
                 </div>
 
                 {/* Indicateur mute visible quand pas de hover */}
@@ -229,14 +315,14 @@ export function MediaGallery({ mediaUrls, className, postId, postContent, postUs
 
       {/* Images */}
       {images.length > 0 && (
-        <div className={cn("grid gap-2", getGridLayout(), !hasVideos && className)}>
+        <div className={cn("grid", images.length === 1 ? "" : "gap-0.5", getGridLayout(), !hasVideos && className)}>
         {images.slice(0, 4).map((item, index) => {
           const globalIndex = media.indexOf(item)
           return (
           <div
             key={index}
             className={cn(
-              "relative aspect-video rounded-lg overflow-hidden bg-stadium-100 cursor-pointer group",
+              "relative aspect-video overflow-hidden bg-stadium-100 cursor-pointer group",
               images.length === 1 && "aspect-[16/10]",
               images.length === 3 && index === 0 && "col-span-2"
             )}
@@ -382,6 +468,7 @@ export function MediaGallery({ mediaUrls, className, postId, postContent, postUs
                           download
                           className="mt-4 px-4 py-2 rounded-full bg-white/10 text-white/80 text-sm hover:bg-white/20 transition-colors inline-flex"
                         >
+                          <Download className="inline h-4 w-4 mr-1.5 -mt-0.5" />
                           Télécharger la vidéo
                         </a>
                       </div>

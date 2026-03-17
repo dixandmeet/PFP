@@ -14,6 +14,7 @@ export function SidebarSectionTitle({ title, className }: SidebarSectionTitlePro
         "px-4 pt-5 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-stadium-400 select-none",
         className
       )}
+      suppressHydrationWarning
     >
       {title}
     </h4>

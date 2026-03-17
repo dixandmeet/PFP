@@ -22,7 +22,7 @@ export function AgentsTabs({
 
   return (
     <div className="mb-8" role="tablist" aria-label="Navigation agents">
-      <div className="inline-flex items-center bg-stadium-100 rounded-2xl p-1 gap-1">
+      <div className="flex items-center bg-stadium-100 rounded-2xl p-1 gap-1">
         {tabs.map(({ id, label, count, icon: Icon }) => {
           const isActive = activeTab === id
           return (
@@ -33,7 +33,7 @@ export function AgentsTabs({
               aria-controls={`tabpanel-${id}`}
               onClick={() => onTabChange(id)}
               className={`
-                relative flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold
+                flex-1 relative flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 rounded-xl text-sm font-semibold
                 transition-all duration-200 ease-out
                 focus-visible:ring-2 focus-visible:ring-pitch-500 focus-visible:ring-offset-2
                 ${isActive
@@ -42,11 +42,11 @@ export function AgentsTabs({
                 }
               `}
             >
-              <Icon className="h-4 w-4" />
-              {label}
+              <Icon className="h-4 w-4 shrink-0" />
+              <span className="truncate">{label}</span>
               <span
                 className={`
-                  inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold
+                  inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold shrink-0
                   ${isActive ? "bg-white/20 text-white" : "bg-stadium-200 text-stadium-600"}
                 `}
               >

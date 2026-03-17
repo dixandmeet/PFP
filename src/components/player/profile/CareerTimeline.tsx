@@ -78,6 +78,7 @@ interface CareerEntry {
 interface CareerTimelineProps {
   playerProfileId: string
   className?: string
+  readOnly?: boolean
 }
 
 function isCurrentSeason(season: string): boolean {
@@ -91,7 +92,7 @@ function isCurrentSeason(season: string): boolean {
   )
 }
 
-export function CareerTimeline({ playerProfileId, className }: CareerTimelineProps) {
+export function CareerTimeline({ playerProfileId, className, readOnly = false }: CareerTimelineProps) {
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -231,7 +232,8 @@ export function CareerTimeline({ playerProfileId, className }: CareerTimelinePro
           <Trophy className="h-4 w-4 text-slate-400" />
           <h3 className="text-base font-bold text-slate-800">Parcours</h3>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        {readOnly ? null : (
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <button
               type="button"
@@ -448,6 +450,7 @@ export function CareerTimeline({ playerProfileId, className }: CareerTimelinePro
             </form>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       {/* Timeline body */}
@@ -455,16 +458,18 @@ export function CareerTimeline({ playerProfileId, className }: CareerTimelinePro
         {careerEntries.length === 0 ? (
           <EmptyState
             icon={Briefcase}
-            title="Aucune expérience ajoutée"
-            description="Commencez à construire votre CV en ajoutant vos expériences"
+            title={readOnly ? "Aucune expérience renseignée" : "Aucune expérience ajoutée"}
+            description={readOnly ? "Ce joueur n'a pas encore renseigné son parcours" : "Commencez à construire votre CV en ajoutant vos expériences"}
             action={
-              <Button
-                onClick={() => setDialogOpen(true)}
-                className="bg-pitch-600 hover:bg-pitch-700"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Ajouter votre première expérience
-              </Button>
+              !readOnly ? (
+                <Button
+                  onClick={() => setDialogOpen(true)}
+                  className="bg-pitch-600 hover:bg-pitch-700"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Ajouter votre première expérience
+                </Button>
+              ) : undefined
             }
           />
         ) : (
@@ -549,6 +554,7 @@ export function CareerTimeline({ playerProfileId, className }: CareerTimelinePro
                         </div>
 
                         {/* Actions (visible on hover) */}
+                        {!readOnly && (
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                           <button
                             type="button"
@@ -565,6 +571,7 @@ export function CareerTimeline({ playerProfileId, className }: CareerTimelinePro
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
+                        )}
                       </div>
 
                       {/* Stats */}

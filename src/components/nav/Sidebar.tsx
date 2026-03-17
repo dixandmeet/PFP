@@ -15,7 +15,6 @@ import {
   Building2,
   Send,
   Target,
-  Menu,
   X,
   Trophy,
   MessageCircle,
@@ -31,6 +30,7 @@ import { ProfileSwitcher } from "./ProfileSwitcher"
 import { SidebarItem } from "./SidebarItem"
 import { SidebarSectionTitle } from "./SidebarSectionTitle"
 import { isClubRole } from "@/lib/utils/role-helpers"
+import { useMobileNav } from "./mobile/MobileNavContext"
 
 
 interface NavItem {
@@ -163,7 +163,7 @@ export function Sidebar({ role, clubActive }: SidebarProps) {
   const pathname = usePathname()
   const isStaffContext = isClubRole(role) && pathname.startsWith("/club/staff")
   const sections = getSections(role, isStaffContext, clubActive)
-  const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const { sidebarOpen: isMobileOpen, setSidebarOpen: setIsMobileOpen } = useMobileNav()
   const [notifCount, setNotifCount] = useState(0)
   const [messageCount, setMessageCount] = useState(0)
 
@@ -226,14 +226,6 @@ export function Sidebar({ role, clubActive }: SidebarProps) {
 
   return (
     <>
-      <button
-        onClick={() => setIsMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2.5 bg-white rounded-xl shadow-lg border border-stadium-200 hover:bg-stadium-50 transition-colors"
-        aria-label="Ouvrir le menu"
-      >
-        <Menu className="h-5 w-5 text-stadium-700" />
-      </button>
-
       {isMobileOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black/35 z-40 transition-opacity duration-200"
@@ -253,16 +245,18 @@ export function Sidebar({ role, clubActive }: SidebarProps) {
         )}
       >
         <div className="flex h-14 items-center justify-between px-5 border-b border-stadium-100 bg-gradient-to-r from-pitch-600 to-pitch-500">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2" suppressHydrationWarning>
             <FootballIcon className="w-7 h-7 rounded-lg" variant="light" />
             <span className="text-[15px] font-bold text-white tracking-tight">
               Profoot Profile
             </span>
           </Link>
           <button
+            type="button"
             onClick={() => setIsMobileOpen(false)}
             className="lg:hidden p-1.5 rounded-lg hover:bg-white/20 transition-colors"
             aria-label="Fermer le menu"
+            suppressHydrationWarning
           >
             <X className="h-5 w-5 text-white" />
           </button>
@@ -341,7 +335,7 @@ export function Sidebar({ role, clubActive }: SidebarProps) {
           />
 
           <div className="px-5 py-2">
-            <p className="text-[10px] text-stadium-300 font-medium">
+            <p className="text-[10px] text-stadium-300 font-medium" suppressHydrationWarning>
               Profoot Profile v1.0
             </p>
           </div>

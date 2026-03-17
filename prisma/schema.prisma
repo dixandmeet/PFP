@@ -288,13 +288,14 @@ model PlayerProfile {
   updatedAt DateTime @updatedAt
 
   // Relations
-  careerEntries   CareerEntry[]
-  applications    Application[]
-  mandates        Mandate[]
-  reports         PlayerReport[] @relation("ReportSubject")
-  authoredReports PlayerReport[] @relation("ReportAuthor")
-  fileAssets      FileAsset[]
-  teamPlayers     TeamPlayer[]
+  careerEntries    CareerEntry[]
+  applications     Application[]
+  mandates         Mandate[]
+  reports          PlayerReport[] @relation("ReportSubject")
+  authoredReports  PlayerReport[] @relation("ReportAuthor")
+  fileAssets       FileAsset[]
+  teamPlayers      TeamPlayer[]
+  agentInvitations AgentInvitation[]
 
   @@index([userId])
   @@index([isSearchable])
@@ -1690,6 +1691,37 @@ enum StaffOnboardingStep {
   PROFILE
   KYC
   DONE
+}
+
+enum AgentInvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
+
+model AgentInvitation {
+  id               String                @id @default(cuid())
+  token            String                @unique @default(cuid())
+  agentEmail       String
+  agentFirstName   String?
+  agentLastName    String?
+  agentPhone       String?
+  message          String?               @db.Text
+  status           AgentInvitationStatus @default(PENDING)
+  playerProfileId  String
+  playerProfile    PlayerProfile         @relation(fields: [playerProfileId], references: [id], onDelete: Cascade)
+  acceptedByUserId String?
+  acceptedAt       DateTime?
+  expiresAt        DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([token])
+  @@index([agentEmail])
+  @@index([playerProfileId])
+  @@index([status])
 }
 
 model ClubMember {

@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { getClubInitials, getPlayerInitials } from "@/lib/utils/initials"
+import { translatePosition, translateNationality } from "@/lib/utils/football-translations"
 
 interface Team {
   id: string
@@ -251,7 +252,7 @@ export default function FootballTeamPage() {
       </div>
 
       {/* Tabs */}
-      <div className="sticky top-0 z-20 bg-white border-b border-stadium-200 shadow-sm">
+      <div className="sticky top-14 lg:top-0 z-20 bg-white border-b border-stadium-200 shadow-sm">
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="flex gap-1 overflow-x-auto py-2 scrollbar-hide">
             {tabs.map((tab) => {
@@ -428,7 +429,7 @@ export default function FootballTeamPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-stadium-800 group-hover:text-pitch-700 transition-colors truncate">{player.name}</p>
-                          <p className="text-xs text-stadium-500 truncate">{player.position || "N/A"}</p>
+                          <p className="text-xs text-stadium-500 truncate">{translatePosition(player.position)}</p>
                         </div>
                       </Link>
                     ))}
@@ -638,12 +639,12 @@ function PlayerRow({ player, getPositionColor }: { player: Player; getPositionCo
             <span className="text-xs text-stadium-500">#{player.number}</span>
           )}
           {player.nationality && (
-            <span className="text-xs text-stadium-400">{player.nationality}</span>
+            <span className="text-xs text-stadium-400">{translateNationality(player.nationality)}</span>
           )}
         </div>
       </div>
       <span className={cn("px-2.5 py-1 rounded-full text-xs font-medium", getPositionColor(player.position))}>
-        {player.position || "N/A"}
+        {translatePosition(player.position)}
       </span>
       <ChevronRight className="h-4 w-4 text-stadium-300 group-hover:text-stadium-500 transition-colors" />
     </Link>
@@ -661,9 +662,9 @@ function MatchRow({ match, teamName, type }: { match: Match; teamName: string; t
   const isLoss = type === "result" && !isWin && !isDraw
 
   return (
-    <div className="flex items-center gap-4 px-5 py-4">
+    <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-5 py-3 sm:py-4">
       {/* Date */}
-      <div className="text-center w-16 flex-shrink-0">
+      <div className="text-center w-12 sm:w-16 flex-shrink-0">
         <p className="text-xs text-stadium-400">{match.competition}</p>
         <p className="text-sm font-medium text-stadium-600">
           {new Date(match.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
@@ -679,7 +680,7 @@ function MatchRow({ match, teamName, type }: { match: Match; teamName: string; t
           {match.homeTeam.name}
         </span>
         {match.homeTeam.logo && (
-          <div className="relative h-8 w-8 flex-shrink-0">
+          <div className="relative h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0">
             <Image src={match.homeTeam.logo} alt={match.homeTeam.name} fill sizes="32px" className="object-contain" />
           </div>
         )}
@@ -688,7 +689,7 @@ function MatchRow({ match, teamName, type }: { match: Match; teamName: string; t
       {/* Score ou date */}
       {type === "result" ? (
         <div className={cn(
-          "px-4 py-2 rounded-lg font-bold text-sm min-w-[70px] text-center",
+          "px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg font-bold text-xs sm:text-sm min-w-[54px] sm:min-w-[70px] text-center",
           isWin && "bg-pitch-100 text-pitch-700",
           isDraw && "bg-stadium-100 text-stadium-700",
           isLoss && "bg-red-100 text-red-700"
@@ -696,7 +697,7 @@ function MatchRow({ match, teamName, type }: { match: Match; teamName: string; t
           {match.score.home} - {match.score.away}
         </div>
       ) : (
-        <div className="px-4 py-2 bg-pitch-100 rounded-lg text-xs font-medium text-pitch-700 min-w-[70px] text-center flex items-center justify-center gap-1">
+        <div className="px-2 sm:px-4 py-1.5 sm:py-2 bg-pitch-100 rounded-lg text-xs font-medium text-pitch-700 min-w-[54px] sm:min-w-[70px] text-center flex items-center justify-center gap-1">
           <Clock className="h-3 w-3" />
           {new Date(match.date).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
         </div>
@@ -705,7 +706,7 @@ function MatchRow({ match, teamName, type }: { match: Match; teamName: string; t
       {/* Équipe extérieur */}
       <div className="flex items-center gap-2 flex-1 min-w-0">
         {match.awayTeam.logo && (
-          <div className="relative h-8 w-8 flex-shrink-0">
+          <div className="relative h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0">
             <Image src={match.awayTeam.logo} alt={match.awayTeam.name} fill sizes="32px" className="object-contain" />
           </div>
         )}

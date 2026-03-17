@@ -31,7 +31,7 @@ export function ReportAside({
       : Math.min(100, Math.round((filledSections.length / sections.length) * 100))
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 lg:space-y-5">
       <CompletenessCard completeness={completeness} total={sections.length} filled={filledSections.length} />
       <HistoryCard createdAt={createdAt} updatedAt={updatedAt} />
       <VersionsCard version={version} />
@@ -49,10 +49,10 @@ function CompletenessCard({
   filled: number
 }) {
   return (
-    <div className="rounded-xl border border-stadium-150 bg-white p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <CheckCircle2 className="h-4 w-4 text-stadium-400" />
-        <h3 className="text-sm font-semibold text-stadium-700">Complétude</h3>
+    <div className="rounded-2xl border border-stadium-100 bg-white p-4 sm:p-5">
+      <div className="flex items-center gap-2 mb-3 sm:mb-4">
+        <CheckCircle2 className="h-4 w-4 text-stadium-500" aria-hidden />
+        <h3 className="text-sm font-semibold text-stadium-800">Complétude</h3>
       </div>
       <div className="space-y-2">
         <div className="flex items-baseline justify-between">
@@ -93,10 +93,10 @@ function HistoryCard({ createdAt, updatedAt }: { createdAt: string; updatedAt: s
   ]
 
   return (
-    <div className="rounded-xl border border-stadium-150 bg-white p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <History className="h-4 w-4 text-stadium-400" />
-        <h3 className="text-sm font-semibold text-stadium-700">Historique</h3>
+    <div className="rounded-2xl border border-stadium-100 bg-white p-4 sm:p-5">
+      <div className="flex items-center gap-2 mb-3 sm:mb-4">
+        <History className="h-4 w-4 text-stadium-500" aria-hidden />
+        <h3 className="text-sm font-semibold text-stadium-800">Historique</h3>
       </div>
       <div className="relative space-y-4">
         <div className="absolute left-[5px] top-2 bottom-2 w-px bg-stadium-100" />
@@ -117,10 +117,10 @@ function HistoryCard({ createdAt, updatedAt }: { createdAt: string; updatedAt: s
 
 function VersionsCard({ version }: { version: number }) {
   return (
-    <div className="rounded-xl border border-stadium-150 bg-white p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <Layers className="h-4 w-4 text-stadium-400" />
-        <h3 className="text-sm font-semibold text-stadium-700">Versions</h3>
+    <div className="rounded-2xl border border-stadium-100 bg-white p-4 sm:p-5">
+      <div className="flex items-center gap-2 mb-3 sm:mb-4">
+        <Layers className="h-4 w-4 text-stadium-500" aria-hidden />
+        <h3 className="text-sm font-semibold text-stadium-800">Versions</h3>
       </div>
       <div className="space-y-2">
         {Array.from({ length: version }, (_, i) => version - i).map((v) => (

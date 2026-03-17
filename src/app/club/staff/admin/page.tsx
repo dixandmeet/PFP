@@ -13,7 +13,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog"
 import {
   Select,
@@ -84,24 +83,32 @@ type InviteFormData = z.infer<typeof inviteSchema>
 
 const ROLE_CONFIG = {
   OWNER: {
-    label: "Proprietaire",
+    label: "Propriétaire",
     icon: Crown,
-    className: "bg-amber-50 text-amber-700 border-amber-200",
+    bg: "bg-amber-50",
+    text: "text-amber-700",
+    border: "ring-amber-200",
   },
   ADMIN: {
     label: "Administrateur",
     icon: ShieldCheck,
-    className: "bg-blue-50 text-blue-700 border-blue-200",
+    bg: "bg-blue-50",
+    text: "text-blue-700",
+    border: "ring-blue-200",
   },
   STAFF: {
     label: "Staff",
     icon: Shield,
-    className: "bg-green-50 text-green-700 border-green-200",
+    bg: "bg-green-50",
+    text: "text-green-700",
+    border: "ring-green-200",
   },
   VIEWER: {
     label: "Observateur",
     icon: Eye,
-    className: "bg-gray-50 text-gray-600 border-gray-200",
+    bg: "bg-slate-50",
+    text: "text-slate-600",
+    border: "ring-slate-200",
   },
 } as const
 
@@ -190,7 +197,7 @@ export default function ClubAdminPage() {
           const err = await res.json()
           throw new Error(err.error || "Erreur")
         }
-        toast({ title: "Invitation envoyee", description: `Invitation envoyee a ${data.email}` })
+        toast({ title: "Invitation envoyée", description: `Invitation envoyée à ${data.email}` })
         form.reset()
         setInviteDialogOpen(false)
         loadData()
@@ -221,12 +228,12 @@ export default function ClubAdminPage() {
           const err = await res.json()
           throw new Error(err.error || "Erreur")
         }
-        toast({ title: "Role modifie", description: "Le role a ete mis a jour" })
+        toast({ title: "Rôle modifié" })
         loadData()
       } catch (err: unknown) {
         toast({
           title: "Erreur",
-          description: err instanceof Error ? err.message : "Impossible de modifier le role",
+          description: err instanceof Error ? err.message : "Impossible de modifier le rôle",
           variant: "destructive",
         })
       }
@@ -249,10 +256,7 @@ export default function ClubAdminPage() {
           const err = await res.json()
           throw new Error(err.error || "Erreur")
         }
-        toast({
-          title: "Invitation renvoyée",
-          description: "Un nouvel email d'invitation a été envoyé.",
-        })
+        toast({ title: "Invitation renvoyée" })
         loadData()
       } catch (err: unknown) {
         toast({
@@ -282,7 +286,7 @@ export default function ClubAdminPage() {
         const err = await res.json()
         throw new Error(err.error || "Erreur")
       }
-      toast({ title: "Membre retire", description: "Le membre a ete retire du club" })
+      toast({ title: "Membre retiré" })
       setRemoveTarget(null)
       loadData()
     } catch (err: unknown) {
@@ -311,13 +315,16 @@ export default function ClubAdminPage() {
         const err = await res.json()
         throw new Error(err.error || "Erreur")
       }
-      toast({ title: "Propriete transferee", description: `${transferTarget.user?.name || transferTarget.email} est maintenant proprietaire` })
+      toast({
+        title: "Propriété transférée",
+        description: `${transferTarget.user?.name || transferTarget.email} est maintenant propriétaire`,
+      })
       setTransferTarget(null)
       loadData()
     } catch (err: unknown) {
       toast({
         title: "Erreur",
-        description: err instanceof Error ? err.message : "Impossible de transferer la propriete",
+        description: err instanceof Error ? err.message : "Impossible de transférer la propriété",
         variant: "destructive",
       })
     } finally {
@@ -329,16 +336,20 @@ export default function ClubAdminPage() {
 
   if (error && !loading) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <div className="flex flex-col items-center justify-center py-16 rounded-xl border border-gray-200 bg-white">
-          <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-4">
-            <AlertCircle className="w-7 h-7 text-red-500" />
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+        <div className="bg-white ring-1 ring-red-200 rounded-xl p-8 text-center">
+          <div className="h-10 w-10 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-3">
+            <AlertCircle className="h-5 w-5 text-red-500" />
           </div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-1">Erreur de chargement</h2>
-          <p className="text-sm text-gray-500 mb-6">{errorMessage ?? "Impossible de charger les membres."}</p>
-          <Button onClick={loadData} className="bg-green-600 hover:bg-green-700 text-white rounded-xl gap-2">
-            <RefreshCw className="w-4 h-4" />
-            Reessayer
+          <p className="text-sm font-medium text-slate-700 mb-1">Erreur de chargement</p>
+          <p className="text-xs text-slate-500 mb-4">{errorMessage ?? "Impossible de charger les membres."}</p>
+          <Button
+            onClick={loadData}
+            size="sm"
+            className="rounded-xl bg-green-600 hover:bg-green-700 text-white"
+          >
+            <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+            Réessayer
           </Button>
         </div>
       </div>
@@ -348,54 +359,46 @@ export default function ClubAdminPage() {
   // ─── Render ────────────────────────────────────────────────────────────
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Administration</h1>
-          <p className="text-gray-500 mt-1">
-            Gerez les membres administrateurs de votre club.
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Administration</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Gérez les membres de votre club
           </p>
         </div>
         {!loading && canInvite && (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                form.reset({ email: "", role: "ADMIN" })
-                setInviteDialogOpen(true)
-              }}
-              className="rounded-xl gap-2 border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
-            >
-              <ShieldCheck className="w-4 h-4" />
-              Inviter en tant qu'admin
-            </Button>
-            <Button
-              onClick={() => {
-                form.reset({ email: "", role: "STAFF" })
-                setInviteDialogOpen(true)
-              }}
-              className="bg-green-600 hover:bg-green-700 text-white rounded-xl gap-2"
-            >
-              <UserPlus className="w-4 h-4" />
-              Inviter un membre
-            </Button>
-          </div>
+          <Button
+            onClick={() => {
+              form.reset({ email: "", role: "STAFF" })
+              setInviteDialogOpen(true)
+            }}
+            className="rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium shadow-sm self-start sm:self-auto"
+          >
+            <UserPlus className="mr-1.5 h-4 w-4" />
+            Inviter un membre
+          </Button>
         )}
       </div>
 
       {/* Loading */}
       {loading ? (
         <div className="space-y-3">
+          <div className="grid grid-cols-3 gap-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-20 bg-white ring-1 ring-slate-200 rounded-xl animate-pulse" />
+            ))}
+          </div>
           {[1, 2].map((i) => (
-            <div key={i} className="rounded-xl border border-gray-200 bg-white p-4 animate-pulse">
+            <div key={i} className="bg-white ring-1 ring-slate-200 rounded-xl p-4 animate-pulse">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-100" />
+                <div className="w-10 h-10 rounded-full bg-slate-100" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-100 rounded w-1/3" />
-                  <div className="h-3 bg-gray-100 rounded w-1/4" />
+                  <div className="h-4 bg-slate-100 rounded w-1/3" />
+                  <div className="h-3 bg-slate-100 rounded w-1/4" />
                 </div>
-                <div className="h-6 bg-gray-100 rounded-full w-20" />
+                <div className="h-6 bg-slate-100 rounded-full w-20" />
               </div>
             </div>
           ))}
@@ -404,48 +407,52 @@ export default function ClubAdminPage() {
         <>
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900">{activeMembers.length}</div>
-              <div className="text-xs text-gray-500 mt-0.5">Membres actifs</div>
+            <div className="bg-white ring-1 ring-slate-200 rounded-xl p-4">
+              <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Membres</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">{activeMembers.length}</p>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">
+            <div className="bg-white ring-1 ring-slate-200 rounded-xl p-4">
+              <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Admins</p>
+              <p className="text-2xl font-bold text-blue-600 mt-1">
                 {activeMembers.filter((m) => m.role === "ADMIN").length}
-              </div>
-              <div className="text-xs text-gray-500 mt-0.5">Admins</div>
+              </p>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
-              <div className="text-2xl font-bold text-amber-600">{invitedMembers.length}</div>
-              <div className="text-xs text-gray-500 mt-0.5">En attente</div>
+            <div className="bg-white ring-1 ring-slate-200 rounded-xl p-4">
+              <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wider">En attente</p>
+              <p className="text-2xl font-bold text-amber-600 mt-1">{invitedMembers.length}</p>
             </div>
           </div>
 
           {/* Active members list */}
           <div>
-            <h2 className="text-sm font-semibold text-gray-600 mb-3 flex items-center gap-2">
-              <Users className="w-4 h-4" />
+            <h2 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+              <Users className="h-4 w-4 text-slate-400" />
               Membres actifs ({activeMembers.length})
             </h2>
             {activeMembers.length === 0 ? (
-              <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
-                <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-3">
-                  <Users className="w-6 h-6 text-gray-300" />
+              <div className="bg-white ring-1 ring-slate-200 rounded-xl p-8 text-center">
+                <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                  <Users className="h-5 w-5 text-slate-400" />
                 </div>
-                <p className="text-sm text-gray-500">Aucun membre actif.</p>
+                <p className="text-sm text-slate-500">Aucun membre actif</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {activeMembers.map((member) => {
                   const roleInfo = ROLE_CONFIG[member.role]
                   const RoleIcon = roleInfo.icon
+                  const initials = member.user?.name
+                    ? member.user.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+                    : member.email.charAt(0).toUpperCase()
+
                   return (
                     <div
                       key={member.id}
-                      className="group rounded-xl border border-gray-200 bg-white p-4 hover:shadow-sm transition-shadow"
+                      className="group bg-white ring-1 ring-slate-200 rounded-xl p-4 hover:shadow-sm transition-shadow"
                     >
                       <div className="flex items-center gap-3">
                         {/* Avatar */}
-                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center overflow-hidden shrink-0">
                           {member.user?.image ? (
                             <img
                               src={member.user.image}
@@ -453,18 +460,16 @@ export default function ClubAdminPage() {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <User className="w-5 h-5 text-gray-400" />
+                            <span className="text-xs font-bold text-slate-600">{initials}</span>
                           )}
                         </div>
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 truncate text-sm">
+                          <p className="text-sm font-semibold text-slate-900 truncate">
                             {member.user?.name || member.email}
-                          </div>
-                          <div className="text-xs text-gray-400 truncate">
-                            {member.email}
-                          </div>
+                          </p>
+                          <p className="text-xs text-slate-400 truncate">{member.email}</p>
                         </div>
 
                         {/* Role badge or select */}
@@ -473,25 +478,25 @@ export default function ClubAdminPage() {
                             value={member.role}
                             onValueChange={(v) => handleChangeRole(member.id, v)}
                           >
-                            <SelectTrigger className="w-[150px] h-8 text-xs">
+                            <SelectTrigger className="w-[140px] h-8 text-xs border-slate-200">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="ADMIN">
                                 <span className="flex items-center gap-1.5">
-                                  <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                                  <ShieldCheck className="h-3.5 w-3.5 text-blue-600" />
                                   Administrateur
                                 </span>
                               </SelectItem>
                               <SelectItem value="STAFF">
                                 <span className="flex items-center gap-1.5">
-                                  <Shield className="w-3.5 h-3.5 text-green-600" />
+                                  <Shield className="h-3.5 w-3.5 text-green-600" />
                                   Staff
                                 </span>
                               </SelectItem>
                               <SelectItem value="VIEWER">
                                 <span className="flex items-center gap-1.5">
-                                  <Eye className="w-3.5 h-3.5 text-gray-500" />
+                                  <Eye className="h-3.5 w-3.5 text-slate-500" />
                                   Observateur
                                 </span>
                               </SelectItem>
@@ -499,29 +504,29 @@ export default function ClubAdminPage() {
                           </Select>
                         ) : (
                           <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${roleInfo.className}`}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ring-1 ${roleInfo.bg} ${roleInfo.text} ${roleInfo.border}`}
                           >
-                            <RoleIcon className="w-3.5 h-3.5" />
+                            <RoleIcon className="h-3.5 w-3.5" />
                             {roleInfo.label}
                           </span>
                         )}
 
                         {/* Actions */}
                         {isOwner && member.role !== "OWNER" && (
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all">
                             <button
                               onClick={() => setTransferTarget(member)}
-                              className="p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
-                              title="Transferer la propriete"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                              title="Transférer la propriété"
                             >
-                              <ArrowRightLeft className="w-4 h-4" />
+                              <ArrowRightLeft className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => setRemoveTarget(member)}
-                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                               title="Retirer ce membre"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
                         )}
@@ -536,8 +541,8 @@ export default function ClubAdminPage() {
           {/* Pending invitations */}
           {invitedMembers.length > 0 && (
             <div>
-              <h2 className="text-sm font-semibold text-gray-600 mb-3 flex items-center gap-2">
-                <Mail className="w-4 h-4" />
+              <h2 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                <Mail className="h-4 w-4 text-slate-400" />
                 Invitations en attente ({invitedMembers.length})
               </h2>
               <div className="space-y-2">
@@ -546,23 +551,23 @@ export default function ClubAdminPage() {
                   return (
                     <div
                       key={invite.id}
-                      className="group rounded-xl border border-dashed border-gray-200 bg-gray-50/50 p-4"
+                      className="group bg-slate-50/50 ring-1 ring-dashed ring-slate-200 rounded-xl p-4"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
-                          <Mail className="w-5 h-5 text-amber-500" />
+                        <div className="h-10 w-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+                          <Mail className="h-5 w-5 text-amber-500" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-700 truncate text-sm">
+                          <p className="text-sm font-medium text-slate-700 truncate">
                             {invite.email}
-                          </div>
-                          <div className="text-xs text-gray-400 flex items-center gap-1.5 mt-0.5">
-                            <Clock className="w-3 h-3" />
-                            Invite le {formatDate(invite.createdAt)}
-                          </div>
+                          </p>
+                          <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
+                            <Clock className="h-3 w-3" />
+                            Invité le {formatDate(invite.createdAt)}
+                          </p>
                         </div>
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border ${roleInfo.className}`}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-medium ring-1 ${roleInfo.bg} ${roleInfo.text} ${roleInfo.border}`}
                         >
                           {roleInfo.label}
                         </span>
@@ -571,21 +576,21 @@ export default function ClubAdminPage() {
                             <button
                               onClick={() => handleResendInvite(invite.id)}
                               disabled={resendingId === invite.id}
-                              className="p-1.5 rounded-lg text-gray-400 hover:text-green-600 hover:bg-green-50 disabled:opacity-50"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-green-600 hover:bg-green-50 disabled:opacity-50"
                               title="Renvoyer l'invitation"
                             >
                               {resendingId === invite.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
-                                <RefreshCw className="w-4 h-4" />
+                                <RefreshCw className="h-4 w-4" />
                               )}
                             </button>
                             <button
                               onClick={() => setRemoveTarget(invite)}
-                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50"
                               title="Annuler l'invitation"
                             >
-                              <X className="w-4 h-4" />
+                              <X className="h-4 w-4" />
                             </button>
                           </div>
                         )}
@@ -597,41 +602,28 @@ export default function ClubAdminPage() {
             </div>
           )}
 
-          {/* Empty state: no members at all except owner */}
+          {/* Empty state: no members besides owner */}
           {activeMembers.length <= 1 && invitedMembers.length === 0 && canInvite && (
-            <div className="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center">
-              <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
-                <UserPlus className="w-7 h-7 text-green-600" />
+            <div className="bg-white ring-1 ring-slate-200 rounded-xl p-8 text-center">
+              <div className="h-12 w-12 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
+                <UserPlus className="h-6 w-6 text-green-600" />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 mb-1">
-                Ajoutez des membres a votre equipe
-              </h3>
-              <p className="text-sm text-gray-500 mb-4 max-w-sm mx-auto">
-                Invitez des administrateurs, staff ou observateurs pour gerer votre club ensemble.
+              <p className="text-sm font-medium text-slate-700 mb-1">
+                Ajoutez des membres à votre équipe
               </p>
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    form.reset({ email: "", role: "ADMIN" })
-                    setInviteDialogOpen(true)
-                  }}
-                  className="rounded-xl gap-2 border-blue-200 text-blue-700 hover:bg-blue-50"
-                >
-                  <ShieldCheck className="w-4 h-4" />
-                  Inviter un admin
-                </Button>
-                <Button
-                  onClick={() => {
-                    form.reset({ email: "", role: "STAFF" })
-                    setInviteDialogOpen(true)
-                  }}
-                  className="bg-green-600 hover:bg-green-700 text-white rounded-xl gap-2"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  Inviter un membre
-                </Button>
-              </div>
+              <p className="text-xs text-slate-500 mb-5 max-w-xs mx-auto">
+                Invitez des administrateurs, staff ou observateurs pour gérer votre club ensemble.
+              </p>
+              <Button
+                onClick={() => {
+                  form.reset({ email: "", role: "STAFF" })
+                  setInviteDialogOpen(true)
+                }}
+                className="rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium shadow-sm"
+              >
+                <UserPlus className="mr-1.5 h-4 w-4" />
+                Inviter un membre
+              </Button>
             </div>
           )}
         </>
@@ -639,107 +631,121 @@ export default function ClubAdminPage() {
 
       {/* ─── Invite Dialog ──────────────────────────────────────────────── */}
       <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md ring-1 ring-slate-200 rounded-2xl">
           <DialogHeader>
-            <DialogTitle>
-              {form.watch("role") === "ADMIN" ? "Inviter un administrateur" : "Inviter un membre"}
+            <DialogTitle className="text-lg font-bold text-slate-900">
+              Inviter un membre
             </DialogTitle>
-            <DialogDescription>
-              {form.watch("role") === "ADMIN"
-                ? "Envoyez une invitation par email pour ajouter un administrateur (gestion des membres et invitations)."
-                : "Envoyez une invitation par email pour ajouter un membre au club."}
+            <DialogDescription className="text-sm text-slate-500">
+              Envoyez une invitation par email pour ajouter un membre au club.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={form.handleSubmit(handleInvite)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="invite-email">Email *</Label>
+          <form onSubmit={form.handleSubmit(handleInvite)} className="space-y-4 mt-2">
+            <div>
+              <Label className="text-xs font-medium text-slate-600 mb-1.5 block">Email *</Label>
               <Input
-                id="invite-email"
                 type="email"
                 placeholder="nom@exemple.com"
                 {...form.register("email")}
+                className="border-slate-200 focus:ring-2 focus:ring-green-600/30"
               />
               {form.formState.errors.email && (
-                <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
+                <p className="text-xs text-red-600 mt-1">{form.formState.errors.email.message}</p>
               )}
             </div>
-            <div className="space-y-2">
-              <Label>Role *</Label>
+            <div>
+              <Label className="text-xs font-medium text-slate-600 mb-1.5 block">Rôle *</Label>
               <Select
                 value={form.watch("role")}
                 onValueChange={(v) => form.setValue("role", v as "ADMIN" | "STAFF" | "VIEWER")}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Choisir un role" />
+                <SelectTrigger className="border-slate-200 focus:ring-2 focus:ring-green-600/30">
+                  <SelectValue placeholder="Choisir un rôle" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ADMIN">
                     <span className="flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-blue-600" />
-                      Administrateur — Peut gerer les membres et invitations
+                      <ShieldCheck className="h-4 w-4 text-blue-600" />
+                      Administrateur — Gestion des membres
                     </span>
                   </SelectItem>
                   <SelectItem value="STAFF">
                     <span className="flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-green-600" />
-                      Staff — Acces operationnel
+                      <Shield className="h-4 w-4 text-green-600" />
+                      Staff — Accès opérationnel
                     </span>
                   </SelectItem>
                   <SelectItem value="VIEWER">
                     <span className="flex items-center gap-2">
-                      <Eye className="w-4 h-4 text-gray-500" />
-                      Observateur — Acces en lecture seule
+                      <Eye className="h-4 w-4 text-slate-500" />
+                      Observateur — Lecture seule
                     </span>
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setInviteDialogOpen(false)}>
+            <div className="flex gap-3 justify-end pt-3 border-t border-slate-100">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setInviteDialogOpen(false)}
+                className="rounded-xl border-slate-200 text-slate-600"
+              >
                 Annuler
               </Button>
               <Button
                 type="submit"
                 disabled={saving}
-                className="gap-2 bg-green-600 hover:bg-green-700 text-white rounded-xl"
+                className="rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium shadow-sm"
               >
-                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                <UserPlus className="w-4 h-4" />
-                Envoyer l'invitation
+                {saving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <UserPlus className="mr-1.5 h-4 w-4" />
+                    Envoyer l&apos;invitation
+                  </>
+                )}
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
 
       {/* ─── Remove Member / Cancel Invitation Dialog ───────────────────── */}
       <AlertDialog open={!!removeTarget} onOpenChange={() => setRemoveTarget(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="ring-1 ring-slate-200 rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>
+            <AlertDialogTitle className="text-lg font-bold text-slate-900">
               {removeTarget?.status === "INVITED" ? "Annuler cette invitation ?" : "Retirer ce membre ?"}
             </AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-sm text-slate-500">
               {removeTarget && removeTarget.status === "INVITED" ? (
                 <>
-                  L'invitation envoyee a <strong>{removeTarget.email}</strong> sera annulee.
+                  L&apos;invitation envoyée à <strong className="text-slate-700">{removeTarget.email}</strong> sera annulée.
                 </>
               ) : removeTarget ? (
                 <>
-                  <strong>{removeTarget.user?.name || removeTarget.email}</strong> sera
-                  retire du club.
+                  <strong className="text-slate-700">{removeTarget.user?.name || removeTarget.email}</strong> sera
+                  retiré du club.
                 </>
               ) : null}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl">Annuler</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRemove}
               disabled={removing}
-              className="bg-red-500 hover:bg-red-600"
+              className="rounded-xl bg-red-500 hover:bg-red-600"
             >
-              {removing ? <Loader2 className="w-4 h-4 animate-spin" /> : removeTarget?.status === "INVITED" ? "Annuler l'invitation" : "Retirer"}
+              {removing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : removeTarget?.status === "INVITED" ? (
+                "Annuler l'invitation"
+              ) : (
+                "Retirer"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -747,30 +753,32 @@ export default function ClubAdminPage() {
 
       {/* ─── Transfer Ownership Dialog ──────────────────────────────────── */}
       <AlertDialog open={!!transferTarget} onOpenChange={() => setTransferTarget(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="ring-1 ring-slate-200 rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Transferer la propriete ?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-lg font-bold text-slate-900">
+              Transférer la propriété ?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-slate-500">
               {transferTarget && (
                 <>
-                  <strong>{transferTarget.user?.name || transferTarget.email}</strong> deviendra le
-                  proprietaire du club. Vous deviendrez administrateur.
+                  <strong className="text-slate-700">{transferTarget.user?.name || transferTarget.email}</strong> deviendra le
+                  propriétaire du club. Vous deviendrez administrateur.
                   <br />
-                  <span className="text-amber-600 font-medium">
-                    Cette action est irreversible sauf si le nouveau proprietaire vous retransfere la propriete.
+                  <span className="text-amber-600 font-medium text-xs mt-2 block">
+                    Cette action est irréversible sauf si le nouveau propriétaire vous retransfère la propriété.
                   </span>
                 </>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl">Annuler</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleTransfer}
               disabled={transferring}
-              className="bg-amber-500 hover:bg-amber-600"
+              className="rounded-xl bg-amber-500 hover:bg-amber-600"
             >
-              {transferring ? <Loader2 className="w-4 h-4 animate-spin" /> : "Transferer"}
+              {transferring ? <Loader2 className="h-4 w-4 animate-spin" /> : "Transférer"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

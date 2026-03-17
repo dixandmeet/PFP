@@ -862,6 +862,110 @@ export const emailTemplates = {
     }
   },
 
+  agentInvitationEmail: (playerName: string, agentFirstName: string | undefined, personalMessage: string | undefined, inviteUrl: string) => ({
+    subject: `${escapeHtml(playerName)} vous invite à rejoindre Profoot Profile en tant qu'agent`,
+    html: `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 40px 0;">
+        <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <tr>
+            <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); border-radius: 16px 16px 0 0;">
+              <div style="width: 60px; height: 60px; margin: 0 auto 16px; background-color: rgba(255,255,255,0.2); border-radius: 16px;">
+                <span style="font-size: 32px; line-height: 60px;">&#9917;</span>
+              </div>
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">
+                Profoot Profile
+              </h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <h2 style="margin: 0 0 16px; color: #18181b; font-size: 20px; font-weight: 600;">
+                ${agentFirstName ? `${escapeHtml(agentFirstName)}, vous` : 'Vous'} êtes invité(e) à rejoindre Profoot Profile
+              </h2>
+
+              <p style="margin: 0 0 24px; color: #52525b; font-size: 16px; line-height: 24px;">
+                <strong>${escapeHtml(playerName)}</strong>, joueur professionnel sur Profoot Profile, vous invite à le rejoindre sur la plateforme en tant qu'<strong>agent</strong>.
+              </p>
+
+              ${personalMessage ? `
+              <table role="presentation" style="width: 100%; border-collapse: collapse; margin-bottom: 24px; background-color: #f0fdf4; border-radius: 8px; border-left: 4px solid #16a34a;">
+                <tr>
+                  <td style="padding: 16px;">
+                    <p style="margin: 0 0 4px; color: #166534; font-size: 12px; font-weight: 600; text-transform: uppercase;">Message de ${escapeHtml(playerName)}</p>
+                    <p style="margin: 0; color: #166534; font-size: 14px; line-height: 22px; font-style: italic;">${escapeHtml(personalMessage)}</p>
+                  </td>
+                </tr>
+              </table>
+              ` : ''}
+
+              <p style="margin: 0 0 24px; color: #52525b; font-size: 16px; line-height: 24px;">
+                Profoot Profile est le réseau professionnel qui connecte joueurs, agents et clubs du monde entier. Créez votre profil d'agent pour gérer vos joueurs et accéder aux opportunités.
+              </p>
+
+              <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td align="center" style="padding: 16px 0;">
+                    <a href="${inviteUrl}"
+                       style="display: inline-block; padding: 16px 32px; background-color: #16a34a; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 12px; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);">
+                      Accepter l'invitation
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 24px 0 0; color: #71717a; font-size: 14px; line-height: 20px;">
+                Cette invitation expire dans <strong>7 jours</strong>.
+              </p>
+
+              <p style="margin: 16px 0 0; color: #71717a; font-size: 14px; line-height: 20px;">
+                Si le bouton ne fonctionne pas, copiez et collez ce lien :
+              </p>
+
+              <p style="margin: 8px 0 0; padding: 12px; background-color: #f4f4f5; border-radius: 8px; word-break: break-all;">
+                <a href="${inviteUrl}" style="color: #16a34a; font-size: 12px; text-decoration: none;">
+                  ${inviteUrl}
+                </a>
+              </p>
+
+              <table role="presentation" style="width: 100%; border-collapse: collapse; margin-top: 32px; background-color: #fef3c7; border-radius: 8px;">
+                <tr>
+                  <td style="padding: 16px;">
+                    <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 20px;">
+                      Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet email.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 40px; background-color: #fafafa; border-radius: 0 0 16px 16px; border-top: 1px solid #e4e4e7;">
+              <p style="margin: 0 0 8px; color: #71717a; font-size: 12px; text-align: center;">
+                &copy; ${new Date().getFullYear()} Profoot Profile. Tous droits réservés.
+              </p>
+              <p style="margin: 0; color: #a1a1aa; font-size: 12px; text-align: center;">
+                Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `.trim()
+  }),
+
   clubRejectedEmail: (clubName: string, userName: string, reason: string) => ({
     subject: `Votre demande pour "${escapeHtml(clubName)}" nécessite des modifications - Profoot Profile`,
     html: `

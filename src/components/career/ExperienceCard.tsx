@@ -37,17 +37,19 @@ export function ExperienceCard({ entry, isSelected, onSelect, onDelete, formatDa
       onClick={() => onSelect(entry.id)}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <h3 className="font-bold text-slate-900 text-base truncate">{entry.clubName}</h3>
-          <Badge variant="outline" className="font-mono text-[11px] px-1.5 py-0 shrink-0 border-slate-300 text-slate-600">
-            {entry.season}
-          </Badge>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-bold text-slate-900 text-base truncate">{entry.clubName}</h3>
+            <Badge variant="outline" className="font-mono text-[11px] px-1.5 py-0 shrink-0 border-slate-300 text-slate-600">
+              {entry.season}
+            </Badge>
+          </div>
         </div>
         <div className="flex items-center gap-0.5 shrink-0">
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onSelect(entry.id) }}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-green-600 hover:bg-green-50 transition-colors"
+            className="hidden sm:flex p-1.5 rounded-lg text-slate-400 hover:text-green-600 hover:bg-green-50 transition-colors"
             title="Voir"
           >
             <Eye className="w-4 h-4" />
@@ -55,7 +57,7 @@ export function ExperienceCard({ entry, isSelected, onSelect, onDelete, formatDa
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onSelect(entry.id) }}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            className="hidden sm:flex p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
             title="Modifier"
           >
             <Pencil className="w-4 h-4" />

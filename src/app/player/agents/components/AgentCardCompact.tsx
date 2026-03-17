@@ -57,14 +57,14 @@ export function AgentCardCompact({
 
   if (viewMode === "list") {
     return (
-      <div className="group bg-white border border-stadium-200/60 rounded-2xl px-5 py-4 transition-all duration-200 hover:shadow-md hover:border-pitch-200 hover:-translate-y-0.5">
-        <div className="flex items-center gap-4">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-pitch-600 text-white font-bold text-sm shadow-sm">
+      <div className="group bg-white border border-stadium-200/60 rounded-2xl px-4 sm:px-5 py-3 sm:py-4 transition-all duration-200 hover:shadow-md hover:border-pitch-200 hover:-translate-y-0.5">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-full bg-pitch-600 text-white font-bold text-sm shadow-sm">
             {agent.firstName[0]}{agent.lastName[0]}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-bold text-stadium-900">
+              <span className="font-bold text-stadium-900 text-sm">
                 {agent.firstName} {agent.lastName}
               </span>
               {agent.isVerified && (
@@ -74,46 +74,47 @@ export function AgentCardCompact({
                 </Badge>
               )}
               {agent.agencyName && (
-                <span className="text-xs text-stadium-400 flex items-center gap-1">
+                <span className="text-xs text-stadium-400 hidden sm:flex items-center gap-1">
                   <Building2 className="h-3 w-3" />
                   {agent.agencyName}
                 </span>
               )}
             </div>
             {agent.licenseNumber && (
-              <p className="text-xs text-stadium-400 mt-0.5">
+              <p className="text-xs text-stadium-400 mt-0.5 hidden sm:block">
                 Licence {agent.licenseNumber}
                 {agent.licenseCountry && ` · ${agent.licenseCountry}`}
               </p>
             )}
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Boutons : icône seule sur mobile, avec texte sur sm+ */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <Button
               variant="outline"
               size="sm"
               onClick={() => onViewDetails(agent)}
-              className="rounded-xl border-stadium-200 text-stadium-600 hover:border-pitch-300 hover:text-pitch-700 font-medium text-xs h-8 transition-all duration-200 active:scale-[0.97]"
+              className="rounded-xl border-stadium-200 text-stadium-600 hover:border-pitch-300 hover:text-pitch-700 font-medium text-xs h-8 transition-all duration-200 active:scale-[0.97] px-2 sm:px-3"
               aria-label={`Voir profil de ${agent.firstName} ${agent.lastName}`}
             >
-              <Eye className="mr-1 h-3.5 w-3.5" />
-              Voir profil
+              <Eye className="h-3.5 w-3.5 sm:mr-1" />
+              <span className="hidden sm:inline">Voir profil</span>
             </Button>
             <Button
               size="sm"
               onClick={() => onProposeMandate(agent)}
               disabled={hasActiveMandate}
-              className="rounded-xl bg-pitch-600 hover:bg-pitch-700 text-white font-medium text-xs h-8 shadow-sm transition-all duration-200 active:scale-[0.97]"
+              className="rounded-xl bg-pitch-600 hover:bg-pitch-700 text-white font-medium text-xs h-8 shadow-sm transition-all duration-200 active:scale-[0.97] px-2 sm:px-3"
               aria-label={hasActiveMandate ? "Mandat existant" : `Contacter ${agent.firstName} ${agent.lastName}`}
             >
               {hasActiveMandate ? (
                 <>
-                  <CheckCircle className="mr-1 h-3.5 w-3.5" />
-                  Mandat existant
+                  <CheckCircle className="h-3.5 w-3.5 sm:mr-1" />
+                  <span className="hidden sm:inline">Mandat existant</span>
                 </>
               ) : (
                 <>
-                  <UserPlus className="mr-1 h-3.5 w-3.5" />
-                  Contacter
+                  <UserPlus className="h-3.5 w-3.5 sm:mr-1" />
+                  <span className="hidden sm:inline">Contacter</span>
                 </>
               )}
             </Button>

@@ -101,6 +101,8 @@ export function ReelsViewer({
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({})
   const [shareCounts, setShareCounts] = useState<Record<string, number>>({})
   const [videoLoadError, setVideoLoadError] = useState(false)
+  const [duration, setDuration] = useState(0)
+  const [isSeekingReel, setIsSeekingReel] = useState(false)
 
   const { toast } = useToast()
   const { register, handleSubmit, reset } = useForm<{ content: string }>()
@@ -144,7 +146,7 @@ export function ReelsViewer({
     }
   }, [])
 
-  // Gérer la lecture vidéo
+  // Gérer la lecture vidéo lors du changement d'index
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
@@ -153,27 +155,32 @@ export function ReelsViewer({
     setProgress(0)
 
     if (isPlaying) {
-      video.play().catch(() => {
-        // Autoplay bloqué, on met en pause
-        setIsPlaying(false)
-      })
+      video.play().catch(() => setIsPlaying(false))
     }
-  }, [currentIndex, isPlaying])
+  }, [currentIndex])
 
-  // Mettre à jour la progression
+  // Mettre à jour la progression et la durée
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
 
     const updateProgress = () => {
-      if (video.duration) {
+      if (video.duration && !isSeekingReel) {
         setProgress((video.currentTime / video.duration) * 100)
       }
     }
 
+    const updateDuration = () => {
+      if (video.duration) setDuration(video.duration)
+    }
+
     video.addEventListener("timeupdate", updateProgress)
-    return () => video.removeEventListener("timeupdate", updateProgress)
-  }, [currentIndex])
+    video.addEventListener("loadedmetadata", updateDuration)
+    return () => {
+      video.removeEventListener("timeupdate", updateProgress)
+      video.removeEventListener("loadedmetadata", updateDuration)
+    }
+  }, [currentIndex, isSeekingReel])
 
   // Auto-hide des contrôles
   const resetControlsTimeout = useCallback(() => {
@@ -277,6 +284,29 @@ export function ReelsViewer({
     video.muted = !video.muted
     setIsMuted(video.muted)
     resetControlsTimeout()
+  }
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60)
+    const s = Math.floor(seconds % 60)
+    return `${m}:${s.toString().padStart(2, '0')}`
+  }
+
+  const handleReelSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation()
+    const video = videoRef.current
+    if (!video || !video.duration) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const pct = Math.max(0, Math.min(1, x / rect.width))
+    video.currentTime = pct * video.duration
+    setProgress(pct * 100)
+    resetControlsTimeout()
+  }
+
+  const handleReelSeekDrag = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isSeekingReel) return
+    handleReelSeek(e)
   }
 
   // Gestion du swipe tactile
@@ -504,17 +534,20 @@ export function ReelsViewer({
           className="relative w-full h-full max-w-[480px] mx-auto flex items-center justify-center"
         >
           <video
-            ref={videoRef}
+            ref={(el) => { videoRef.current = el }}
             src={currentReel.videoUrl}
             className={cn("w-full h-full object-contain", videoLoadError && "hidden")}
             loop
             playsInline
-            autoPlay
             muted={isMuted}
             onClick={togglePlay}
+            onCanPlay={(e) => {
+              const v = e.currentTarget
+              if (v.paused && isPlaying) v.play().catch(() => {})
+            }}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
-            onError={() => setVideoLoadError(true)}
+            onError={() => { setVideoLoadError(true); setIsPlaying(false) }}
           />
 
           {/* Fallback si format vidéo non supporté */}
@@ -538,15 +571,6 @@ export function ReelsViewer({
 
           {/* Overlay gradient haut */}
           <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
-
-          {/* Barre de progression */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-white/20 z-20">
-            <motion.div
-              className="h-full bg-white rounded-full"
-              style={{ width: `${progress}%` }}
-              transition={{ duration: 0.1 }}
-            />
-          </div>
 
           {/* Header - Bouton fermer */}
           <div className={cn(
@@ -670,8 +694,76 @@ export function ReelsViewer({
             </button>
           </div>
 
+          {/* Barre de progression seekable */}
+          <div className={cn(
+            "absolute bottom-0 left-0 right-0 z-30 px-4 pb-2 transition-opacity duration-300",
+            showControls ? "opacity-100" : "opacity-0"
+          )}>
+            <div
+              className="group/seek w-full h-6 flex items-end cursor-pointer"
+              onClick={handleReelSeek}
+              onMouseDown={(e) => { e.stopPropagation(); setIsSeekingReel(true) }}
+              onMouseMove={handleReelSeekDrag}
+              onMouseUp={() => setIsSeekingReel(false)}
+              onMouseLeave={() => setIsSeekingReel(false)}
+              onTouchStart={(e) => {
+                e.stopPropagation()
+                setIsSeekingReel(true)
+                const touch = e.touches[0]
+                const rect = e.currentTarget.getBoundingClientRect()
+                const pct = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width))
+                const video = videoRef.current
+                if (video && video.duration) {
+                  video.currentTime = pct * video.duration
+                  setProgress(pct * 100)
+                }
+              }}
+              onTouchMove={(e) => {
+                if (!isSeekingReel) return
+                const touch = e.touches[0]
+                const rect = e.currentTarget.getBoundingClientRect()
+                const pct = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width))
+                const video = videoRef.current
+                if (video && video.duration) {
+                  video.currentTime = pct * video.duration
+                  setProgress(pct * 100)
+                }
+              }}
+              onTouchEnd={() => setIsSeekingReel(false)}
+            >
+              <div className="relative w-full h-1 group-hover/seek:h-1.5 bg-white/30 rounded-full transition-all">
+                <div
+                  className="absolute inset-y-0 left-0 bg-white rounded-full"
+                  style={{ width: `${progress}%` }}
+                />
+                <div
+                  className="absolute top-1/2 h-3.5 w-3.5 bg-white rounded-full shadow-md opacity-0 group-hover/seek:opacity-100 transition-opacity"
+                  style={{ left: `${progress}%`, transform: `translate(-50%, -50%)` }}
+                />
+              </div>
+            </div>
+            {duration > 0 && (
+              <div className="flex justify-between mt-1">
+                <span className="text-[10px] text-white/60 font-medium tabular-nums">
+                  {formatTime((progress / 100) * duration)}
+                </span>
+                <span className="text-[10px] text-white/60 font-medium tabular-nums">
+                  {formatTime(duration)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Barre fine toujours visible (quand contrôles cachés) */}
+          <div className={cn(
+            "absolute bottom-0 left-0 right-0 h-0.5 bg-white/20 z-20 transition-opacity duration-300",
+            showControls ? "opacity-0" : "opacity-100"
+          )}>
+            <div className="h-full bg-white/70" style={{ width: `${progress}%` }} />
+          </div>
+
           {/* Infos utilisateur et contenu (bas) */}
-          <div className="absolute bottom-6 left-4 right-16 z-20">
+          <div className="absolute bottom-14 left-4 right-16 z-20">
             {/* Profil utilisateur */}
             <div className="flex items-center gap-3 mb-3">
               <div className="relative">

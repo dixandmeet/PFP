@@ -902,11 +902,11 @@ function SearchContent() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-pitch-400/20 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gold-400/10 rounded-full blur-3xl" />
         
-        <div className="relative container mx-auto px-4 pt-6 pb-20 max-w-4xl">
-          {/* Navigation */}
-          <Link 
+        <div className="relative container mx-auto px-4 pt-4 sm:pt-6 pb-20 max-w-4xl">
+          {/* Navigation — masquée sur mobile (MobileHeader gère la navigation) */}
+          <Link
             href={dashboardUrl}
-            className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-8 transition-colors group"
+            className="hidden lg:inline-flex items-center gap-2 text-white/70 hover:text-white mb-8 transition-colors group"
           >
             <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             <span className="text-sm font-medium">Retour au dashboard</span>
@@ -916,16 +916,16 @@ function SearchContent() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-8"
+            className="text-center mb-6 sm:mb-8"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-white/80 text-xs font-medium mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-white/80 text-xs font-medium mb-3 sm:mb-4">
               <Search className="h-3 w-3" />
               Recherche Avancée
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">
               {getTitleByRole(session?.user?.role)}
             </h1>
-            <p className="text-white/60 text-sm md:text-base">
+            <p className="text-white/60 text-xs sm:text-sm md:text-base">
               {getSubtitleByRole(session?.user?.role)}
             </p>
           </motion.div>
@@ -956,8 +956,8 @@ function SearchContent() {
                   onChange={(e) => setQuery(e.target.value)}
                   onFocus={() => setIsFocused(true)}
                   onBlur={() => setIsFocused(false)}
-                  placeholder="Rechercher un joueur, club ou agent..."
-                  className="flex-1 h-14 px-4 bg-transparent text-stadium-900 placeholder:text-stadium-400 focus:outline-none text-base"
+                  placeholder="Joueur, club, agent..."
+                  className="flex-1 min-w-0 h-14 px-4 bg-transparent text-stadium-900 placeholder:text-stadium-400 focus:outline-none text-base"
                 />
                 <AnimatePresence>
                   {query && (
@@ -967,17 +967,18 @@ function SearchContent() {
                       exit={{ opacity: 0, scale: 0.8 }}
                       type="button"
                       onClick={() => setQuery("")}
-                      className="p-2 mr-1 rounded-full hover:bg-stadium-100 transition-colors"
+                      className="p-2 rounded-full hover:bg-stadium-100 transition-colors shrink-0"
                     >
                       <X className="h-4 w-4 text-stadium-400" />
                     </motion.button>
                   )}
                 </AnimatePresence>
-                <Button 
+                <Button
                   type="submit"
-                  className="h-10 px-5 mr-2 bg-gradient-to-r from-pitch-600 to-pitch-700 hover:from-pitch-700 hover:to-pitch-800 text-sm font-medium"
+                  className="h-10 w-10 sm:w-auto sm:px-5 mr-2 rounded-xl bg-gradient-to-r from-pitch-600 to-pitch-700 hover:from-pitch-700 hover:to-pitch-800 text-sm font-medium shrink-0"
                 >
-                  Rechercher
+                  <Search className="h-4 w-4" />
+                  <span className="hidden sm:inline ml-1.5">Rechercher</span>
                 </Button>
               </div>
             </div>

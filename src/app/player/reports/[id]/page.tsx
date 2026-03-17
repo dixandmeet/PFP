@@ -99,10 +99,10 @@ export default function ReportDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex items-center justify-center min-h-[50vh] px-4" suppressHydrationWarning>
         <div className="text-center">
-          <Loader2 className="h-6 w-6 animate-spin text-stadium-400 mx-auto mb-3" />
-          <p className="text-sm text-stadium-500">Chargement du rapport...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-pitch-500 mx-auto mb-4" aria-hidden />
+          <p className="text-sm font-medium text-stadium-600">Chargement du rapport...</p>
         </div>
       </div>
     )
@@ -117,7 +117,7 @@ export default function ReportDetailPage() {
   const authorIsSubject = report.author.id === report.subject.id
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-4xl lg:max-w-6xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
       <ReportHeader
         title={report.title}
         subjectName={subjectName}
@@ -131,7 +131,7 @@ export default function ReportDetailPage() {
         onDownload={handleDownload}
       />
 
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px]">
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px] lg:gap-8">
         <div className="space-y-6 min-w-0">
           <ReportMeta
             authorName={authorName}
@@ -145,7 +145,7 @@ export default function ReportDetailPage() {
           />
         </div>
 
-        <aside className="lg:sticky lg:top-6 lg:self-start">
+        <aside className="lg:sticky lg:top-6 lg:self-start space-y-5">
           <ReportAside
             sections={report.sections || []}
             version={report.version}

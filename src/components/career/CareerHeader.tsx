@@ -31,10 +31,11 @@ export function CareerHeader({ experienceCount, onAddExperience }: CareerHeaderP
       </div>
       <Button
         onClick={onAddExperience}
-        className="bg-green-600 hover:bg-green-700 text-white rounded-xl gap-2 shadow-sm"
+        className="bg-green-600 hover:bg-green-700 text-white rounded-xl gap-2 shadow-sm shrink-0"
       >
         <Plus className="w-4 h-4" />
-        Ajouter une expérience
+        <span className="hidden sm:inline">Ajouter une expérience</span>
+        <span className="sm:hidden">Ajouter</span>
       </Button>
     </div>
   )

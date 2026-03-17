@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog"
 import {
   Select,
@@ -33,7 +34,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2, Plus, Trophy, AlertCircle, RefreshCw } from "lucide-react"
+import { Loader2, Plus, Trophy, AlertCircle, RefreshCw, X, MapPin, Calendar, Trash2 } from "lucide-react"
 
 import { CareerHeader } from "@/components/career/CareerHeader"
 import { CareerStats, CareerStatsSkeleton } from "@/components/career/CareerStats"
@@ -53,7 +54,15 @@ const careerFormSchema = z.object({
   minutesPlayed: z.number().int().min(0).optional().or(z.literal("")),
   goals: z.number().int().min(0).optional().or(z.literal("")),
   assists: z.number().int().min(0).optional().or(z.literal("")),
-})
+}).refine(
+  (data) => {
+    if (data.endDate && data.startDate) {
+      return new Date(data.endDate) >= new Date(data.startDate)
+    }
+    return true
+  },
+  { message: "La date de fin doit être après la date de début", path: ["endDate"] }
+)
 
 type CareerFormData = z.infer<typeof careerFormSchema>
 
@@ -74,6 +83,7 @@ export default function PlayerCareerPage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false)
 
   const form = useForm<CareerFormData>({
     resolver: zodResolver(careerFormSchema),
@@ -87,6 +97,17 @@ export default function PlayerCareerPage() {
       position: "",
     },
   })
+
+  const watchedStartDate = form.watch("startDate")
+  useEffect(() => {
+    if (watchedStartDate) {
+      const currentSeason = form.getValues("season")
+      if (!currentSeason) {
+        const year = new Date(watchedStartDate).getFullYear()
+        form.setValue("season", `${year}/${String(year + 1).slice(-2)}`)
+      }
+    }
+  }, [watchedStartDate])
 
   useEffect(() => {
     loadData()
@@ -209,7 +230,7 @@ export default function PlayerCareerPage() {
 
   if (error && !loading && entries.length === 0) {
     return (
-      <div className="max-w-6xl mx-auto px-6 py-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
         <div className="bg-white rounded-2xl ring-1 ring-slate-200 shadow-sm p-12 flex flex-col items-center justify-center text-center">
           <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-4">
             <AlertCircle className="w-7 h-7 text-red-500" />
@@ -226,7 +247,7 @@ export default function PlayerCareerPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-6 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       <CareerHeader
         experienceCount={entries.length}
         onAddExperience={() => setDialogOpen(true)}
@@ -282,7 +303,7 @@ export default function PlayerCareerPage() {
             <ExperienceList
               entries={entries}
               selectedId={selectedId}
-              onSelect={setSelectedId}
+              onSelect={(id) => { setSelectedId(id); setMobilePreviewOpen(true) }}
               onDelete={setDeleteTarget}
               formatDate={formatDate}
             />
@@ -297,56 +318,206 @@ export default function PlayerCareerPage() {
               />
             </div>
           </div>
-          {selectedEntry && (
-            <div className="lg:hidden">
-              <ExperiencePreview
-                entry={selectedEntry}
-                formatDate={formatDate}
-                onDelete={setDeleteTarget}
-                onAddExperience={() => setDialogOpen(true)}
-              />
-            </div>
-          )}
         </div>
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Ajouter une expérience</DialogTitle>
-            <DialogDescription>
-              Renseignez les informations de votre passage dans un club.
-            </DialogDescription>
-          </DialogHeader>
+      {/* Mobile experience preview popup */}
+      <Dialog open={mobilePreviewOpen} onOpenChange={setMobilePreviewOpen}>
+        <DialogContent className="lg:hidden p-0 max-w-lg w-full max-h-[85dvh] overflow-hidden rounded-t-2xl sm:rounded-2xl [&>button:last-child]:hidden flex flex-col">
+          <DialogTitle className="sr-only">{selectedEntry?.clubName || "Détails de l'expérience"}</DialogTitle>
+          {selectedEntry && (
+            <>
+              {/* Header */}
+              <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-6 pt-6 pb-5 shrink-0">
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iMzAiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZykiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiLz48L3N2Zz4=')] opacity-50" />
+                <DialogClose className="absolute right-4 top-4 z-10 h-8 w-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+                  <X className="h-4 w-4" />
+                </DialogClose>
+                <div className="relative flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center shrink-0">
+                    <Trophy className="h-5 w-5 text-white/80" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-lg font-bold text-white">{selectedEntry.clubName}</h2>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-white/10 text-white/80 ring-1 ring-white/20">
+                        {selectedEntry.season}
+                      </span>
+                      {selectedEntry.position && (
+                        <span className="text-sm text-white/50">{selectedEntry.position}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="clubName">Club *</Label>
+              {/* Body */}
+              <div className="overflow-y-auto flex-1 px-5 py-5 space-y-5">
+                {/* Infos */}
+                <div className="space-y-3">
+                  <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Informations</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {selectedEntry.league && (
+                      <div className="p-3 rounded-xl bg-slate-50 ring-1 ring-slate-100">
+                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">Ligue</p>
+                        <div className="flex items-center gap-2">
+                          <Trophy className="h-4 w-4 text-amber-500" />
+                          <span className="text-sm font-semibold text-slate-800">{selectedEntry.league}</span>
+                        </div>
+                      </div>
+                    )}
+                    {selectedEntry.country && (
+                      <div className="p-3 rounded-xl bg-slate-50 ring-1 ring-slate-100">
+                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">Pays</p>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-blue-500" />
+                          <span className="text-sm font-semibold text-slate-800">{selectedEntry.country}</span>
+                        </div>
+                      </div>
+                    )}
+                    <div className="p-3 rounded-xl bg-slate-50 ring-1 ring-slate-100 col-span-2">
+                      <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">Période</p>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-slate-400" />
+                        <span className="text-sm font-semibold text-slate-800">
+                          {formatDate(selectedEntry.startDate)} – {selectedEntry.endDate ? formatDate(selectedEntry.endDate) : "Présent"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Statistiques */}
+                {(selectedEntry.appearances != null || selectedEntry.goals != null || selectedEntry.assists != null || selectedEntry.minutesPlayed != null) && (
+                  <div className="space-y-3">
+                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Statistiques</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 rounded-xl bg-slate-50 ring-1 ring-slate-100 text-center">
+                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">Matchs</p>
+                        <p className="text-xl font-bold text-slate-900">{selectedEntry.appearances ?? "–"}</p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-slate-50 ring-1 ring-slate-100 text-center">
+                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">Buts</p>
+                        <p className="text-xl font-bold text-amber-600">{selectedEntry.goals ?? "–"}</p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-slate-50 ring-1 ring-slate-100 text-center">
+                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">Passes D.</p>
+                        <p className="text-xl font-bold text-blue-600">{selectedEntry.assists ?? "–"}</p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-slate-50 ring-1 ring-slate-100 text-center">
+                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">Minutes</p>
+                        <p className="text-xl font-bold text-slate-600">{selectedEntry.minutesPlayed ?? "–"}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="shrink-0 border-t border-slate-100 bg-white px-5 py-4 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setDeleteTarget(selectedEntry.id); setMobilePreviewOpen(false) }}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium text-red-600 ring-1 ring-red-200 hover:bg-red-50 transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Supprimer cette expérience
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setMobilePreviewOpen(false); setDialogOpen(true) }}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                  Ajouter une expérience
+                </button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) form.reset() }}>
+        <DialogContent className="w-full max-w-lg max-h-[90dvh] overflow-y-auto p-0 gap-0 rounded-2xl">
+          {/* Header */}
+          <div className="flex items-center gap-3 px-6 pt-6 pb-4 border-b border-slate-100">
+            <div className="h-9 w-9 rounded-xl bg-green-600/10 flex items-center justify-center shrink-0">
+              <Trophy className="h-5 w-5 text-green-600" />
+            </div>
+            <div>
+              <DialogTitle className="text-base font-bold text-slate-900">Ajouter une expérience</DialogTitle>
+              <DialogDescription className="text-xs text-slate-500 mt-0">
+                Renseignez votre passage dans un club
+              </DialogDescription>
+            </div>
+          </div>
+
+          <form onSubmit={form.handleSubmit(onSubmit)} className="px-6 py-5 space-y-5">
+            {/* Club */}
+            <div className="space-y-1.5">
+              <Label htmlFor="clubName" className="text-sm font-medium text-slate-700">Club *</Label>
               <Input
                 id="clubName"
                 placeholder="Ex: Olympique de Marseille"
+                className="rounded-xl"
                 {...form.register("clubName")}
                 error={form.formState.errors.clubName?.message}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="season">Saison *</Label>
+            {/* Période */}
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Période</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="startDate" className="text-sm font-medium text-slate-700">Date de début *</Label>
+                  <Input
+                    id="startDate"
+                    type="date"
+                    className="rounded-xl"
+                    {...form.register("startDate")}
+                    error={form.formState.errors.startDate?.message}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="endDate" className="text-sm font-medium text-slate-700">
+                    Date de fin
+                    <span className="text-slate-400 font-normal ml-1">(vide = en cours)</span>
+                  </Label>
+                  <Input
+                    id="endDate"
+                    type="date"
+                    min={watchedStartDate || undefined}
+                    className="rounded-xl"
+                    {...form.register("endDate")}
+                    error={form.formState.errors.endDate?.message}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Saison & Poste */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="season" className="text-sm font-medium text-slate-700">
+                  Saison *
+                  <span className="text-slate-400 font-normal ml-1">ex: 2024/25</span>
+                </Label>
                 <Input
                   id="season"
                   placeholder="2024/25"
+                  className="rounded-xl"
                   {...form.register("season")}
                   error={form.formState.errors.season?.message}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="position">Poste</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="position" className="text-sm font-medium text-slate-700">Poste</Label>
                 <Select
                   onValueChange={(v) => form.setValue("position", v)}
                   defaultValue=""
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="rounded-xl">
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
@@ -358,100 +529,55 @@ export default function PlayerCareerPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="league">Ligue</Label>
-                <Input
-                  id="league"
-                  placeholder="Ex: Ligue 1"
-                  {...form.register("league")}
-                />
+            {/* Ligue & Pays */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="league" className="text-sm font-medium text-slate-700">Ligue</Label>
+                <Input id="league" placeholder="Ex: Ligue 1" className="rounded-xl" {...form.register("league")} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="country">Pays</Label>
-                <Input
-                  id="country"
-                  placeholder="Ex: France"
-                  {...form.register("country")}
-                />
+              <div className="space-y-1.5">
+                <Label htmlFor="country" className="text-sm font-medium text-slate-700">Pays</Label>
+                <Input id="country" placeholder="Ex: France" className="rounded-xl" {...form.register("country")} />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="startDate">Début *</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  {...form.register("startDate")}
-                  error={form.formState.errors.startDate?.message}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="endDate">Fin</Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  {...form.register("endDate")}
-                />
-              </div>
-            </div>
-
-            <div className="pt-2 border-t">
-              <p className="text-sm font-medium text-stadium-700 mb-3">Statistiques (optionnel)</p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="space-y-1">
-                  <Label htmlFor="appearances" className="text-xs">Matchs</Label>
-                  <Input
-                    id="appearances"
-                    type="number"
-                    min={0}
-                    placeholder="0"
-                    {...form.register("appearances", { valueAsNumber: true })}
-                  />
+            {/* Statistiques */}
+            <div className="space-y-3 pt-1 border-t border-slate-100">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider pt-2">Statistiques <span className="normal-case font-normal">(optionnel)</span></p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="appearances" className="text-sm font-medium text-slate-700">Matchs joués</Label>
+                  <Input id="appearances" type="number" min={0} placeholder="0" className="rounded-xl"
+                    {...form.register("appearances", { valueAsNumber: true })} />
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor="goals" className="text-xs">Buts</Label>
-                  <Input
-                    id="goals"
-                    type="number"
-                    min={0}
-                    placeholder="0"
-                    {...form.register("goals", { valueAsNumber: true })}
-                  />
+                <div className="space-y-1.5">
+                  <Label htmlFor="goals" className="text-sm font-medium text-slate-700">Buts</Label>
+                  <Input id="goals" type="number" min={0} placeholder="0" className="rounded-xl"
+                    {...form.register("goals", { valueAsNumber: true })} />
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor="assists" className="text-xs">Passes D.</Label>
-                  <Input
-                    id="assists"
-                    type="number"
-                    min={0}
-                    placeholder="0"
-                    {...form.register("assists", { valueAsNumber: true })}
-                  />
+                <div className="space-y-1.5">
+                  <Label htmlFor="assists" className="text-sm font-medium text-slate-700">Passes décisives</Label>
+                  <Input id="assists" type="number" min={0} placeholder="0" className="rounded-xl"
+                    {...form.register("assists", { valueAsNumber: true })} />
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor="minutesPlayed" className="text-xs">Minutes</Label>
-                  <Input
-                    id="minutesPlayed"
-                    type="number"
-                    min={0}
-                    placeholder="0"
-                    {...form.register("minutesPlayed", { valueAsNumber: true })}
-                  />
+                <div className="space-y-1.5">
+                  <Label htmlFor="minutesPlayed" className="text-sm font-medium text-slate-700">Minutes jouées</Label>
+                  <Input id="minutesPlayed" type="number" min={0} placeholder="0" className="rounded-xl"
+                    {...form.register("minutesPlayed", { valueAsNumber: true })} />
                 </div>
               </div>
             </div>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+            {/* Footer */}
+            <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2 border-t border-slate-100">
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="flex-1 sm:flex-none rounded-xl">
                 Annuler
               </Button>
-              <Button type="submit" disabled={saving} className="gap-2 bg-green-600 hover:bg-green-700 text-white rounded-xl">
-                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                Ajouter
+              <Button type="submit" disabled={saving} className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white rounded-xl">
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                {saving ? "Enregistrement..." : "Ajouter l'expérience"}
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>

@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
 import { getPlayerInitials, getClubInitials } from "@/lib/utils/initials"
+import { translatePosition, translateNationality } from "@/lib/utils/football-translations"
 
 interface Player {
   id: string
@@ -155,7 +156,7 @@ export default function FootballPlayerPage() {
               )}
               <h1 className="text-lg md:text-xl font-bold text-white mb-1">{player.name}</h1>
               {player.position && (
-                <p className="text-white/80 text-base">{player.position}</p>
+                <p className="text-white/80 text-base">{translatePosition(player.position)}</p>
               )}
             </div>
           </div>
@@ -176,7 +177,7 @@ export default function FootballPlayerPage() {
                     <Flag className="h-4 w-4" />
                     Nationalité
                   </span>
-                  <span className="font-medium text-sm">{player.nationality}</span>
+                  <span className="font-medium text-sm">{translateNationality(player.nationality)}</span>
                 </div>
               )}
 
@@ -203,7 +204,7 @@ export default function FootballPlayerPage() {
                     <MapPin className="h-4 w-4" />
                     Position
                   </span>
-                  <span className="font-medium text-sm">{player.position}</span>
+                  <span className="font-medium text-sm">{translatePosition(player.position)}</span>
                 </div>
               )}
 

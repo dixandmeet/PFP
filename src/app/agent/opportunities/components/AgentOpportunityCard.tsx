@@ -1,6 +1,7 @@
 "use client"
 
-import { Building2, MapPin, Euro, Calendar, ChevronRight, Lock, Coins, Send } from "lucide-react"
+import { useState } from "react"
+import { Building2, MapPin, Euro, Calendar, ChevronRight, Lock, Coins, Send, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface Listing {
@@ -34,6 +35,7 @@ interface AgentOpportunityCardProps {
   isSelected: boolean
   onSelect: (listing: Listing) => void
   onSubmitPlayer: (listing: Listing) => void
+  onConsult?: (listing: Listing) => Promise<boolean>
 }
 
 const MAX_BADGES = 3
@@ -43,8 +45,21 @@ export function AgentOpportunityCard({
   isSelected,
   onSelect,
   onSubmitPlayer,
+  onConsult,
 }: AgentOpportunityCardProps) {
+  const [consulting, setConsulting] = useState(false)
   const isLocked = listing.consulted === false
+
+  const handleConsult = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!onConsult || consulting) return
+    setConsulting(true)
+    try {
+      await onConsult(listing)
+    } finally {
+      setConsulting(false)
+    }
+  }
 
   if (isLocked) {
     return (
@@ -62,7 +77,7 @@ export function AgentOpportunityCard({
               <Lock className="h-4 w-4 text-amber-600" />
             </div>
             <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full ring-1 ring-amber-200">
-              {listing.consultationCost} credits
+              {listing.consultationCost} crédits
             </span>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-amber-500 transition-colors" />
@@ -92,10 +107,17 @@ export function AgentOpportunityCard({
           <Button
             size="sm"
             className="flex-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-medium text-xs h-9 shadow-sm"
-            onClick={() => onSelect(listing)}
+            disabled={consulting}
+            onClick={handleConsult}
           >
-            <Coins className="mr-1.5 h-3.5 w-3.5" />
-            Consulter ({listing.consultationCost} credits)
+            {consulting ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <>
+                <Coins className="mr-1.5 h-3.5 w-3.5" />
+                Consulter ({listing.consultationCost} crédits)
+              </>
+            )}
           </Button>
         </div>
       </div>

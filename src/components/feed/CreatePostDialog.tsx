@@ -249,25 +249,11 @@ Utilisez # pour ajouter un hashtag"
                     />
                   )}
                   {media.type === 'video' && (
-                    <video
-                      src={media.url}
-                      className="w-full h-full object-cover"
-                      muted
-                      playsInline
-                      onMouseEnter={(e) => e.currentTarget.play().catch(() => {})}
-                      onMouseLeave={(e) => { e.currentTarget.pause(); e.currentTarget.currentTime = 0 }}
-                      onError={(e) => {
-                        // Format non supporté par le navigateur → afficher fallback
-                        e.currentTarget.style.display = "none"
-                        const fallback = e.currentTarget.nextElementSibling as HTMLElement
-                        if (fallback) fallback.style.display = "flex"
-                      }}
-                    />
-                  )}
-                  {media.type === 'video' && (
-                    <div className="w-full h-full flex-col items-center justify-center bg-slate-800" style={{ display: "none" }}>
-                      <Video className="h-10 w-10 text-white mb-2" />
-                      <p className="text-xs text-white/70 font-medium">{media.file.name}</p>
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-800 p-2">
+                      <Video className="h-8 w-8 text-white/60 mb-1.5" />
+                      <p className="text-[10px] text-white/50 font-medium truncate w-full text-center px-1">
+                        {media.file.name}
+                      </p>
                     </div>
                   )}
                   {media.type === 'document' && (

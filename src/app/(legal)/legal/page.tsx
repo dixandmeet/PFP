@@ -30,16 +30,16 @@ export default function LegalPage() {
             </p>
             <div className="bg-stadium-50 border border-stadium-200 rounded-xl p-6 mb-4">
               <p className="text-stadium-700 leading-relaxed">
-                <strong>[D&Eacute;NOMINATION SOCIALE]</strong><br />
-                Soci&eacute;t&eacute; [forme juridique] au capital de [MONTANT] euros<br />
-                Si&egrave;ge social : [ADRESSE COMPL&Egrave;TE]<br />
-                RCS de [VILLE] : [NUM&Eacute;RO RCS]<br />
-                SIRET : [NUM&Eacute;RO SIRET]<br />
-                TVA intracommunautaire : [NUM&Eacute;RO TVA]
+                <strong>TOUSGETHER TO US GETHER SASU</strong><br />
+                Soci&eacute;t&eacute; par actions simplifi&eacute;e unipersonnelle au capital de 100 euros<br />
+                Si&egrave;ge social : 128 RUE LA BOETIE, 75008 PARIS<br />
+                RCS de Paris : 952 276 939 R.C.S. Paris<br />
+                SIRET : 952 276 939 00016<br />
+                TVA intracommunautaire : FR21952276939
               </p>
             </div>
             <p className="text-stadium-600 leading-relaxed">
-              <strong>Directeur de la publication :</strong> [NOM ET PR&Eacute;NOM], [FONCTION]<br />
+              <strong>Directeur de la publication :</strong> Tshibangu Munsense, Pr&eacute;sident<br />
               <strong>Email :</strong> <a href="mailto:contact@profootprofile.com" className="text-pitch-600 hover:underline">contact@profootprofile.com</a>
             </p>
           </section>
@@ -48,9 +48,9 @@ export default function LegalPage() {
             <h2 className="text-2xl font-semibold text-stadium-900 mb-4">Article 2 &ndash; H&eacute;bergeur</h2>
             <div className="bg-stadium-50 border border-stadium-200 rounded-xl p-6">
               <p className="text-stadium-700 leading-relaxed">
-                <strong>[NOM DE L&rsquo;H&Eacute;BERGEUR]</strong><br />
-                Si&egrave;ge social : [ADRESSE]<br />
-                Site internet : [URL]
+                <strong>Vercel Inc.</strong><br />
+                Si&egrave;ge social : 440 N Barranca Ave #4133, Covina, CA 91723, &Eacute;tats-Unis<br />
+                Site internet : <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="text-pitch-600 hover:underline">https://vercel.com</a>
               </p>
             </div>
           </section>
@@ -101,7 +101,7 @@ export default function LegalPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-stadium-900 mb-4">Article 7 &ndash; Liens hypertextes</h2>
             <p className="text-stadium-600 leading-relaxed">
-              La Plateforme peut contenir des liens vers des sites tiers. [D&Eacute;NOMINATION SOCIALE] n&rsquo;exerce aucun contr&ocirc;le sur ces sites et d&eacute;cline toute responsabilit&eacute; quant &agrave; leur contenu ou leurs pratiques.
+              La Plateforme peut contenir des liens vers des sites tiers. TOUSGETHER TO US GETHER SASU n&rsquo;exerce aucun contr&ocirc;le sur ces sites et d&eacute;cline toute responsabilit&eacute; quant &agrave; leur contenu ou leurs pratiques.
             </p>
           </section>
 
@@ -113,9 +113,9 @@ export default function LegalPage() {
             <div className="bg-stadium-50 border border-stadium-200 rounded-xl p-6 mb-4">
               <p className="text-stadium-700 leading-relaxed">
                 <strong>M&eacute;diateur d&eacute;sign&eacute; :</strong><br />
-                [NOM DU M&Eacute;DIATEUR / ORGANISME]<br />
-                [ADRESSE]<br />
-                [SITE INTERNET]
+                M&eacute;diateur de la consommation FEVAD &ndash; Jacques Cosnefroy<br />
+                BP 20015 &ndash; 75362 PARIS CEDEX 8<br />
+                <a href="https://www.mediateurfevad.fr" target="_blank" rel="noopener noreferrer" className="text-pitch-600 hover:underline">www.mediateurfevad.fr</a>
               </p>
             </div>
             <p className="text-stadium-600 leading-relaxed">

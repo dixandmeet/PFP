@@ -69,6 +69,7 @@ export function ProfileHeader({
   onCoverPhotoChange,
 }: ProfileHeaderProps) {
   const [isUploadingCover, setIsUploadingCover] = useState(false)
+  const [coverPhotoError, setCoverPhotoError] = useState(false)
   const p = user.playerProfile
   if (!p) return null
 
@@ -94,13 +95,23 @@ export function ProfileHeader({
     )
   }
 
+  const hasCoverPhoto = p.coverPhoto && !coverPhotoError
+
   return (
     <div className="rounded-2xl overflow-hidden bg-white border border-slate-200 shadow-sm">
       {/* Banner */}
       <div className="relative h-[180px] sm:h-[220px] md:h-[260px] bg-gradient-to-br from-slate-800 to-slate-900">
-        {p.coverPhoto ? (
+        {hasCoverPhoto ? (
           <>
-            {renderImage(p.coverPhoto, "Bannière", true)}
+            <Image
+              src={p.coverPhoto!}
+              alt="Bannière"
+              fill
+              sizes="100vw"
+              className="object-cover"
+              priority
+              onError={() => setCoverPhotoError(true)}
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
           </>
         ) : (
@@ -125,7 +136,7 @@ export function ProfileHeader({
 
       {/* Identity bloc */}
       <div className="relative px-4 sm:px-6 pb-4 sm:pb-6">
-        {/* Row 1 : Avatar (overlap sur la couverture) + boutons CTA */}
+        {/* Row 1 : Avatar (overlap sur la couverture) + boutons CTA desktop */}
         <div className="flex items-end justify-between -mt-14">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -144,8 +155,8 @@ export function ProfileHeader({
             <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-pitch-500 border-2 border-white" />
           </motion.div>
 
-          {/* CTA */}
-          <div className="flex items-center gap-2 flex-shrink-0 pb-1">
+          {/* CTA desktop uniquement */}
+          <div className="hidden sm:flex items-center gap-2 flex-shrink-0 pb-1">
             <Button
               onClick={onEditClick}
               size="sm"
@@ -168,7 +179,7 @@ export function ProfileHeader({
 
         {/* Row 2 : Nom + infos (toujours dans la zone blanche) */}
         <div className="mt-3">
-          <h1 className="text-2xl sm:text-[34px] md:text-[38px] font-bold text-slate-900 leading-tight tracking-tight">
+          <h1 className="text-[22px] sm:text-[34px] md:text-[38px] font-bold text-slate-900 leading-tight tracking-tight">
             {displayName}
           </h1>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
@@ -194,6 +205,27 @@ export function ProfileHeader({
               </span>
             )}
           </div>
+        </div>
+
+        {/* CTA mobile - sous le nom, pleine largeur */}
+        <div className="flex sm:hidden items-center gap-2 mt-3">
+          <Button
+            onClick={onEditClick}
+            size="sm"
+            className="flex-1 bg-pitch-600 hover:bg-pitch-700 text-white font-semibold shadow-sm"
+          >
+            <Edit className="mr-1.5 h-3.5 w-3.5" />
+            Modifier le profil
+          </Button>
+          <Button
+            onClick={onViewPublicClick}
+            variant="outline"
+            size="sm"
+            className="flex-1 border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold"
+          >
+            <Eye className="mr-1.5 h-3.5 w-3.5" />
+            Page publique
+          </Button>
         </div>
 
         {/* Stats row + completion */}

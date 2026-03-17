@@ -43,10 +43,10 @@ export const GoogleIcon = () => (
 
 export const FootballIcon = ({ className, variant = "dark" }: { className?: string; variant?: "dark" | "light" }) => (
   <svg viewBox="0 0 512 512" className={className} aria-label="Profoot Profile" role="img">
-    <rect width="512" height="512" rx="112" ry="112" fill={variant === "light" ? "#ffffff" : "#2a2e37"} />
+    <rect width="512" height="512" rx="112" ry="112" fill={variant === "light" ? "#ffffff" : "#000000"} />
     <text
       x="256"
-      y="290"
+      y="256"
       fontFamily="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
       fontWeight="800"
       fontSize="220"

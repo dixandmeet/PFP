@@ -29,6 +29,7 @@ import {
   RefreshCw,
   Send,
   Users,
+  X,
 } from "lucide-react"
 
 import { AgentOpportunitiesHeader } from "./components/AgentOpportunitiesHeader"
@@ -103,6 +104,9 @@ function AgentOpportunitiesContent() {
   const [position, setPosition] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
   const [sortBy, setSortBy] = useState("")
+
+  // Mobile detail dialog
+  const [mobileDetailListing, setMobileDetailListing] = useState<Listing | null>(null)
 
   // Submit player dialog
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false)
@@ -427,8 +431,15 @@ function AgentOpportunitiesContent() {
                   key={listing.id}
                   listing={listing}
                   isSelected={previewListing?.id === listing.id}
-                  onSelect={(l) => setPreviewListing(l)}
+                  onSelect={(l) => {
+                    setPreviewListing(l)
+                    // On mobile, open detail dialog (preview panel is hidden)
+                    if (window.innerWidth < 1024) {
+                      setMobileDetailListing(l)
+                    }
+                  }}
                   onSubmitPlayer={handleSubmitPlayer}
+                  onConsult={handleConsult}
                 />
               ))}
             </div>
@@ -445,6 +456,28 @@ function AgentOpportunitiesContent() {
           </div>
         )}
       </motion.div>
+
+      {/* Mobile Detail Dialog */}
+      <Dialog open={!!mobileDetailListing} onOpenChange={(open) => !open && setMobileDetailListing(null)}>
+        <DialogContent className="max-w-lg ring-1 ring-slate-200 rounded-2xl max-h-[85vh] overflow-y-auto p-0 [&>button]:hidden">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Détails de l&apos;annonce</DialogTitle>
+            <DialogDescription>Consultez les détails de cette annonce</DialogDescription>
+          </DialogHeader>
+          <OpportunityPreview
+            listing={mobileDetailListing}
+            onSubmitPlayer={(l) => {
+              setMobileDetailListing(null)
+              handleSubmitPlayer(l)
+            }}
+            onConsult={async (l) => {
+              const success = await handleConsult(l)
+              if (success) setMobileDetailListing(null)
+              return success
+            }}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Submit Player Dialog */}
       <Dialog open={submitDialogOpen} onOpenChange={setSubmitDialogOpen}>

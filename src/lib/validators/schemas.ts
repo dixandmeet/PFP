@@ -205,10 +205,14 @@ export const createReportSchema = z.object({
 })
 
 // Post
+// content est optionnel quand des médias sont présents (vidéo sans texte)
 export const createPostSchema = z.object({
-  content: z.string().min(1, "Contenu requis").max(5000),
+  content: z.string().max(5000).default(""),
   mediaUrls: z.array(urlOrPath).default([]),
-})
+}).refine(
+  (data) => data.content.trim().length > 0 || data.mediaUrls.length > 0,
+  { message: "Ajoutez du texte ou au moins un média" }
+)
 
 // Comment
 export const createCommentSchema = z.object({

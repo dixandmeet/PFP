@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -68,35 +68,27 @@ export default function AgentEditReportPage() {
     control,
     handleSubmit,
     reset,
-    setValue,
     watch,
     formState: { errors, isDirty },
   } = useForm<EditReportFormData>({
     resolver: zodResolver(editReportSchema),
-    defaultValues: {
-      sections: [],
-    },
+    defaultValues: { sections: [] },
   })
 
-  const { fields, append, remove, move } = useFieldArray({
-    control,
-    name: "sections",
-  })
+  const { fields, append, remove, move } = useFieldArray({ control, name: "sections" })
 
   const watchStatus = watch("status")
   const watchAuthorType = watch("authorType")
+  const watchTitle = watch("title")
 
   useEffect(() => {
     async function loadReport() {
       try {
         const response = await fetch(`/api/reports/${params.id}`)
-        if (!response.ok) {
-          throw new Error("Rapport non trouvé")
-        }
+        if (!response.ok) throw new Error("Rapport non trouvé")
 
         const data = await response.json()
         setReport(data)
-
         reset({
           title: data.title,
           authorType: data.authorType,
@@ -104,17 +96,12 @@ export default function AgentEditReportPage() {
           sections: data.sections || [],
         })
       } catch (error: any) {
-        toast({
-          title: "Erreur",
-          description: error.message,
-          variant: "destructive",
-        })
+        toast({ title: "Erreur", description: error.message, variant: "destructive" })
         router.push("/agent/reports")
       } finally {
         setLoading(false)
       }
     }
-
     loadReport()
   }, [params.id, reset, toast, router])
 
@@ -132,39 +119,44 @@ export default function AgentEditReportPage() {
         throw new Error(error.error || "Erreur lors de la mise à jour")
       }
 
-      toast({
-        title: "Succès",
-        description: "Rapport mis à jour avec succès",
-      })
-
+      toast({ title: "Rapport enregistré", description: "Les modifications ont été sauvegardées" })
       router.push(`/agent/reports/${params.id}`)
     } catch (error: any) {
-      toast({
-        title: "Erreur",
-        description: error.message,
-        variant: "destructive",
-      })
+      toast({ title: "Erreur", description: error.message, variant: "destructive" })
     } finally {
       setSaving(false)
     }
   }
 
   const addSection = () => {
-    append({
-      title: "",
-      content: "",
-      order: fields.length,
-    })
+    append({ title: "", content: "", order: fields.length })
   }
 
   const goBack = () => router.push(`/agent/reports/${params.id}`)
 
+  const handleSave = useCallback(
+    () => handleSubmit(onSubmit)(),
+    [handleSubmit, onSubmit]
+  )
+
+  // Ctrl+S shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault()
+        handleSave()
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [handleSave])
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[50vh] px-4" suppressHydrationWarning>
         <div className="text-center">
-          <div className="inline-flex p-4 bg-stadium-100 rounded-full mb-4">
-            <Loader2 className="h-8 w-8 animate-spin text-stadium-500" />
+          <div className="inline-flex p-4 bg-pitch-50 rounded-2xl mb-4">
+            <Loader2 className="h-8 w-8 animate-spin text-pitch-600" aria-hidden />
           </div>
           <p className="text-stadium-600 font-medium">Chargement du rapport...</p>
         </div>
@@ -172,25 +164,28 @@ export default function AgentEditReportPage() {
     )
   }
 
-  if (!report) {
-    return null
-  }
+  if (!report) return null
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-8">
       <EditReportHeader
         status={watchStatus || report.status}
         saving={saving}
         isDirty={isDirty}
+        reportTitle={watchTitle || report.title}
         onBack={goBack}
         onCancel={goBack}
         onSave={handleSubmit(onSubmit)}
       />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8"
+      >
         <GeneralInfoForm
           register={register}
           errors={errors}
+          control={control}
           watchAuthorType={watchAuthorType}
           watchStatus={watchStatus}
           authorTypes={authorTypes}
@@ -201,6 +196,7 @@ export default function AgentEditReportPage() {
           fields={fields}
           register={register}
           errors={errors}
+          control={control}
           onAdd={addSection}
           onRemove={remove}
           onMove={move}

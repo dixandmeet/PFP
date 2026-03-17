@@ -80,14 +80,14 @@ export function SidebarItem({
 
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className={cn(className, "w-full text-left cursor-pointer")}>
+      <button type="button" onClick={onClick} className={cn(className, "w-full text-left cursor-pointer")} suppressHydrationWarning>
         {content}
       </button>
     )
   }
 
   return (
-    <Link href={href} className={className}>
+    <Link href={href} className={className} suppressHydrationWarning>
       {content}
     </Link>
   )

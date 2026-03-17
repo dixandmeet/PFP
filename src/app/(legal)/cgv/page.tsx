@@ -29,7 +29,7 @@ export default function CgvPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-stadium-900 mb-4">Article 1 &ndash; Description</h2>
             <p className="text-stadium-600 leading-relaxed mb-4">
-              Les pr&eacute;sentes CGV r&eacute;gissent les achats effectu&eacute;s sur la plateforme Profoot Profile, &eacute;dit&eacute;e par [D&Eacute;NOMINATION SOCIALE], et compl&egrave;tent les CGU. En cas de contradiction, les CGV pr&eacute;valent pour les transactions commerciales.
+              Les pr&eacute;sentes CGV r&eacute;gissent les achats effectu&eacute;s sur la plateforme Profoot Profile, &eacute;dit&eacute;e par TOUSGETHER TO US GETHER SASU, et compl&egrave;tent les CGU. En cas de contradiction, les CGV pr&eacute;valent pour les transactions commerciales.
             </p>
             <p className="text-stadium-600 leading-relaxed mb-4">
               La Plateforme commercialise :

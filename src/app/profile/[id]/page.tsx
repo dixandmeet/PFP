@@ -6,6 +6,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { UserFeed } from "@/components/profile/UserFeed"
+import { CareerTimeline } from "@/components/player/profile/CareerTimeline"
 import { MessagingMenu } from "@/components/messaging"
 import { useToast } from "@/components/ui/use-toast"
 import { Button } from "@/components/ui/button"
@@ -131,7 +132,7 @@ export default function PublicProfilePage() {
   const [loading, setLoading] = useState(true)
   const [isFollowing, setIsFollowing] = useState(false)
   const [followLoading, setFollowLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState<"posts" | "about">("posts")
+  const [activeTab, setActiveTab] = useState<"posts" | "parcours" | "about">("posts")
   const [showMessaging, setShowMessaging] = useState(false)
   
   // Popup de confirmation de crédit
@@ -527,135 +528,136 @@ export default function PublicProfilePage() {
   const initials = profileInfo.firstName?.slice(0, 2).toUpperCase() || "?"
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stadium-50 via-white to-pitch-50/30">
+    <div className="min-h-screen bg-gradient-to-b from-stadium-50 to-white">
       {/* Hero Header */}
       <div className="relative">
-        {/* Cover Photo */}
-        <div className="h-48 md:h-64 bg-gradient-to-br from-pitch-500 via-pitch-600 to-pitch-700 relative overflow-hidden">
+        {/* Cover Photo - taller for more impact */}
+        <div className="h-56 md:h-72 lg:h-80 bg-gradient-to-br from-pitch-600 via-pitch-700 to-pitch-800 relative overflow-hidden">
           {profileInfo.coverPhoto ? (
             profileInfo.coverPhoto.startsWith('/uploads') ? (
               <img
                 src={profileInfo.coverPhoto}
                 alt="Couverture"
-                className="absolute inset-0 w-full h-full object-cover opacity-80"
+                className="absolute inset-0 w-full h-full object-cover"
               />
             ) : (
               <Image
                 src={profileInfo.coverPhoto}
                 alt="Couverture"
                 fill
-                className="object-cover opacity-80"
+                className="object-cover"
                 priority
               />
             )
           ) : (
             <>
-              {/* Motif décoratif */}
-              <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
-              <div className="absolute top-0 right-0 w-96 h-96 bg-pitch-400/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-gold-400/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+              <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
+              <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-pitch-400/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3" />
+              <div className="absolute bottom-0 left-0 w-80 h-80 bg-gold-400/15 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/3" />
             </>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-          
+          {/* Gradient overlay for better text contrast */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/10" />
+
           {/* Navigation */}
-          <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between">
+          <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between z-10">
             <button
               onClick={() => router.back()}
-              className="p-2 rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 transition-colors"
+              className="p-2.5 rounded-full bg-black/25 backdrop-blur-md text-white hover:bg-black/40 transition-all border border-white/10"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
             <button
               onClick={handleShare}
-              className="p-2 rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/30 transition-colors"
+              className="p-2.5 rounded-full bg-black/25 backdrop-blur-md text-white hover:bg-black/40 transition-all border border-white/10"
             >
               <Share2 className="h-5 w-5" />
             </button>
           </div>
+
+          {/* Spacer for card overlap - ensures cover is tall enough */}
         </div>
 
         {/* Profile Info Card */}
         <div className="container mx-auto px-4 max-w-4xl">
-          <div className="relative -mt-20 mb-6">
+          <div className="relative -mt-16 md:-mt-20 mb-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-3xl shadow-xl border border-stadium-100 overflow-hidden"
+              className="bg-white rounded-2xl shadow-lg border border-stadium-100/80"
             >
-              <div className="p-6 md:p-8">
-                <div className="flex flex-col md:flex-row gap-6">
+              <div className="px-5 pt-5 pb-5 md:px-8 md:pt-6 md:pb-6">
+                {/* Top row: Avatar + Info + Actions */}
+                <div className="flex items-start gap-4 md:gap-6">
                   {/* Avatar */}
-                  <div className="flex-shrink-0 flex flex-col items-center md:items-start">
-                    <motion.div
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ delay: 0.1 }}
-                      className="relative"
-                    >
-                      <div className={cn(
-                        "w-28 h-28 md:w-32 md:h-32 rounded-2xl overflow-hidden shadow-xl border-4 border-white",
-                        profileInfo.type === "club" ? "bg-white" : "bg-gradient-to-br from-pitch-100 to-pitch-200"
-                      )}>
-                        {profileInfo.picture ? (
-                          profileInfo.picture.startsWith('/uploads') ? (
-                            <img
-                              src={profileInfo.picture}
-                              alt={profileInfo.name}
-                              className={cn(
-                                "object-cover w-full h-full",
-                                profileInfo.type === "club" && "object-contain p-2"
-                              )}
-                            />
-                          ) : (
-                            <Image
-                              src={profileInfo.picture}
-                              alt={profileInfo.name}
-                              fill
-                              className={cn(
-                                "object-cover",
-                                profileInfo.type === "club" && "object-contain p-2"
-                              )}
-                            />
-                          )
+                  <motion.div
+                    initial={{ scale: 0.85, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="relative flex-shrink-0 -mt-14 md:-mt-16"
+                  >
+                    <div className={cn(
+                      "relative w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden shadow-xl ring-4 ring-white",
+                      profileInfo.type === "club" ? "bg-white" : "bg-gradient-to-br from-pitch-100 to-pitch-200"
+                    )}>
+                      {profileInfo.picture ? (
+                        profileInfo.picture.startsWith('/uploads') ? (
+                          <img
+                            src={profileInfo.picture}
+                            alt={profileInfo.name}
+                            className={cn(
+                              "object-cover w-full h-full",
+                              profileInfo.type === "club" && "object-contain p-2"
+                            )}
+                          />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="text-3xl font-bold text-pitch-600">{initials}</span>
-                          </div>
-                        )}
-                      </div>
-                      {profileInfo.isVerified && (
-                        <div className="absolute -bottom-1 -right-1 bg-pitch-600 rounded-full p-1.5 shadow-lg border-2 border-white">
-                          <Shield className="h-4 w-4 text-white" />
+                          <Image
+                            src={profileInfo.picture}
+                            alt={profileInfo.name}
+                            fill
+                            className={cn(
+                              "object-cover",
+                              profileInfo.type === "club" && "object-contain p-2"
+                            )}
+                          />
+                        )
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-2xl md:text-3xl font-bold text-pitch-600">{initials}</span>
                         </div>
                       )}
-                    </motion.div>
-                  </div>
+                    </div>
+                    {profileInfo.isVerified && (
+                      <div className="absolute -bottom-1 -right-1 bg-pitch-600 rounded-full p-1 shadow-lg ring-2 ring-white">
+                        <Shield className="h-3.5 w-3.5 text-white" />
+                      </div>
+                    )}
+                  </motion.div>
 
-                  {/* Info */}
-                  <div className="flex-1 text-center md:text-left">
-                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                      <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-stadium-900 mb-1">
+                  {/* Info + Actions */}
+                  <div className="flex-1 min-w-0 pt-1">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                      <div className="min-w-0">
+                        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-stadium-900 tracking-tight truncate">
                           {profileInfo.name}
                         </h1>
-                        
-                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-sm text-stadium-600 mt-2">
+
+                        <div className="flex flex-wrap items-center gap-2 mt-1 md:mt-2">
                           {profileInfo.position && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-pitch-100 text-pitch-700 rounded-full font-medium">
-                              <Briefcase className="h-3.5 w-3.5" />
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 md:py-1 bg-pitch-50 text-pitch-700 rounded-lg text-xs font-semibold border border-pitch-100">
+                              <Briefcase className="h-3 w-3" />
                               {profileInfo.position}
                             </span>
                           )}
                           {profileInfo.club && (
-                            <span className="inline-flex items-center gap-1.5">
-                              <Building2 className="h-4 w-4 text-stadium-400" />
+                            <span className="inline-flex items-center gap-1.5 text-sm text-stadium-500">
+                              <Building2 className="h-3.5 w-3.5" />
                               {canViewContent ? profileInfo.club : "Free Agent"}
                             </span>
                           )}
                           {profileInfo.location && (
-                            <span className="inline-flex items-center gap-1.5">
-                              <MapPin className="h-4 w-4 text-stadium-400" />
+                            <span className="inline-flex items-center gap-1.5 text-sm text-stadium-500">
+                              <MapPin className="h-3.5 w-3.5" />
                               {profileInfo.location}
                             </span>
                           )}
@@ -664,8 +666,7 @@ export default function PublicProfilePage() {
 
                       {/* Actions */}
                       {!isOwner && (
-                        <div className="flex items-center justify-center md:justify-end gap-2">
-                          {/* Bouton Message - uniquement si on suit le profil */}
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           {isFollowing && (
                             <Button
                               onClick={() => {
@@ -680,32 +681,34 @@ export default function PublicProfilePage() {
                                 }
                                 setShowMessaging(true)
                               }}
-                              className="rounded-full px-6 font-semibold bg-stadium-100 text-stadium-700 hover:bg-stadium-200 border border-stadium-200 transition-all"
+                              size="sm"
+                              className="rounded-xl font-semibold bg-stadium-50 text-stadium-700 hover:bg-stadium-100 border border-stadium-200 transition-all"
                             >
-                              <MessageCircle className="mr-2 h-4 w-4" />
-                              Message
+                              <MessageCircle className="mr-1.5 h-4 w-4" />
+                              <span className="hidden sm:inline">Message</span>
                             </Button>
                           )}
                           <Button
                             onClick={handleFollowClick}
                             disabled={followLoading}
+                            size="sm"
                             className={cn(
-                              "rounded-full px-6 font-semibold transition-all",
+                              "rounded-xl font-semibold transition-all",
                               isFollowing
-                                ? "bg-stadium-100 text-stadium-700 hover:bg-stadium-200 border border-stadium-200"
-                                : "bg-gradient-to-r from-pitch-600 to-pitch-700 hover:from-pitch-700 hover:to-pitch-800 text-white shadow-lg shadow-pitch-200"
+                                ? "bg-stadium-50 text-stadium-700 hover:bg-stadium-100 border border-stadium-200"
+                                : "bg-pitch-600 hover:bg-pitch-700 text-white shadow-md shadow-pitch-200/50"
                             )}
                           >
                             {followLoading ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : isFollowing ? (
                               <>
-                                <Check className="mr-2 h-4 w-4" />
+                                <Check className="mr-1.5 h-4 w-4" />
                                 Suivi
                               </>
                             ) : (
                               <>
-                                <UserPlus className="mr-2 h-4 w-4" />
+                                <UserPlus className="mr-1.5 h-4 w-4" />
                                 Suivre
                               </>
                             )}
@@ -713,51 +716,28 @@ export default function PublicProfilePage() {
                         </div>
                       )}
                     </div>
-
-                    {/* Stats */}
-                    <div className="flex items-center justify-center md:justify-start gap-6 mt-6 pt-6 border-t border-stadium-100">
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-stadium-900">{stats.posts}</p>
-                        <p className="text-xs text-stadium-500 uppercase tracking-wide">Publications</p>
-                      </div>
-                      <div className="h-8 w-px bg-stadium-200" />
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-stadium-900">{stats.followedBy}</p>
-                        <p className="text-xs text-stadium-500 uppercase tracking-wide">Abonnés</p>
-                      </div>
-                      <div className="h-8 w-px bg-stadium-200" />
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-stadium-900">{stats.following}</p>
-                        <p className="text-xs text-stadium-500 uppercase tracking-wide">Abonnements</p>
-                      </div>
-                    </div>
                   </div>
 
-                  {/* Terrain animé pour les joueurs */}
+                  {/* Terrain animé pour les joueurs - desktop only */}
                   {profileInfo.type === "player" && profileInfo.positionCode && (
                     <motion.div
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.3 }}
-                      className="hidden lg:block flex-shrink-0"
+                      className="hidden lg:block flex-shrink-0 -mt-14"
                     >
-                      <div className="relative w-32 h-44 rounded-xl overflow-hidden shadow-lg border-2 border-pitch-200">
-                        {/* Fond du terrain */}
+                      <div className="relative w-28 h-40 rounded-xl overflow-hidden shadow-lg ring-4 ring-white">
                         <div className="absolute inset-0 bg-gradient-to-b from-pitch-500 to-pitch-600" />
-                        
-                        {/* Lignes du terrain */}
                         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 140" preserveAspectRatio="none">
-                          <rect x="5" y="5" width="90" height="130" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.8" />
-                          <line x1="5" y1="70" x2="95" y2="70" stroke="rgba(255,255,255,0.5)" strokeWidth="0.8" />
-                          <circle cx="50" cy="70" r="12" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.8" />
-                          <circle cx="50" cy="70" r="1.5" fill="rgba(255,255,255,0.5)" />
-                          <rect x="20" y="5" width="60" height="25" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.8" />
-                          <rect x="35" y="5" width="30" height="10" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.8" />
-                          <rect x="20" y="110" width="60" height="25" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.8" />
-                          <rect x="35" y="125" width="30" height="10" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.8" />
+                          <rect x="5" y="5" width="90" height="130" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="0.8" />
+                          <line x1="5" y1="70" x2="95" y2="70" stroke="rgba(255,255,255,0.4)" strokeWidth="0.8" />
+                          <circle cx="50" cy="70" r="12" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="0.8" />
+                          <circle cx="50" cy="70" r="1.5" fill="rgba(255,255,255,0.4)" />
+                          <rect x="20" y="5" width="60" height="25" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="0.8" />
+                          <rect x="35" y="5" width="30" height="10" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="0.8" />
+                          <rect x="20" y="110" width="60" height="25" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="0.8" />
+                          <rect x="35" y="125" width="30" height="10" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="0.8" />
                         </svg>
-                        
-                        {/* Joueur animé */}
                         <motion.div
                           className="absolute"
                           initial={{
@@ -768,11 +748,7 @@ export default function PublicProfilePage() {
                             left: getPositionMovements(profileInfo.positionCode).x.map(x => `${x}%`),
                             top: getPositionMovements(profileInfo.positionCode).y.map(y => `${y}%`),
                           }}
-                          transition={{
-                            duration: 4,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                          }}
+                          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                           style={{ transform: "translate(-50%, -50%)" }}
                         >
                           <div className="relative">
@@ -780,9 +756,9 @@ export default function PublicProfilePage() {
                               className="absolute inset-0 bg-white rounded-full"
                               animate={{ scale: [1, 1.8, 1], opacity: [0.6, 0, 0.6] }}
                               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                              style={{ width: 20, height: 20, marginLeft: -3, marginTop: -3 }}
+                              style={{ width: 18, height: 18, marginLeft: -3, marginTop: -3 }}
                             />
-                            <div className="w-3.5 h-3.5 bg-white rounded-full shadow-lg border-2 border-pitch-800" />
+                            <div className="w-3 h-3 bg-white rounded-full shadow-lg border-2 border-pitch-800" />
                           </div>
                         </motion.div>
                       </div>
@@ -790,17 +766,35 @@ export default function PublicProfilePage() {
                   )}
                 </div>
 
-                {/* Bio - visible uniquement si suivi ou propriétaire */}
+                {/* Bio */}
                 {profileInfo.bio && canViewContent && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="mt-6 p-4 bg-gradient-to-r from-stadium-50 to-pitch-50/50 rounded-xl border border-stadium-100"
+                    className="mt-4 text-sm text-stadium-600 leading-relaxed line-clamp-3"
                   >
-                    <p className="text-sm text-stadium-700 leading-relaxed">{profileInfo.bio}</p>
-                  </motion.div>
+                    {profileInfo.bio}
+                  </motion.p>
                 )}
+
+                {/* Stats row */}
+                <div className="flex items-center gap-5 sm:gap-8 mt-5 pt-5 border-t border-stadium-100">
+                  <button onClick={() => {}} className="group text-center">
+                    <p className="text-xl font-bold text-stadium-900 group-hover:text-pitch-600 transition-colors">{stats.posts}</p>
+                    <p className="text-[11px] text-stadium-400 font-medium uppercase tracking-wider">Publications</p>
+                  </button>
+                  <div className="h-8 w-px bg-stadium-100" />
+                  <button onClick={() => {}} className="group text-center">
+                    <p className="text-xl font-bold text-stadium-900 group-hover:text-pitch-600 transition-colors">{stats.followedBy}</p>
+                    <p className="text-[11px] text-stadium-400 font-medium uppercase tracking-wider">Abonnés</p>
+                  </button>
+                  <div className="h-8 w-px bg-stadium-100" />
+                  <button onClick={() => {}} className="group text-center">
+                    <p className="text-xl font-bold text-stadium-900 group-hover:text-pitch-600 transition-colors">{stats.following}</p>
+                    <p className="text-[11px] text-stadium-400 font-medium uppercase tracking-wider">Abonnements</p>
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -812,29 +806,40 @@ export default function PublicProfilePage() {
         {canViewContent ? (
           <>
             {/* Tab Navigation */}
-            <div className="flex items-center gap-1 p-1 bg-stadium-100 rounded-xl mb-6 w-fit">
+            <div className="flex items-center gap-0.5 p-0.5 bg-stadium-100/80 rounded-lg mb-6 w-full sm:w-fit">
               <button
                 onClick={() => setActiveTab("posts")}
                 className={cn(
-                  "px-6 py-2.5 rounded-lg text-sm font-medium transition-all",
+                  "flex-1 sm:flex-none px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all",
                   activeTab === "posts"
                     ? "bg-white text-stadium-900 shadow-sm"
-                    : "text-stadium-600 hover:text-stadium-900"
+                    : "text-stadium-500 hover:text-stadium-700"
                 )}
               >
-                <MessageCircle className="h-4 w-4 inline-block mr-2" />
                 Publications
               </button>
+              {profileInfo.type === "player" && user.playerProfile && (
+                <button
+                  onClick={() => setActiveTab("parcours")}
+                  className={cn(
+                    "flex-1 sm:flex-none px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all",
+                    activeTab === "parcours"
+                      ? "bg-white text-stadium-900 shadow-sm"
+                      : "text-stadium-500 hover:text-stadium-700"
+                  )}
+                >
+                  Parcours
+                </button>
+              )}
               <button
                 onClick={() => setActiveTab("about")}
                 className={cn(
-                  "px-6 py-2.5 rounded-lg text-sm font-medium transition-all",
+                  "flex-1 sm:flex-none px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all",
                   activeTab === "about"
                     ? "bg-white text-stadium-900 shadow-sm"
-                    : "text-stadium-600 hover:text-stadium-900"
+                    : "text-stadium-500 hover:text-stadium-700"
                 )}
               >
-                <Users className="h-4 w-4 inline-block mr-2" />
                 À propos
               </button>
             </div>
@@ -852,51 +857,75 @@ export default function PublicProfilePage() {
                 </motion.div>
               )}
 
+              {activeTab === "parcours" && profileInfo.type === "player" && user.playerProfile && (
+                <motion.div
+                  key="parcours"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  <CareerTimeline
+                    playerProfileId={user.playerProfile.id}
+                    readOnly
+                  />
+                </motion.div>
+              )}
+
               {activeTab === "about" && (
                 <motion.div
                   key="about"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="bg-white rounded-2xl shadow-sm border border-stadium-100 p-6"
+                  className="bg-white rounded-2xl shadow-sm border border-stadium-100 overflow-hidden"
                 >
-                  <h3 className="text-lg font-semibold text-stadium-800 mb-4">Informations</h3>
-                  <div className="space-y-4">
+                  <div className="px-6 py-5 border-b border-stadium-100">
+                    <h3 className="text-base font-bold text-stadium-800">Informations</h3>
+                  </div>
+                  <div className="divide-y divide-stadium-50">
                     {profileInfo.position && (
-                      <div className="flex items-center gap-3 py-3 border-b border-stadium-100">
-                        <Briefcase className="h-5 w-5 text-pitch-600" />
+                      <div className="flex items-center gap-4 px-6 py-4">
+                        <div className="w-10 h-10 rounded-xl bg-pitch-50 flex items-center justify-center flex-shrink-0">
+                          <Briefcase className="h-5 w-5 text-pitch-600" />
+                        </div>
                         <div>
-                          <p className="text-xs text-stadium-500 uppercase tracking-wide">Poste</p>
-                          <p className="font-medium text-stadium-800">{profileInfo.position}</p>
+                          <p className="text-[11px] text-stadium-400 font-medium uppercase tracking-wider">Poste</p>
+                          <p className="font-semibold text-stadium-800">{profileInfo.position}</p>
                         </div>
                       </div>
                     )}
                     {profileInfo.club && (
-                      <div className="flex items-center gap-3 py-3 border-b border-stadium-100">
-                        <Building2 className="h-5 w-5 text-pitch-600" />
+                      <div className="flex items-center gap-4 px-6 py-4">
+                        <div className="w-10 h-10 rounded-xl bg-pitch-50 flex items-center justify-center flex-shrink-0">
+                          <Building2 className="h-5 w-5 text-pitch-600" />
+                        </div>
                         <div>
-                          <p className="text-xs text-stadium-500 uppercase tracking-wide">Club actuel</p>
-                          <p className="font-medium text-stadium-800">{profileInfo.club}</p>
+                          <p className="text-[11px] text-stadium-400 font-medium uppercase tracking-wider">Club actuel</p>
+                          <p className="font-semibold text-stadium-800">{profileInfo.club}</p>
                         </div>
                       </div>
                     )}
                     {profileInfo.location && (
-                      <div className="flex items-center gap-3 py-3 border-b border-stadium-100">
-                        <MapPin className="h-5 w-5 text-pitch-600" />
+                      <div className="flex items-center gap-4 px-6 py-4">
+                        <div className="w-10 h-10 rounded-xl bg-pitch-50 flex items-center justify-center flex-shrink-0">
+                          <MapPin className="h-5 w-5 text-pitch-600" />
+                        </div>
                         <div>
-                          <p className="text-xs text-stadium-500 uppercase tracking-wide">
+                          <p className="text-[11px] text-stadium-400 font-medium uppercase tracking-wider">
                             {profileInfo.type === "player" ? "Nationalité" : "Localisation"}
                           </p>
-                          <p className="font-medium text-stadium-800">{profileInfo.location}</p>
+                          <p className="font-semibold text-stadium-800">{profileInfo.location}</p>
                         </div>
                       </div>
                     )}
                     {profileInfo.league && (
-                      <div className="flex items-center gap-3 py-3">
-                        <Trophy className="h-5 w-5 text-pitch-600" />
+                      <div className="flex items-center gap-4 px-6 py-4">
+                        <div className="w-10 h-10 rounded-xl bg-pitch-50 flex items-center justify-center flex-shrink-0">
+                          <Trophy className="h-5 w-5 text-pitch-600" />
+                        </div>
                         <div>
-                          <p className="text-xs text-stadium-500 uppercase tracking-wide">Ligue</p>
-                          <p className="font-medium text-stadium-800">{profileInfo.league}</p>
+                          <p className="text-[11px] text-stadium-400 font-medium uppercase tracking-wider">Ligue</p>
+                          <p className="font-semibold text-stadium-800">{profileInfo.league}</p>
                         </div>
                       </div>
                     )}

@@ -2,14 +2,20 @@
 // Supporte 2 modes :
 //   1. Raw body : Content-Type = mime du fichier, metadata dans headers X-*
 //   2. FormData : Content-Type = multipart/form-data (fallback)
+// Les vidéos non-browser (avi, mkv, wmv, flv…) sont transcodées en MP4 via ffmpeg-static
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/lib/permissions/rbac"
 import { handleApiError } from "@/lib/utils/api-helpers"
 import { generateFileKey, getPublicUrl } from "@/lib/s3"
 import { prisma } from "@/lib/prisma"
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
-import { writeFile, mkdir } from "fs/promises"
+import { writeFile, mkdir, readFile, unlink } from "fs/promises"
+import { execFile } from "child_process"
+import { promisify } from "util"
 import path from "path"
+import os from "os"
+
+const execFileAsync = promisify(execFile)
 
 const USE_VERCEL_BLOB = !!process.env.BLOB_READ_WRITE_TOKEN
 const USE_S3 = !USE_VERCEL_BLOB && !!process.env.S3_ENDPOINT
@@ -35,6 +41,9 @@ const VALID_FILE_TYPES = new Set([
   "REPORT_ATTACHMENT",
   "POST_MEDIA",
 ])
+
+// Formats vidéo nativement supportés par les navigateurs
+const BROWSER_NATIVE_VIDEO_EXTS = new Set([".mp4", ".webm", ".ogg", ".ogv"])
 
 // Extraire le fichier soit depuis les headers (raw body) soit depuis FormData
 async function extractFile(request: Request): Promise<{
@@ -73,11 +82,86 @@ async function extractFile(request: Request): Promise<{
   }
 }
 
+/**
+ * Transcode une vidéo en MP4 (H.264 + AAC) via ffmpeg-static.
+ * Retourne { buffer, filename, contentType } transcodé, ou null si échec/pas nécessaire.
+ */
+async function transcodeToMp4(
+  inputBuffer: Buffer,
+  originalFilename: string
+): Promise<{ buffer: Buffer; filename: string; contentType: string } | null> {
+  const ext = path.extname(originalFilename).toLowerCase()
+
+  // Déjà un format browser-natif → pas besoin de transcoder
+  if (BROWSER_NATIVE_VIDEO_EXTS.has(ext)) {
+    return null
+  }
+
+  let ffmpegPath: string
+  try {
+    // ffmpeg-static fournit le chemin vers le binaire
+    ffmpegPath = require("ffmpeg-static")
+    if (!ffmpegPath) throw new Error("ffmpeg-static path is null")
+  } catch {
+    console.warn("[transcode] ffmpeg-static non disponible, skip transcode")
+    return null
+  }
+
+  const tmpDir = os.tmpdir()
+  const timestamp = Date.now()
+  const inputPath = path.join(tmpDir, `pfp-input-${timestamp}${ext}`)
+  const outputPath = path.join(tmpDir, `pfp-output-${timestamp}.mp4`)
+
+  try {
+    // Écrire le fichier source en temp
+    await writeFile(inputPath, inputBuffer)
+
+    // Transcoder : H.264 (baseline pour compatibilité max) + AAC
+    // -movflags +faststart : permet la lecture streaming
+    // -preset ultrafast : rapide, qualité acceptable
+    // -crf 23 : qualité par défaut (bon compromis taille/qualité)
+    await execFileAsync(ffmpegPath, [
+      "-i", inputPath,
+      "-c:v", "libx264",
+      "-profile:v", "baseline",
+      "-level", "3.1",
+      "-pix_fmt", "yuv420p",
+      "-c:a", "aac",
+      "-b:a", "128k",
+      "-movflags", "+faststart",
+      "-preset", "ultrafast",
+      "-crf", "23",
+      "-y",
+      outputPath,
+    ], { timeout: 120_000 }) // 2 min max
+
+    const transcodedBuffer = await readFile(outputPath)
+    const baseName = path.basename(originalFilename, ext)
+
+    console.log(
+      `[transcode] ${originalFilename} (${(inputBuffer.length / 1024 / 1024).toFixed(1)}MB) → MP4 (${(transcodedBuffer.length / 1024 / 1024).toFixed(1)}MB)`
+    )
+
+    return {
+      buffer: transcodedBuffer,
+      filename: `${baseName}.mp4`,
+      contentType: "video/mp4",
+    }
+  } catch (error: any) {
+    console.error("[transcode] Erreur ffmpeg:", error.message || error)
+    return null
+  } finally {
+    // Nettoyage des fichiers temp
+    await unlink(inputPath).catch(() => {})
+    await unlink(outputPath).catch(() => {})
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const user = await requireAuth()
 
-    const { buffer, filename, contentType, fileType, isPublic } = await extractFile(request)
+    let { buffer, filename, contentType, fileType, isPublic } = await extractFile(request)
 
     const isVideo = contentType.startsWith("video/")
     const maxSizeMB = isVideo ? 100 : 10
@@ -86,6 +170,16 @@ export async function POST(request: Request) {
         { error: `Le fichier dépasse la limite de ${maxSizeMB}MB` },
         { status: 400 }
       )
+    }
+
+    // Transcoder les vidéos non-browser en MP4
+    if (isVideo) {
+      const transcoded = await transcodeToMp4(buffer, filename)
+      if (transcoded) {
+        buffer = transcoded.buffer
+        filename = transcoded.filename
+        contentType = transcoded.contentType
+      }
     }
 
     // Valider le type de fichier — fallback sur POST_MEDIA si invalide

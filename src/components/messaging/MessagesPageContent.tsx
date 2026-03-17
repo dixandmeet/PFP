@@ -25,7 +25,7 @@ export function MessagesPageContent() {
 
   if (loading || !currentUserId) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-80px)]">
+      <div className="flex items-center justify-center h-[calc(100dvh-144px)] lg:h-[calc(100vh-80px)]">
         <Loader2 className="h-8 w-8 animate-spin text-pitch-600" />
       </div>
     )
@@ -33,7 +33,7 @@ export function MessagesPageContent() {
 
   return (
     <div className="max-w-4xl mx-auto p-3 sm:p-4 md:p-6">
-      <div className="bg-white rounded-2xl shadow-sm border border-stadium-100 overflow-hidden h-[calc(100vh-140px)] sm:h-[calc(100vh-160px)]">
+      <div className="bg-white rounded-2xl shadow-sm border border-stadium-100 overflow-hidden h-[calc(100dvh-144px)] lg:h-[calc(100vh-140px)]">
         <MessagingPanel
           currentUserId={currentUserId}
           onClose={() => {}}

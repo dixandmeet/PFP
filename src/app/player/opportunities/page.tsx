@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card"
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -47,6 +48,7 @@ import {
   AlertCircle,
   RefreshCw,
   XCircle,
+  X,
   Send,
 } from "lucide-react"
 
@@ -172,6 +174,7 @@ function PlayerOpportunitiesContent() {
 
   // Preview selection (for desktop panel)
   const [previewListing, setPreviewListing] = useState<Listing | null>(null)
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false)
 
   // Applications state
   const [applications, setApplications] = useState<Application[]>([])
@@ -572,7 +575,17 @@ function PlayerOpportunitiesContent() {
                         listing={listing}
                         hasApplied={hasApplied}
                         isSelected={previewListing?.id === listing.id}
-                        onSelect={(l) => setPreviewListing(l)}
+                        onSelect={(l) => {
+                          const matchingApp = applications.find(
+                            (app) => app.listing.id === l.id
+                          )
+                          if (matchingApp) {
+                            handleViewDetails(matchingApp)
+                          } else {
+                            setPreviewListing(l)
+                            setMobilePreviewOpen(true)
+                          }
+                        }}
                         onApply={handleApply}
                       />
                     )
@@ -591,6 +604,19 @@ function PlayerOpportunitiesContent() {
                 </div>
               </div>
             )}
+
+            {/* Mobile popup */}
+            <Dialog open={mobilePreviewOpen} onOpenChange={setMobilePreviewOpen}>
+              <DialogContent className="lg:hidden p-0 max-w-lg w-full max-h-[85dvh] overflow-y-auto rounded-t-2xl sm:rounded-2xl">
+                <DialogTitle className="sr-only">{previewListing?.title || "Détails de l'annonce"}</DialogTitle>
+                <OpportunityPreview
+                  listing={previewListing}
+                  hasApplied={previewListing ? myApplications.has(previewListing.id) : false}
+                  onApply={(l) => { handleApply(l); setMobilePreviewOpen(false) }}
+                  onConsult={handleConsult}
+                />
+              </DialogContent>
+            </Dialog>
           </motion.div>
         ) : (
           <motion.div
@@ -856,7 +882,7 @@ function PlayerOpportunitiesContent() {
 
       {/* Application Detail Dialog */}
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0 gap-0 ring-1 ring-slate-200 rounded-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0 gap-0 ring-1 ring-slate-200 rounded-2xl [&>button:last-child]:hidden">
           <DialogTitle className="sr-only">
             {selectedApplication?.listing.title}
           </DialogTitle>
@@ -882,6 +908,9 @@ function PlayerOpportunitiesContent() {
                 {/* Header with gradient */}
                 <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-6 pt-6 pb-5">
                   <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPjxjaXJjbGUgY3g9IjMwIiBjeT0iMzAiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IGZpbGw9InVybCgjZykiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiLz48L3N2Zz4=')] opacity-50" />
+                  <DialogClose className="absolute right-4 top-4 z-10 h-8 w-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+                    <X className="h-4 w-4" />
+                  </DialogClose>
                   <div className="relative">
                     <div className="flex items-start gap-3 mb-4">
                       <div className="h-10 w-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center shrink-0">

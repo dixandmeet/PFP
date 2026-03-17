@@ -1,12 +1,13 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2 } from "lucide-react"
+import { Loader2, Save } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { EditReportHeader } from "@/components/reports/EditReportHeader"
 import { GeneralInfoForm } from "@/components/reports/GeneralInfoForm"
 import { ReportSectionsEditor } from "@/components/reports/ReportSectionsEditor"
@@ -68,35 +69,27 @@ export default function EditReportPage() {
     control,
     handleSubmit,
     reset,
-    setValue,
     watch,
     formState: { errors, isDirty },
   } = useForm<EditReportFormData>({
     resolver: zodResolver(editReportSchema),
-    defaultValues: {
-      sections: [],
-    },
+    defaultValues: { sections: [] },
   })
 
-  const { fields, append, remove, move } = useFieldArray({
-    control,
-    name: "sections",
-  })
+  const { fields, append, remove, move } = useFieldArray({ control, name: "sections" })
 
   const watchStatus = watch("status")
   const watchAuthorType = watch("authorType")
+  const watchTitle = watch("title")
 
   useEffect(() => {
     async function loadReport() {
       try {
         const response = await fetch(`/api/reports/${params.id}`)
-        if (!response.ok) {
-          throw new Error("Rapport non trouvé")
-        }
+        if (!response.ok) throw new Error("Rapport non trouvé")
 
         const data = await response.json()
         setReport(data)
-
         reset({
           title: data.title,
           authorType: data.authorType,
@@ -104,17 +97,12 @@ export default function EditReportPage() {
           sections: data.sections || [],
         })
       } catch (error: any) {
-        toast({
-          title: "Erreur",
-          description: error.message,
-          variant: "destructive",
-        })
+        toast({ title: "Erreur", description: error.message, variant: "destructive" })
         router.push("/player/reports")
       } finally {
         setLoading(false)
       }
     }
-
     loadReport()
   }, [params.id, reset, toast, router])
 
@@ -132,39 +120,44 @@ export default function EditReportPage() {
         throw new Error(error.error || "Erreur lors de la mise à jour")
       }
 
-      toast({
-        title: "Succès",
-        description: "Rapport mis à jour avec succès",
-      })
-
+      toast({ title: "Rapport enregistré", description: "Les modifications ont été sauvegardées" })
       router.push(`/player/reports/${params.id}`)
     } catch (error: any) {
-      toast({
-        title: "Erreur",
-        description: error.message,
-        variant: "destructive",
-      })
+      toast({ title: "Erreur", description: error.message, variant: "destructive" })
     } finally {
       setSaving(false)
     }
   }
 
   const addSection = () => {
-    append({
-      title: "",
-      content: "",
-      order: fields.length,
-    })
+    append({ title: "", content: "", order: fields.length })
   }
 
   const goBack = () => router.push(`/player/reports/${params.id}`)
 
+  const handleSave = useCallback(
+    () => handleSubmit(onSubmit)(),
+    [handleSubmit, onSubmit]
+  )
+
+  // Ctrl+S shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault()
+        handleSave()
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [handleSave])
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[50vh] px-4" suppressHydrationWarning>
         <div className="text-center">
-          <div className="inline-flex p-4 bg-stadium-100 rounded-full mb-4">
-            <Loader2 className="h-8 w-8 animate-spin text-stadium-500" />
+          <div className="inline-flex p-4 bg-pitch-50 rounded-2xl mb-4">
+            <Loader2 className="h-8 w-8 animate-spin text-pitch-600" aria-hidden />
           </div>
           <p className="text-stadium-600 font-medium">Chargement du rapport...</p>
         </div>
@@ -172,25 +165,29 @@ export default function EditReportPage() {
     )
   }
 
-  if (!report) {
-    return null
-  }
+  if (!report) return null
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-32 lg:pb-8">
       <EditReportHeader
         status={watchStatus || report.status}
         saving={saving}
         isDirty={isDirty}
+        reportTitle={watchTitle || report.title}
         onBack={goBack}
         onCancel={goBack}
         onSave={handleSubmit(onSubmit)}
       />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <form
+        id="edit-report-form"
+        onSubmit={handleSubmit(onSubmit)}
+        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8"
+      >
         <GeneralInfoForm
           register={register}
           errors={errors}
+          control={control}
           watchAuthorType={watchAuthorType}
           watchStatus={watchStatus}
           authorTypes={authorTypes}
@@ -201,11 +198,46 @@ export default function EditReportPage() {
           fields={fields}
           register={register}
           errors={errors}
+          control={control}
           onAdd={addSection}
           onRemove={remove}
           onMove={move}
         />
       </form>
+
+      {/* Mobile sticky action bar */}
+      <div className="fixed bottom-16 left-0 right-0 z-30 lg:hidden bg-white/95 backdrop-blur-md border-t border-stadium-200 px-4 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+        <div className="max-w-4xl mx-auto flex items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="default"
+            className="flex-1 rounded-xl border-stadium-200 font-medium"
+            onClick={goBack}
+          >
+            Annuler
+          </Button>
+          <Button
+            type="button"
+            size="default"
+            className="flex-1 rounded-xl bg-pitch-600 hover:bg-pitch-700 text-white font-medium shadow-sm"
+            disabled={saving}
+            onClick={handleSubmit(onSubmit)}
+          >
+            {saving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin shrink-0" />
+                Enregistrement…
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4 shrink-0" />
+                Enregistrer
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }

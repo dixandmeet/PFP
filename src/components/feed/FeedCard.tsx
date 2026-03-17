@@ -87,25 +87,39 @@ export function FeedCard({ post, currentUserId, onUpdate }: FeedCardProps) {
 
   const getUserDisplayName = (user: PostUser) => {
     if (user.playerProfile) {
-      return `${user.playerProfile.firstName} ${user.playerProfile.lastName}`
+      return `${user.playerProfile.firstName} ${user.playerProfile.lastName}`.trim() || "Joueur"
     }
     if (user.agentProfile) {
-      return `${user.agentProfile.firstName} ${user.agentProfile.lastName}`
+      return `${user.agentProfile.firstName} ${user.agentProfile.lastName}`.trim() || "Agent"
     }
     if (user.clubProfile) {
-      return user.clubProfile.clubName
+      return user.clubProfile.clubName || "Club"
     }
-    return user.email
+    return "Utilisateur"
+  }
+
+  const ROLE_LABELS: Record<string, string> = {
+    PLAYER: "Joueur",
+    AGENT: "Agent",
+    CLUB: "Club",
+    CLUB_STAFF: "Staff club",
+  }
+
+  const POSITION_LABELS: Record<string, string> = {
+    GK: "Gardien",
+    DF: "Défenseur",
+    MF: "Milieu",
+    FW: "Attaquant",
   }
 
   const getUserSubtitle = (user: PostUser) => {
     if (user.playerProfile && user.playerProfile.primaryPosition) {
-      return user.playerProfile.primaryPosition
+      return POSITION_LABELS[user.playerProfile.primaryPosition] || user.playerProfile.primaryPosition
     }
     if (user.agentProfile && user.agentProfile.agencyName) {
       return user.agentProfile.agencyName
     }
-    return user.role
+    return ROLE_LABELS[user.role] || user.role
   }
 
   const getUserAvatar = (user: PostUser) => {
@@ -281,7 +295,7 @@ export function FeedCard({ post, currentUserId, onUpdate }: FeedCardProps) {
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <h3 className="font-black text-stadium-900 text-base sm:text-lg">
+                  <h3 className="font-black text-stadium-900 text-base sm:text-lg truncate max-w-[160px] sm:max-w-xs">
                     {getUserDisplayName(post.user)}
                   </h3>
                   <Badge
@@ -338,11 +352,11 @@ export function FeedCard({ post, currentUserId, onUpdate }: FeedCardProps) {
             </p>
           </div>
 
-          {/* Médias */}
+          {/* Médias — pleine largeur (déborde du padding) */}
           {post.mediaUrls && post.mediaUrls.length > 0 && (
             <MediaGallery
               mediaUrls={post.mediaUrls}
-              className="mb-4"
+              className="-mx-4 sm:-mx-6 mb-4"
               postId={post.id}
               postContent={post.content}
               postUser={post.user}

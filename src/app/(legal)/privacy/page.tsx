@@ -26,7 +26,7 @@ export default function PrivacyPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-stadium-900 mb-4">Article 1 &ndash; Responsable du traitement</h2>
             <p className="text-stadium-600 leading-relaxed mb-4">
-              Le responsable du traitement des donn&eacute;es &agrave; caract&egrave;re personnel collect&eacute;es via la plateforme Profoot Profile est la soci&eacute;t&eacute; [D&Eacute;NOMINATION SOCIALE], soci&eacute;t&eacute; [forme juridique] au capital de [MONTANT] euros, immatricul&eacute;e au Registre du Commerce et des Soci&eacute;t&eacute;s de [VILLE] sous le num&eacute;ro [NUM&Eacute;RO RCS], dont le si&egrave;ge social est situ&eacute; [ADRESSE COMPL&Egrave;TE].
+              Le responsable du traitement des donn&eacute;es &agrave; caract&egrave;re personnel collect&eacute;es via la plateforme Profoot Profile est la soci&eacute;t&eacute; TOUSGETHER TO US GETHER SASU, soci&eacute;t&eacute; par actions simplifi&eacute;e unipersonnelle au capital de 100 euros, immatricul&eacute;e au Registre du Commerce et des Soci&eacute;t&eacute;s de Paris sous le num&eacute;ro 952 276 939 R.C.S. Paris, dont le si&egrave;ge social est situ&eacute; 128 RUE LA BOETIE, 75008 PARIS.
             </p>
             <p className="text-stadium-600 leading-relaxed mb-4">
               <strong>D&eacute;l&eacute;gu&eacute; &agrave; la protection des donn&eacute;es (DPO) :</strong>

@@ -69,47 +69,6 @@ function LoginContent() {
         </p>
       </div>
 
-      {/* Statistiques */}
-      <div className="grid grid-cols-3 gap-6 pt-8 border-t border-white/15">
-        {[
-          { value: "15K+", label: "Joueurs", delay: 0.3 },
-          { value: "500+", label: "Clubs", delay: 0.4 },
-          { value: "1.2K+", label: "Agents", delay: 0.5 },
-        ].map((stat) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: stat.delay }}
-            className="text-center"
-          >
-            <div className="text-3xl xl:text-4xl font-bold text-white">{stat.value}</div>
-            <div className="text-sm text-white/50 mt-1">{stat.label}</div>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Témoignage */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-        className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10 shadow-xl"
-      >
-        <p className="text-white/85 italic text-sm leading-relaxed">
-          &ldquo;Grâce à Profoot Profile, j&apos;ai pu trouver mon club actuel et faire avancer ma carrière. 
-          La plateforme m&apos;a mis en contact avec les bonnes personnes au bon moment.&rdquo;
-        </p>
-        <div className="flex items-center gap-3 mt-4">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-md">
-            <span className="text-white font-bold text-xs">M.D</span>
-          </div>
-          <div>
-            <div className="text-white font-medium text-sm">Marc Dupont</div>
-            <div className="text-white/50 text-xs">Milieu offensif – Ligue 2</div>
-          </div>
-        </div>
-      </motion.div>
     </>
   )
 }
