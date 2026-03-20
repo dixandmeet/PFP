@@ -4,9 +4,16 @@ import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
 
 export async function proxy(request: NextRequest) {
+  // Must match Auth.js cookie names: HTTPS uses __Secure-authjs.session-token.
+  // Without secureCookie, getToken looks for authjs.session-token and always returns null in prod.
+  const forwardedProto = request.headers.get("x-forwarded-proto")
+  const secureCookie =
+    request.nextUrl.protocol === "https:" ||
+    forwardedProto?.split(",")[0]?.trim() === "https"
   const token = await getToken({
     req: request,
     secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+    secureCookie,
   })
 
   const { pathname } = request.nextUrl

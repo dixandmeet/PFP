@@ -38,6 +38,8 @@ declare module "next-auth/jwt" {
 
 // Config brut exporté pour les endpoints mobile (token generation)
 export const authConfig: NextAuthConfig = {
+  // Requis sur Vercel / reverse proxy (Host, URL canonique, cookies)
+  trustHost: true,
   adapter: PrismaAdapter(prisma),
   providers: [
     Google({
