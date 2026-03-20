@@ -23,6 +23,8 @@ interface WalletData {
 interface WalletOverviewProps {
   data: WalletData | null
   loading?: boolean
+  /** Rappel sous la carte Bonus (récompenses vidéo). */
+  playerHint?: boolean
 }
 
 const walletCards = [
@@ -35,14 +37,14 @@ const walletCards = [
   },
   {
     key: "purchased" as const,
-    label: "Achetes",
+    label: "Achetés",
     icon: ShoppingCart,
     color: "from-blue-500 to-blue-600",
     iconBg: "bg-blue-100 text-blue-600",
   },
   {
     key: "earned" as const,
-    label: "Gagnes",
+    label: "Gagnés",
     icon: TrendingUp,
     color: "from-victory-500 to-victory-600",
     iconBg: "bg-victory-100 text-victory-600",
@@ -69,7 +71,7 @@ function WalletSkeleton() {
   )
 }
 
-export function WalletOverview({ data, loading }: WalletOverviewProps) {
+export function WalletOverview({ data, loading, playerHint }: WalletOverviewProps) {
   if (loading || !data) return <WalletSkeleton />
 
   return (
@@ -83,7 +85,7 @@ export function WalletOverview({ data, loading }: WalletOverviewProps) {
             <div>
               <p className="text-pitch-100 text-sm font-medium mb-1">Solde total</p>
               <p className="text-4xl font-bold">{data.totalBalance}</p>
-              <p className="text-pitch-200 text-sm mt-1">credits disponibles</p>
+              <p className="text-pitch-200 text-sm mt-1">crédits disponibles</p>
             </div>
             <div className="p-4 bg-white/10 backdrop-blur-sm rounded-2xl">
               <Coins className="h-8 w-8 text-gold-300" />
@@ -118,6 +120,11 @@ export function WalletOverview({ data, loading }: WalletOverviewProps) {
                 </div>
                 <p className="text-2xl font-bold text-stadium-800">{value}</p>
                 <p className="text-xs text-stadium-500 mt-0.5">{wallet.label}</p>
+                {playerHint && wallet.key === "bonus" && (
+                  <p className="text-[10px] text-stadium-400 mt-1.5 leading-snug">
+                    Inclut les récompenses uploads vidéo qualifiés
+                  </p>
+                )}
               </CardContent>
             </Card>
           )

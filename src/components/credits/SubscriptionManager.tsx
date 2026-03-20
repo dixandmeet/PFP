@@ -213,14 +213,34 @@ const basePlans: Omit<Plan, "isCurrent">[] = [
   },
 ]
 
+/** Limites joueur (stockage vidéo + anti-spam) — affichées si playerPlanDetails */
+const PLAYER_VIDEO_LIMITS: Record<string, { storage: string; uploads: string }> = {
+  FREE: {
+    storage: "500 Mo stockage vidéo",
+    uploads: "2 vidéos récompensées / jour max",
+  },
+  STARTER: {
+    storage: "5 Go stockage vidéo",
+    uploads: "5 vidéos récompensées / jour max",
+  },
+  GROWTH: {
+    storage: "15 Go stockage vidéo",
+    uploads: "8 vidéos récompensées / jour max",
+  },
+  PRO: {
+    storage: "40 Go stockage vidéo",
+    uploads: "15 vidéos récompensées / jour max",
+  },
+  ELITE: {
+    storage: "100 Go stockage vidéo",
+    uploads: "20 vidéos récompensées / jour max",
+  },
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function calcPricePerDay(priceMonthly: number): string {
   return (Math.round((priceMonthly / 30) * 10) / 10).toFixed(1)
-}
-
-function onSelectPlan(planId: string) {
-  
 }
 
 // ─── PlanCard ────────────────────────────────────────────────────────────────
@@ -383,7 +403,6 @@ function PlanCard({
             <Button
               onClick={() => {
                 if (isFree) return // Pas de checkout pour le plan gratuit
-                onSelectPlan(plan.id)
                 if (isActive && currentPlanIsPaid) {
                   onChangePlan(plan.id)
                 } else {
@@ -424,7 +443,13 @@ function PlanCard({
 
 // ─── PlanComparison ──────────────────────────────────────────────────────────
 
-function PlanComparison({ plans }: { plans: Plan[] }) {
+function PlanComparison({
+  plans,
+  playerPlanDetails = false,
+}: {
+  plans: Plan[]
+  playerPlanDetails?: boolean
+}) {
   const [isOpen, setIsOpen] = useState(false)
 
   const rows: { label: string; key: keyof Plan; format: (v: any) => string }[] = [
@@ -507,6 +532,38 @@ function PlanComparison({ plans }: { plans: Plan[] }) {
                   ))}
                 </tr>
               ))}
+              {playerPlanDetails &&
+                [
+                  {
+                    label: "Stockage vidéos (joueur)",
+                    cell: (planId: string) => PLAYER_VIDEO_LIMITS[planId]?.storage ?? "—",
+                  },
+                  {
+                    label: "Vidéos récompensées / jour",
+                    cell: (planId: string) => PLAYER_VIDEO_LIMITS[planId]?.uploads ?? "—",
+                  },
+                ].map((row, j) => (
+                  <tr
+                    key={row.label}
+                    className={cn(
+                      "border-b border-stadium-50",
+                      (rows.length + j) % 2 === 0 ? "bg-white" : "bg-stadium-50/50"
+                    )}
+                  >
+                    <td className="p-4 text-stadium-500 font-medium">{row.label}</td>
+                    {plans.map((plan) => (
+                      <td
+                        key={plan.id}
+                        className={cn(
+                          "p-4 text-center font-medium text-sm",
+                          plan.isCurrent ? plan.theme.accentText + " font-bold" : "text-stadium-700"
+                        )}
+                      >
+                        {row.cell(plan.id)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
@@ -517,7 +574,12 @@ function PlanComparison({ plans }: { plans: Plan[] }) {
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
-export function SubscriptionManager() {
+export function SubscriptionManager({
+  playerPlanDetails = false,
+}: {
+  /** Affiche stockage vidéo + plafond quotidien (joueurs). */
+  playerPlanDetails?: boolean
+}) {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
@@ -617,10 +679,15 @@ export function SubscriptionManager() {
   const currentPlan = subscription?.plan
   const isActive = subscription?.status === "ACTIVE"
 
-  const plans: Plan[] = basePlans.map((p) => ({
-    ...p,
-    isCurrent: currentPlan === p.id && isActive,
-  }))
+  const extra = playerPlanDetails ? PLAYER_VIDEO_LIMITS : null
+  const plans: Plan[] = basePlans.map((p) => {
+    const lim = extra?.[p.id]
+    return {
+      ...p,
+      isCurrent: currentPlan === p.id && isActive,
+      features: lim ? [...p.features, lim.storage, lim.uploads] : p.features,
+    }
+  })
 
   return (
     <div className="space-y-8">
@@ -631,7 +698,14 @@ export function SubscriptionManager() {
         </div>
         <div>
           <h2 className="font-semibold text-stadium-800 text-lg">Plans d&apos;abonnement</h2>
-          <p className="text-xs text-stadium-500">Facturation mensuelle · 1 crédit = 1 €</p>
+          <p className="text-xs text-stadium-500">
+            Facturation mensuelle · 1 crédit = 1 €
+            {playerPlanDetails && (
+              <span className="block mt-0.5 text-pitch-600/90">
+                Inclut quotas stockage vidéo et récompenses upload (voir cartes ci-dessous)
+              </span>
+            )}
+          </p>
         </div>
       </div>
 
@@ -701,7 +775,7 @@ export function SubscriptionManager() {
       </div>
 
       {/* Plan Comparison */}
-      <PlanComparison plans={plans} />
+      <PlanComparison plans={plans} playerPlanDetails={playerPlanDetails} />
     </div>
   )
 }

@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { UserFeed } from "@/components/profile/UserFeed"
+import { PublicPlayerVideosTab } from "@/components/profile/PublicPlayerVideosTab"
 import { CareerTimeline } from "@/components/player/profile/CareerTimeline"
 import { MessagingMenu } from "@/components/messaging"
 import { useToast } from "@/components/ui/use-toast"
@@ -40,20 +41,24 @@ import {
   Coins,
   Eye,
   EyeOff,
-  AlertCircle
+  AlertCircle,
+  Video,
+  Ruler,
+  Weight,
+  Footprints,
+  Target,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { 
-  POSITIONS, 
-  POSITION_ON_FIELD_MAP, 
-  POSITION_MOVEMENTS_MAP 
-} from "@/lib/constants/football-data"
+import { POSITION_ON_FIELD_MAP, POSITION_MOVEMENTS_MAP } from "@/lib/constants/football-data"
+import { getPlayerPositionLabel } from "@/lib/utils/position-label"
 
-// Fonction pour obtenir le nom complet de la position
-const getFullPositionName = (abbreviation?: string): string => {
-  if (!abbreviation) return ""
-  const position = POSITIONS.find(p => p.code === abbreviation)
-  return position?.name || abbreviation
+function formatStrongFootLabel(v?: string | null): string | null {
+  if (!v) return null
+  const u = v.toUpperCase()
+  if (u === "LEFT") return "Gauche"
+  if (u === "RIGHT") return "Droit"
+  if (u === "BOTH") return "Les deux"
+  return null
 }
 
 // Fonction pour obtenir la position sur le terrain
@@ -132,13 +137,14 @@ export default function PublicProfilePage() {
   const [loading, setLoading] = useState(true)
   const [isFollowing, setIsFollowing] = useState(false)
   const [followLoading, setFollowLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState<"posts" | "parcours" | "about">("posts")
+  const [activeTab, setActiveTab] = useState<"posts" | "parcours" | "videos" | "about">("posts")
   const [showMessaging, setShowMessaging] = useState(false)
   
   // Popup de confirmation de crédit
   const [showCreditDialog, setShowCreditDialog] = useState(false)
   const [creditBalance, setCreditBalance] = useState<number | null>(null)
   const [creditLoading, setCreditLoading] = useState(false)
+  const feedSectionRef = useRef<HTMLDivElement>(null)
 
   const slugOrId = params.id as string
   const isOwner = currentUser?.id === user?.id
@@ -437,14 +443,18 @@ export default function PublicProfilePage() {
         firstName: user.playerProfile.firstName,
         picture: user.playerProfile.profilePicture,
         coverPhoto: user.playerProfile.coverPhoto,
-        position: getFullPositionName(user.playerProfile.primaryPosition),
+        position: getPlayerPositionLabel(user.playerProfile.primaryPosition),
         positionCode: user.playerProfile.primaryPosition,
         club: user.playerProfile.currentClub,
         league: user.playerProfile.currentLeague,
         location: user.playerProfile.nationality,
         bio: user.playerProfile.bio,
+        height: user.playerProfile.height,
+        weight: user.playerProfile.weight,
+        strongFoot: user.playerProfile.preferredFoot,
         isVerified: false,
         type: "player" as const,
+        specialties: [] as string[],
       }
     }
     
@@ -458,10 +468,14 @@ export default function PublicProfilePage() {
         positionCode: null,
         club: null,
         league: null,
-        location: user.agentProfile.specialties?.join(", "),
+        location: undefined as string | undefined,
+        specialties: user.agentProfile.specialties ?? [],
         bio: user.agentProfile.bio,
         isVerified: user.agentProfile.isVerified,
         type: "agent" as const,
+        height: undefined,
+        weight: undefined,
+        strongFoot: undefined,
       }
     }
     
@@ -479,6 +493,10 @@ export default function PublicProfilePage() {
         bio: user.clubProfile.bio,
         isVerified: user.clubProfile.isVerified,
         type: "club" as const,
+        height: undefined,
+        weight: undefined,
+        strongFoot: undefined,
+        specialties: [] as string[],
       }
     }
     
@@ -532,7 +550,7 @@ export default function PublicProfilePage() {
       {/* Hero Header */}
       <div className="relative">
         {/* Cover Photo - taller for more impact */}
-        <div className="h-56 md:h-72 lg:h-80 bg-gradient-to-br from-pitch-600 via-pitch-700 to-pitch-800 relative overflow-hidden">
+        <div className="h-56 md:h-72 lg:h-80 bg-gradient-to-br from-pitch-600 via-pitch-700 to-pitch-800 relative overflow-hidden rounded-b-[1.75rem] md:rounded-b-[2rem] shadow-[0_12px_40px_-8px_rgba(15,81,50,0.35)]">
           {profileInfo.coverPhoto ? (
             profileInfo.coverPhoto.startsWith('/uploads') ? (
               <img
@@ -584,7 +602,7 @@ export default function PublicProfilePage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-2xl shadow-lg border border-stadium-100/80"
+              className="bg-white rounded-2xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.06),0_20px_40px_-12px_rgba(15,81,50,0.12)] border border-stadium-100/80"
             >
               <div className="px-5 pt-5 pb-5 md:px-8 md:pt-6 md:pb-6">
                 {/* Top row: Avatar + Info + Actions */}
@@ -642,24 +660,39 @@ export default function PublicProfilePage() {
                           {profileInfo.name}
                         </h1>
 
-                        <div className="flex flex-wrap items-center gap-2 mt-1 md:mt-2">
-                          {profileInfo.position && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 md:py-1 bg-pitch-50 text-pitch-700 rounded-lg text-xs font-semibold border border-pitch-100">
-                              <Briefcase className="h-3 w-3" />
-                              {profileInfo.position}
-                            </span>
-                          )}
-                          {profileInfo.club && (
-                            <span className="inline-flex items-center gap-1.5 text-sm text-stadium-500">
-                              <Building2 className="h-3.5 w-3.5" />
-                              {canViewContent ? profileInfo.club : "Free Agent"}
-                            </span>
-                          )}
-                          {profileInfo.location && (
-                            <span className="inline-flex items-center gap-1.5 text-sm text-stadium-500">
-                              <MapPin className="h-3.5 w-3.5" />
-                              {profileInfo.location}
-                            </span>
+                        <div className="flex flex-col gap-2 mt-1 md:mt-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {profileInfo.position && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 md:py-1 bg-pitch-100/90 text-pitch-950 rounded-lg text-xs font-semibold border border-pitch-300/50 shadow-sm">
+                                <Briefcase className="h-3 w-3 shrink-0 text-pitch-800" aria-hidden />
+                                {profileInfo.position}
+                              </span>
+                            )}
+                            {profileInfo.club && (
+                              <span className="inline-flex items-center gap-1.5 text-sm text-stadium-600">
+                                <Building2 className="h-3.5 w-3.5 shrink-0 text-stadium-400" aria-hidden />
+                                {canViewContent ? profileInfo.club : "Free Agent"}
+                              </span>
+                            )}
+                            {profileInfo.location && profileInfo.type !== "agent" && (
+                              <span className="inline-flex items-center gap-1.5 text-sm text-stadium-600">
+                                <MapPin className="h-3.5 w-3.5 shrink-0 translate-y-[0.5px] text-stadium-400" aria-hidden />
+                                {profileInfo.location}
+                              </span>
+                            )}
+                          </div>
+                          {profileInfo.type === "agent" && profileInfo.specialties && profileInfo.specialties.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5" role="list" aria-label="Spécialités">
+                              {profileInfo.specialties.map((spec) => (
+                                <span
+                                  key={spec}
+                                  role="listitem"
+                                  className="inline-flex items-center rounded-md bg-stadium-100/90 px-2 py-0.5 text-[11px] font-medium text-stadium-800 ring-1 ring-stadium-200/90"
+                                >
+                                  {spec}
+                                </span>
+                              ))}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -779,20 +812,46 @@ export default function PublicProfilePage() {
                 )}
 
                 {/* Stats row */}
-                <div className="flex items-center gap-5 sm:gap-8 mt-5 pt-5 border-t border-stadium-100">
-                  <button onClick={() => {}} className="group text-center">
-                    <p className="text-xl font-bold text-stadium-900 group-hover:text-pitch-600 transition-colors">{stats.posts}</p>
-                    <p className="text-[11px] text-stadium-400 font-medium uppercase tracking-wider">Publications</p>
+                <div className="mt-5 grid grid-cols-3 gap-2 border-t border-stadium-100 pt-5 sm:gap-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("posts")
+                      window.requestAnimationFrame(() =>
+                        feedSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+                      )
+                    }}
+                    className="group rounded-xl bg-stadium-50/70 py-2.5 text-center transition-colors hover:bg-pitch-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pitch-600"
+                    aria-label={`${stats.posts} publications, afficher l’onglet Publications`}
+                  >
+                    <p className="text-2xl font-bold text-stadium-900 group-hover:text-pitch-600 transition-colors tabular-nums">{stats.posts}</p>
+                    <p className="text-[11px] text-stadium-500 font-medium uppercase tracking-wider">Publications</p>
                   </button>
-                  <div className="h-8 w-px bg-stadium-100" />
-                  <button onClick={() => {}} className="group text-center">
-                    <p className="text-xl font-bold text-stadium-900 group-hover:text-pitch-600 transition-colors">{stats.followedBy}</p>
-                    <p className="text-[11px] text-stadium-400 font-medium uppercase tracking-wider">Abonnés</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.requestAnimationFrame(() =>
+                        feedSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+                      )
+                    }}
+                    className="group rounded-xl bg-stadium-50/70 py-2.5 text-center transition-colors hover:bg-pitch-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pitch-600"
+                    aria-label={`${stats.followedBy} abonnés`}
+                  >
+                    <p className="text-2xl font-bold text-stadium-900 group-hover:text-pitch-600 transition-colors tabular-nums">{stats.followedBy}</p>
+                    <p className="text-[11px] text-stadium-500 font-medium uppercase tracking-wider">Abonnés</p>
                   </button>
-                  <div className="h-8 w-px bg-stadium-100" />
-                  <button onClick={() => {}} className="group text-center">
-                    <p className="text-xl font-bold text-stadium-900 group-hover:text-pitch-600 transition-colors">{stats.following}</p>
-                    <p className="text-[11px] text-stadium-400 font-medium uppercase tracking-wider">Abonnements</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.requestAnimationFrame(() =>
+                        feedSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+                      )
+                    }}
+                    className="group rounded-xl bg-stadium-50/70 py-2.5 text-center transition-colors hover:bg-pitch-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pitch-600"
+                    aria-label={`${stats.following} abonnements`}
+                  >
+                    <p className="text-2xl font-bold text-stadium-900 group-hover:text-pitch-600 transition-colors tabular-nums">{stats.following}</p>
+                    <p className="text-[11px] text-stadium-500 font-medium uppercase tracking-wider">Abonnements</p>
                   </button>
                 </div>
               </div>
@@ -802,46 +861,79 @@ export default function PublicProfilePage() {
       </div>
 
       {/* Content Area */}
-      <div className="container mx-auto px-4 max-w-4xl pb-12">
+      <div ref={feedSectionRef} className="container mx-auto px-4 max-w-4xl pb-12 scroll-mt-4 md:scroll-mt-8">
         {canViewContent ? (
           <>
             {/* Tab Navigation */}
-            <div className="flex items-center gap-0.5 p-0.5 bg-stadium-100/80 rounded-lg mb-6 w-full sm:w-fit">
+            <div
+              className="mb-6 overflow-x-auto rounded-2xl bg-stadium-100/90 p-1.5 scrollbar-none shadow-inner shadow-stadium-200/40"
+              role="tablist"
+              aria-label="Sections du profil"
+            >
+              <div className="flex min-h-[3rem] min-w-max items-center gap-1 sm:min-h-[3.25rem]">
               <button
+                type="button"
+                role="tab"
+                id="tab-posts"
+                aria-selected={activeTab === "posts"}
                 onClick={() => setActiveTab("posts")}
                 className={cn(
-                  "flex-1 sm:flex-none px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all",
+                  "flex-none rounded-xl px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-all sm:px-5",
                   activeTab === "posts"
-                    ? "bg-white text-stadium-900 shadow-sm"
-                    : "text-stadium-500 hover:text-stadium-700"
+                    ? "bg-white text-stadium-900 shadow-sm ring-1 ring-stadium-200/80"
+                    : "text-stadium-600 hover:bg-stadium-200/40 hover:text-stadium-800"
                 )}
               >
                 Publications
               </button>
               {profileInfo.type === "player" && user.playerProfile && (
                 <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === "parcours"}
                   onClick={() => setActiveTab("parcours")}
                   className={cn(
-                    "flex-1 sm:flex-none px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all",
+                    "flex-none rounded-xl px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-all sm:px-5",
                     activeTab === "parcours"
-                      ? "bg-white text-stadium-900 shadow-sm"
-                      : "text-stadium-500 hover:text-stadium-700"
+                      ? "bg-white text-stadium-900 shadow-sm ring-1 ring-stadium-200/80"
+                      : "text-stadium-600 hover:bg-stadium-200/40 hover:text-stadium-800"
                   )}
                 >
                   Parcours
                 </button>
               )}
+              {profileInfo.type === "player" && user.playerProfile && (
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === "videos"}
+                  onClick={() => setActiveTab("videos")}
+                  className={cn(
+                    "flex-none rounded-xl px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-all sm:px-5",
+                    activeTab === "videos"
+                      ? "bg-white text-stadium-900 shadow-sm ring-1 ring-stadium-200/80"
+                      : "text-stadium-600 hover:bg-stadium-200/40 hover:text-stadium-800"
+                  )}
+                >
+                  Vidéos
+                </button>
+              )}
               <button
+                type="button"
+                role="tab"
+                id="tab-about"
+                aria-selected={activeTab === "about"}
                 onClick={() => setActiveTab("about")}
                 className={cn(
-                  "flex-1 sm:flex-none px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all",
+                  "flex-none rounded-xl px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-all sm:px-5",
                   activeTab === "about"
-                    ? "bg-white text-stadium-900 shadow-sm"
-                    : "text-stadium-500 hover:text-stadium-700"
+                    ? "bg-white text-stadium-900 shadow-sm ring-1 ring-stadium-200/80"
+                    : "text-stadium-600 hover:bg-stadium-200/40 hover:text-stadium-800"
                 )}
               >
                 À propos
               </button>
+              </div>
             </div>
 
             {/* Tab Content */}
@@ -871,6 +963,17 @@ export default function PublicProfilePage() {
                 </motion.div>
               )}
 
+              {activeTab === "videos" && profileInfo.type === "player" && user.playerProfile && (
+                <motion.div
+                  key="videos"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  <PublicPlayerVideosTab userId={user.id} enabled={canViewContent} />
+                </motion.div>
+              )}
+
               {activeTab === "about" && (
                 <motion.div
                   key="about"
@@ -879,39 +982,101 @@ export default function PublicProfilePage() {
                   exit={{ opacity: 0, y: -10 }}
                   className="bg-white rounded-2xl shadow-sm border border-stadium-100 overflow-hidden"
                 >
-                  <div className="px-6 py-5 border-b border-stadium-100">
+                  <div className="border-b border-stadium-100 px-6 py-5">
                     <h3 className="text-base font-bold text-stadium-800">Informations</h3>
                   </div>
-                  <div className="divide-y divide-stadium-50">
+                  <div className="grid gap-3 p-4 sm:p-6 md:grid-cols-2 md:gap-4">
                     {profileInfo.position && (
-                      <div className="flex items-center gap-4 px-6 py-4">
-                        <div className="w-10 h-10 rounded-xl bg-pitch-50 flex items-center justify-center flex-shrink-0">
+                      <div className="flex items-center gap-4 rounded-xl border border-stadium-100 bg-stadium-50/40 px-4 py-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pitch-50">
                           <Briefcase className="h-5 w-5 text-pitch-600" />
                         </div>
-                        <div>
-                          <p className="text-[11px] text-stadium-400 font-medium uppercase tracking-wider">Poste</p>
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-medium uppercase tracking-wider text-stadium-400">
+                            {profileInfo.type === "agent" ? "Agence" : "Poste"}
+                          </p>
                           <p className="font-semibold text-stadium-800">{profileInfo.position}</p>
                         </div>
                       </div>
                     )}
+                    {profileInfo.type === "agent" && profileInfo.specialties && profileInfo.specialties.length > 0 && (
+                      <div className="flex items-start gap-4 rounded-xl border border-stadium-100 bg-stadium-50/40 px-4 py-3 md:col-span-2">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pitch-50">
+                          <Target className="h-5 w-5 text-pitch-600" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[11px] font-medium uppercase tracking-wider text-stadium-400">Spécialités</p>
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {profileInfo.specialties.map((spec) => (
+                              <span
+                                key={spec}
+                                className="inline-flex rounded-md bg-white px-2 py-0.5 text-xs font-medium text-stadium-800 ring-1 ring-stadium-200/90"
+                              >
+                                {spec}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {profileInfo.type === "player" &&
+                      profileInfo.height != null &&
+                      profileInfo.height > 0 && (
+                        <div className="flex items-center gap-4 rounded-xl border border-stadium-100 bg-stadium-50/40 px-4 py-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pitch-50">
+                            <Ruler className="h-5 w-5 text-pitch-600" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-medium uppercase tracking-wider text-stadium-400">Taille</p>
+                            <p className="font-semibold text-stadium-800">{profileInfo.height} cm</p>
+                          </div>
+                        </div>
+                      )}
+                    {profileInfo.type === "player" &&
+                      profileInfo.weight != null &&
+                      profileInfo.weight > 0 && (
+                        <div className="flex items-center gap-4 rounded-xl border border-stadium-100 bg-stadium-50/40 px-4 py-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pitch-50">
+                            <Weight className="h-5 w-5 text-pitch-600" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-medium uppercase tracking-wider text-stadium-400">Poids</p>
+                            <p className="font-semibold text-stadium-800">{profileInfo.weight} kg</p>
+                          </div>
+                        </div>
+                      )}
+                    {profileInfo.type === "player" &&
+                      formatStrongFootLabel(profileInfo.strongFoot) && (
+                        <div className="flex items-center gap-4 rounded-xl border border-stadium-100 bg-stadium-50/40 px-4 py-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pitch-50">
+                            <Footprints className="h-5 w-5 text-pitch-600" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-medium uppercase tracking-wider text-stadium-400">Pied fort</p>
+                            <p className="font-semibold text-stadium-800">
+                              {formatStrongFootLabel(profileInfo.strongFoot)}
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     {profileInfo.club && (
-                      <div className="flex items-center gap-4 px-6 py-4">
-                        <div className="w-10 h-10 rounded-xl bg-pitch-50 flex items-center justify-center flex-shrink-0">
+                      <div className="flex items-center gap-4 rounded-xl border border-stadium-100 bg-stadium-50/40 px-4 py-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pitch-50">
                           <Building2 className="h-5 w-5 text-pitch-600" />
                         </div>
-                        <div>
-                          <p className="text-[11px] text-stadium-400 font-medium uppercase tracking-wider">Club actuel</p>
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-medium uppercase tracking-wider text-stadium-400">Club actuel</p>
                           <p className="font-semibold text-stadium-800">{profileInfo.club}</p>
                         </div>
                       </div>
                     )}
                     {profileInfo.location && (
-                      <div className="flex items-center gap-4 px-6 py-4">
-                        <div className="w-10 h-10 rounded-xl bg-pitch-50 flex items-center justify-center flex-shrink-0">
+                      <div className="flex items-center gap-4 rounded-xl border border-stadium-100 bg-stadium-50/40 px-4 py-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pitch-50">
                           <MapPin className="h-5 w-5 text-pitch-600" />
                         </div>
-                        <div>
-                          <p className="text-[11px] text-stadium-400 font-medium uppercase tracking-wider">
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-medium uppercase tracking-wider text-stadium-400">
                             {profileInfo.type === "player" ? "Nationalité" : "Localisation"}
                           </p>
                           <p className="font-semibold text-stadium-800">{profileInfo.location}</p>
@@ -919,12 +1084,12 @@ export default function PublicProfilePage() {
                       </div>
                     )}
                     {profileInfo.league && (
-                      <div className="flex items-center gap-4 px-6 py-4">
-                        <div className="w-10 h-10 rounded-xl bg-pitch-50 flex items-center justify-center flex-shrink-0">
+                      <div className="flex items-center gap-4 rounded-xl border border-stadium-100 bg-stadium-50/40 px-4 py-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pitch-50">
                           <Trophy className="h-5 w-5 text-pitch-600" />
                         </div>
-                        <div>
-                          <p className="text-[11px] text-stadium-400 font-medium uppercase tracking-wider">Ligue</p>
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-medium uppercase tracking-wider text-stadium-400">Ligue</p>
                           <p className="font-semibold text-stadium-800">{profileInfo.league}</p>
                         </div>
                       </div>
@@ -945,13 +1110,20 @@ export default function PublicProfilePage() {
               {/* Aperçu flouté */}
               <div className="relative">
                 <div className="p-6 filter blur-sm select-none pointer-events-none opacity-50">
-                  <div className="flex items-center gap-1 p-1 bg-stadium-100 rounded-xl mb-6 w-fit">
-                    <div className="px-6 py-2.5 rounded-lg text-sm font-medium bg-white text-stadium-900 shadow-sm">
-                      <MessageCircle className="h-4 w-4 inline-block mr-2" />
+                  <div className="mb-6 flex min-h-[3rem] w-full max-w-2xl items-center gap-1 rounded-xl bg-stadium-100/90 p-1">
+                    <div className="rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-stadium-900 shadow-sm ring-1 ring-stadium-200/80">
+                      <MessageCircle className="mr-2 inline-block h-4 w-4" />
                       Publications
                     </div>
-                    <div className="px-6 py-2.5 rounded-lg text-sm font-medium text-stadium-600">
-                      <Users className="h-4 w-4 inline-block mr-2" />
+                    <div className="rounded-lg px-4 py-2.5 text-sm font-semibold text-stadium-600">
+                      Parcours
+                    </div>
+                    <div className="rounded-lg px-4 py-2.5 text-sm font-semibold text-stadium-600">
+                      <Video className="mr-2 inline-block h-4 w-4" />
+                      Vidéos
+                    </div>
+                    <div className="rounded-lg px-4 py-2.5 text-sm font-semibold text-stadium-600">
+                      <Users className="mr-2 inline-block h-4 w-4" />
                       À propos
                     </div>
                   </div>

@@ -1,28 +1,30 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { WalletOverview } from "@/components/credits/WalletOverview"
 import { TransactionList } from "@/components/credits/TransactionList"
 import { TopUpForm } from "@/components/credits/TopUpForm"
 import { WithdrawalPanel } from "@/components/credits/WithdrawalPanel"
 import { SubscriptionManager } from "@/components/credits/SubscriptionManager"
+import { PlayerGamificationPanel } from "@/components/credits/PlayerGamificationPanel"
 import {
   Wallet,
-  ArrowUpRight,
   History,
   CreditCard,
   Banknote,
   Crown,
   ChevronRight,
+  Film,
 } from "lucide-react"
 
 interface CreditsPageClientProps {
   defaultTab?: string
+  /** Progression / quotas vidéo + lignes « stockage & uploads » sur les plans */
+  showPlayerGamification?: boolean
 }
 
 interface WalletData {
@@ -35,11 +37,15 @@ interface WalletData {
   planStatus: string | null
 }
 
-export function CreditsPageClient({ defaultTab = "overview" }: CreditsPageClientProps) {
+export function CreditsPageClient({
+  defaultTab = "overview",
+  showPlayerGamification = false,
+}: CreditsPageClientProps) {
   const [walletData, setWalletData] = useState<WalletData | null>(null)
   const [loading, setLoading] = useState(true)
   const searchParams = useSearchParams()
   const router = useRouter()
+  const pathname = usePathname()
   const syncDoneRef = useRef(false)
 
   async function fetchWallets() {
@@ -89,9 +95,9 @@ export function CreditsPageClient({ defaultTab = "overview" }: CreditsPageClient
       })
       .finally(() => {
         fetchWallets()
-        router.replace("/club/credits", { scroll: false })
+        router.replace(pathname || "/player/credits", { scroll: false })
       })
-  }, [searchParams, router])
+  }, [searchParams, router, pathname])
 
   return (
     <div className="min-h-screen">
@@ -103,7 +109,11 @@ export function CreditsPageClient({ defaultTab = "overview" }: CreditsPageClient
             </div>
             <div>
               <h1 className="text-xl font-bold text-stadium-900">Mes Crédits</h1>
-              <p className="text-sm text-stadium-500">Gérez vos crédits et abonnements</p>
+              <p className="text-sm text-stadium-500">
+                {showPlayerGamification
+                  ? "Crédits, abonnement, stockage vidéo et progression"
+                  : "Gérez vos crédits et abonnements"}
+              </p>
             </div>
           </div>
         </div>
@@ -134,9 +144,17 @@ export function CreditsPageClient({ defaultTab = "overview" }: CreditsPageClient
 
           <TabsContent value="overview">
             <div className="space-y-6">
-              <WalletOverview data={walletData} loading={loading} />
+              <WalletOverview
+                data={walletData}
+                loading={loading}
+                playerHint={showPlayerGamification}
+              />
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {showPlayerGamification && <PlayerGamificationPanel />}
+
+              <div
+                className={`grid grid-cols-1 gap-3 ${showPlayerGamification ? "md:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-3"}`}
+              >
                 <QuickAction
                   icon={CreditCard}
                   title="Recharger"
@@ -158,6 +176,23 @@ export function CreditsPageClient({ defaultTab = "overview" }: CreditsPageClient
                   color="victory"
                   tab="withdrawals"
                 />
+                {showPlayerGamification && (
+                  <Link
+                    href="/reels"
+                    className="bg-pitch-50 hover:bg-pitch-100 p-4 rounded-xl transition-colors text-left group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-pitch-100 text-pitch-600">
+                        <Film className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-pitch-700">Reels & vidéos</p>
+                        <p className="text-xs text-stadium-500">Uploader pour gagner des crédits bonus</p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-stadium-300 group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  </Link>
+                )}
               </div>
 
               <div>
@@ -189,7 +224,7 @@ export function CreditsPageClient({ defaultTab = "overview" }: CreditsPageClient
           </TabsContent>
 
           <TabsContent value="subscription">
-            <SubscriptionManager />
+            <SubscriptionManager playerPlanDetails={showPlayerGamification} />
           </TabsContent>
 
           <TabsContent value="withdrawals">

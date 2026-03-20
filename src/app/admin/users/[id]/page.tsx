@@ -61,6 +61,7 @@ export default function AdminUserDetailPage({
 
   const [user, setUser] = useState<UserDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [showMessaging, setShowMessaging] = useState(false)
 
   const [isEditing, setIsEditing] = useState(false)
@@ -84,6 +85,7 @@ export default function AdminUserDetailPage({
 
   const fetchUser = useCallback(async () => {
     try {
+      setLoadError(null)
       const res = await fetch(`/api/admin/users/${resolvedParams.id}`)
       if (res.ok) {
         const data = await res.json()
@@ -113,9 +115,14 @@ export default function AdminUserDetailPage({
         setFormUser(deepClone(form))
       } else if (res.status === 404) {
         router.push("/admin/users")
+      } else {
+        const errorData = await res.json().catch(() => ({}))
+        setLoadError(errorData.error || `Erreur ${res.status}`)
+        console.error("API error:", res.status, errorData)
       }
     } catch (error) {
       console.error("Error fetching user:", error)
+      setLoadError("Impossible de charger l'utilisateur")
     } finally {
       setIsLoading(false)
     }
@@ -375,6 +382,18 @@ export default function AdminUserDetailPage({
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-600" />
+      </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen gap-4">
+        <p className="text-red-600 text-sm">{loadError}</p>
+        <Button variant="outline" size="sm" onClick={() => router.back()}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Retour
+        </Button>
       </div>
     )
   }

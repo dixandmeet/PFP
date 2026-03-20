@@ -60,9 +60,15 @@ interface DashboardFeedProps {
   role: "PLAYER" | "AGENT" | "CLUB" | "CLUB_STAFF"
   showOnboardingCard?: boolean
   clubStatus?: string | null
+  openComposerSignal?: number
 }
 
-export function DashboardFeed({ role, showOnboardingCard = false, clubStatus }: DashboardFeedProps) {
+export function DashboardFeed({
+  role,
+  showOnboardingCard = false,
+  clubStatus,
+  openComposerSignal,
+}: DashboardFeedProps) {
   const { toast } = useToast()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
@@ -109,6 +115,11 @@ export function DashboardFeed({ role, showOnboardingCard = false, clubStatus }: 
 
     loadData()
   }, [toast])
+
+  useEffect(() => {
+    if (!openComposerSignal) return
+    setDialogOpen(true)
+  }, [openComposerSignal])
 
   const handlePostCreated = (newPost: Post) => {
     setPosts([newPost, ...posts])

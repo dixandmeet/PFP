@@ -3,8 +3,13 @@ import { useState, useCallback } from "react"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Ionicons } from "@expo/vector-icons"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { Role } from "@pfp/shared-constants"
 import { api } from "@/lib/api"
 import { useAuthStore } from "@/stores/auth-store"
+import { AgentFeedParcoursTab } from "@/components/agent/AgentFeedParcoursTab"
+import { AgentFeedJoueursTab } from "@/components/agent/AgentFeedJoueursTab"
+
+type AgentFeedSection = "feed" | "parcours" | "joueurs"
 
 interface PostUser {
   id: string
@@ -128,6 +133,16 @@ export default function FeedScreen() {
   const [refreshing, setRefreshing] = useState(false)
   const [showCreatePost, setShowCreatePost] = useState(false)
   const [postContent, setPostContent] = useState("")
+  const [agentSection, setAgentSection] = useState<AgentFeedSection>("feed")
+
+  const isAgent = user?.role === Role.AGENT
+
+  const headerTitle =
+    !isAgent || agentSection === "feed"
+      ? "Feed"
+      : agentSection === "parcours"
+        ? "Parcours"
+        : "Joueurs"
 
   const { data: posts, refetch, isLoading } = useQuery({
     queryKey: ["feed"],
@@ -149,6 +164,7 @@ export default function FeedScreen() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["feed"] })
+      queryClient.invalidateQueries({ queryKey: ["agent-feed-parcours"] })
       setPostContent("")
       setShowCreatePost(false)
     },
@@ -186,51 +202,112 @@ export default function FeedScreen() {
     createPost.mutate(postContent.trim())
   }
 
+  const showFeedComposerButton = !isAgent || agentSection === "feed"
+
   return (
     <SafeAreaView className="flex-1 bg-stadium-950">
       {/* Header */}
-      <View className="flex-row items-center justify-between px-6 py-4 border-b border-stadium-800">
-        <Text className="text-white text-lg font-bold">Feed</Text>
-        <TouchableOpacity
-          className="w-9 h-9 bg-stadium-800 rounded-full items-center justify-center"
-          onPress={() => setShowCreatePost(true)}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="add" size={20} color="#22c55e" />
-        </TouchableOpacity>
-      </View>
-
-      <FlatList
-        data={posts || []}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <FeedPostCard
-            post={item}
-            onLike={(postId, isLiked) => likeMutation.mutate({ postId, isLiked })}
-          />
-        )}
-        contentContainerStyle={{ paddingTop: 16, paddingBottom: 24 }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#22c55e" />
-        }
-        ListEmptyComponent={
-          <View className="items-center py-20">
-            <Ionicons name="newspaper-outline" size={48} color="#3f3f46" />
-            <Text className="text-stadium-500 text-sm mt-4">
-              {isLoading ? "Chargement..." : "Aucun post pour le moment"}
-            </Text>
-            {!isLoading && (
+      <View className="border-b border-stadium-800">
+        <View className="flex-row items-center justify-between px-6 py-4">
+          <Text className="text-white text-lg font-bold">{headerTitle}</Text>
+          <View className="flex-row items-center gap-2">
+            <TouchableOpacity
+              className="w-9 h-9 bg-stadium-800 rounded-full items-center justify-center"
+              onPress={onRefresh}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="refresh" size={19} color="#a1a1aa" />
+            </TouchableOpacity>
+            {showFeedComposerButton && (
               <TouchableOpacity
-                className="mt-4 bg-pitch-600 px-6 py-2.5 rounded-xl"
+                className={`w-9 h-9 rounded-xl items-center justify-center ${
+                  isAgent ? "bg-amber-500" : "bg-stadium-800"
+                }`}
                 onPress={() => setShowCreatePost(true)}
                 activeOpacity={0.7}
               >
-                <Text className="text-white text-sm font-semibold">Publier un post</Text>
+                <Ionicons name="add" size={22} color={isAgent ? "#171717" : "#22c55e"} />
               </TouchableOpacity>
             )}
           </View>
-        }
-      />
+        </View>
+
+        {isAgent && (
+          <View className="flex-row gap-2 px-4 pb-3">
+            {(
+              [
+                { key: "feed" as const, label: "Feed" },
+                { key: "parcours" as const, label: "Parcours" },
+                { key: "joueurs" as const, label: "Joueurs" },
+              ] as const
+            ).map((tab) => (
+              <TouchableOpacity
+                key={tab.key}
+                className={`flex-1 py-2.5 rounded-xl items-center ${
+                  agentSection === tab.key ? "bg-amber-500" : "bg-stadium-800"
+                }`}
+                onPress={() => setAgentSection(tab.key)}
+                activeOpacity={0.75}
+              >
+                <Text
+                  className={`text-xs font-semibold ${
+                    agentSection === tab.key ? "text-stadium-950" : "text-stadium-400"
+                  }`}
+                >
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
+
+      {!isAgent || agentSection === "feed" ? (
+        <FlatList
+          data={posts || []}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <FeedPostCard
+              post={item}
+              onLike={(postId, isLiked) => likeMutation.mutate({ postId, isLiked })}
+            />
+          )}
+          contentContainerStyle={{ paddingTop: 16, paddingBottom: 24, flexGrow: 1 }}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#22c55e" />
+          }
+          ListEmptyComponent={
+            <View className="items-center py-20">
+              <Ionicons name="newspaper-outline" size={48} color="#3f3f46" />
+              <Text className="text-stadium-500 text-sm mt-4">
+                {isLoading ? "Chargement..." : "Aucun post pour le moment"}
+              </Text>
+              {!isLoading && (
+                <TouchableOpacity
+                  className="mt-4 bg-pitch-600 px-6 py-2.5 rounded-xl"
+                  onPress={() => setShowCreatePost(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text className="text-white text-sm font-semibold">Publier un post</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          }
+        />
+      ) : isAgent && agentSection === "parcours" ? (
+        <View className="flex-1">
+          <AgentFeedParcoursTab
+            onOpenFeedComposer={() => {
+              setAgentSection("feed")
+              setShowCreatePost(true)
+            }}
+          />
+        </View>
+      ) : (
+        <View className="flex-1">
+          <AgentFeedJoueursTab />
+        </View>
+      )}
 
       {/* Create Post Modal */}
       <Modal visible={showCreatePost} animationType="slide" presentationStyle="pageSheet">

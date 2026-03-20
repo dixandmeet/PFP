@@ -32,7 +32,7 @@ import {
   BarChart3,
   Clock,
   BookOpen,
-  Sparkles,
+  MessageSquare,
   LogIn,
   UserPlus,
   Mail,
@@ -448,10 +448,18 @@ function PlayerDoc() {
               <li><strong>Transactions</strong> : historique complet de toutes tes op&eacute;rations</li>
             </ul>
 
+            <p className="font-medium text-slate-800 mt-3">Vid&eacute;os foot &amp; gamification :</p>
+            <ul className="list-disc list-inside space-y-1 ml-1">
+              <li>Uploader une vid&eacute;o au format pr&eacute;vu (type <code>VIDEO</code>) : le stockage compte contre ton quota de plan (voir onglet <strong>Cr&eacute;dits</strong> de la doc admin pour les d&eacute;tails techniques).</li>
+              <li>Apr&egrave;s upload, la finalisation c&ocirc;t&eacute; app d&eacute;clenche l&apos;analyse qualit&eacute; ; tu peux gagner des cr&eacute;dits bonus si la vid&eacute;o est &eacute;ligible (pas de doublon, qualit&eacute; suffisante, limite quotidienne respect&eacute;e).</li>
+              <li>Tu peux consulter ton niveau, ton XP et tes quotas via l&apos;API d&eacute;di&eacute;e (int&eacute;gration UI &agrave; pr&eacute;voir sur le profil / cr&eacute;dits).</li>
+            </ul>
+
             <InfoCard title="Types de cr&eacute;dits">
               <ul className="list-disc list-inside space-y-0.5">
                 <li><strong>Inclus dans l&apos;abonnement</strong> : allou&eacute;s chaque mois, expirent le 1er janvier</li>
                 <li><strong>Achet&eacute;s</strong> : achet&eacute;s via recharge, n&apos;expirent jamais</li>
+                <li><strong>Bonus</strong> (dont r&eacute;compenses vid&eacute;o) : soumis &agrave; la m&ecirc;me r&egrave;gle d&apos;expiration annuelle que l&apos;abonnement pour le wallet BONUS</li>
               </ul>
             </InfoCard>
           </DocSection>
@@ -758,7 +766,7 @@ function AgentDoc() {
       <AccordionItem value="ai" className="border rounded-lg px-4">
         <AccordionTrigger className="hover:no-underline">
           <div className="flex items-center">
-            <SectionIcon icon={Sparkles} color="bg-violet-500" />
+            <SectionIcon icon={MessageSquare} color="bg-violet-500" />
             <div className="text-left">
               <p className="font-semibold text-slate-900">Assistant IA</p>
               <p className="text-xs text-slate-500 font-normal">Un assistant intelligent pour t&apos;aider</p>
@@ -1494,7 +1502,7 @@ function AdminDoc() {
             <ul className="list-disc list-inside space-y-1 ml-1">
               <li>Recherche par nom, email ou description</li>
               <li>Filtre par type de portefeuille</li>
-              <li>Filtre par type de transaction (allocation, achat, bonus, consultation, retrait, expiration...)</li>
+              <li>Filtre par type de transaction (allocation, achat, bonus, follow, consultation annonce ou profil, retrait, expiration, r&eacute;compense vid&eacute;o <code>CREDIT_VIDEO_UPLOAD_REWARD</code>, sinks gamification <code>DEBIT_VIDEO_BOOST</code>, <code>DEBIT_PROFILE_HIGHLIGHT</code>, etc.)</li>
               <li>Filtre par date</li>
             </ul>
 
@@ -1620,7 +1628,7 @@ function CreditsDoc() {
               </div>
               <div className="bg-purple-50 border border-purple-100 rounded-lg p-3">
                 <p className="font-semibold text-purple-800 text-xs">BONUS</p>
-                <p className="text-xs text-purple-600 mt-0.5">Cr&eacute;dits offerts par un administrateur</p>
+                <p className="text-xs text-purple-600 mt-0.5">Cr&eacute;dits promotionnels : bonus admin <strong>et</strong> r&eacute;compenses gamification (uploads vid&eacute;o foot qualifi&eacute;s)</p>
               </div>
             </div>
 
@@ -1666,15 +1674,17 @@ function CreditsDoc() {
                     <th className="text-left p-2 font-semibold text-slate-700">Plan</th>
                     <th className="text-right p-2 font-semibold text-slate-700">Prix/mois</th>
                     <th className="text-right p-2 font-semibold text-slate-700">Cr&eacute;dits/mois</th>
+                    <th className="text-right p-2 font-semibold text-slate-700">Stockage*</th>
+                    <th className="text-right p-2 font-semibold text-slate-700">Vid&eacute;os r&eacute;comp./jour**</th>
                     <th className="text-right p-2 font-semibold text-slate-700">Redistribution</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b"><td className="p-2">FREE</td><td className="p-2 text-right">0&euro;</td><td className="p-2 text-right">0</td><td className="p-2 text-right">0%</td></tr>
-                  <tr className="border-b"><td className="p-2">STARTER</td><td className="p-2 text-right">10&euro;</td><td className="p-2 text-right">10</td><td className="p-2 text-right">25%</td></tr>
-                  <tr className="border-b"><td className="p-2">GROWTH</td><td className="p-2 text-right">50&euro;</td><td className="p-2 text-right">50</td><td className="p-2 text-right">30%</td></tr>
-                  <tr className="border-b"><td className="p-2">PRO</td><td className="p-2 text-right">200&euro;</td><td className="p-2 text-right">200</td><td className="p-2 text-right">40%</td></tr>
-                  <tr><td className="p-2">ELITE</td><td className="p-2 text-right">500&euro;</td><td className="p-2 text-right">500</td><td className="p-2 text-right">50%</td></tr>
+                  <tr className="border-b"><td className="p-2">FREE</td><td className="p-2 text-right">0&euro;</td><td className="p-2 text-right">0</td><td className="p-2 text-right">500 Mo</td><td className="p-2 text-right">2</td><td className="p-2 text-right">0%</td></tr>
+                  <tr className="border-b"><td className="p-2">STARTER</td><td className="p-2 text-right">10&euro;</td><td className="p-2 text-right">10</td><td className="p-2 text-right">5 Go</td><td className="p-2 text-right">5</td><td className="p-2 text-right">25%</td></tr>
+                  <tr className="border-b"><td className="p-2">GROWTH</td><td className="p-2 text-right">50&euro;</td><td className="p-2 text-right">50</td><td className="p-2 text-right">15 Go</td><td className="p-2 text-right">8</td><td className="p-2 text-right">30%</td></tr>
+                  <tr className="border-b"><td className="p-2">PRO</td><td className="p-2 text-right">200&euro;</td><td className="p-2 text-right">200</td><td className="p-2 text-right">40 Go</td><td className="p-2 text-right">15</td><td className="p-2 text-right">40%</td></tr>
+                  <tr><td className="p-2">ELITE</td><td className="p-2 text-right">500&euro;</td><td className="p-2 text-right">500</td><td className="p-2 text-right">100 Go</td><td className="p-2 text-right">20</td><td className="p-2 text-right">50%</td></tr>
                 </tbody>
               </table>
             </div>
@@ -1690,6 +1700,82 @@ function CreditsDoc() {
             <InfoCard title="Comportement">
               Chaque nouvel utilisateur re&ccedil;oit automatiquement un abonnement FREE. Les cr&eacute;dits mensuels sont allou&eacute;s dans le wallet SUBSCRIPTION via le webhook Stripe <code>invoice.paid</code>.
             </InfoCard>
+            <p className="text-xs text-slate-500 mt-2">
+              * Quota stockage fichiers joueur (vid&eacute;os type <code>VIDEO</code>) + bonus Go achet&eacute;s en cr&eacute;dits (<code>User.gamificationStorageBonusBytes</code>). ** Nombre maximum de vid&eacute;os pouvant &ecirc;tre <strong>r&eacute;compens&eacute;es en cr&eacute;dits</strong> par jour (anti-spam), d&eacute;fini dans <code>PLAN_CONFIG.maxRewardedUploadsPerDay</code>.
+            </p>
+          </DocSection>
+        </AccordionContent>
+      </AccordionItem>
+
+      {/* Gamification vidéos foot */}
+      <AccordionItem value="player-gamification" className="border rounded-lg px-4">
+        <AccordionTrigger className="hover:no-underline">
+          <div className="flex items-center">
+            <SectionIcon icon={Film} color="bg-rose-500" />
+            <div className="text-left">
+              <p className="font-semibold text-slate-900">Gamification vid&eacute;os foot (joueurs)</p>
+              <p className="text-xs text-slate-500 font-normal">Score qualit&eacute;, r&eacute;compenses, sinks, progression, stockage</p>
+            </div>
+          </div>
+        </AccordionTrigger>
+        <AccordionContent>
+          <DocSection>
+            <p><strong>Objectif.</strong> Encourager les joueurs &agrave; uploader des vid&eacute;os de qualit&eacute; : alimenter l&apos;IA, enrichir le profil et la visibilit&eacute; recruteurs, tout en limitant le spam.</p>
+
+            <p className="font-medium text-slate-800 mt-3">Flux c&ocirc;t&eacute; client</p>
+            <StepList steps={[
+              "Upload vid\u00e9o en tant que joueur avec type de fichier VIDEO (ex. POST /api/files/upload-proxy) : calcul du hash SHA-256 (contentHash), contr\u00f4le du quota de stockage, incr\u00e9ment de UserStorageUsage.",
+              "Finalisation : POST /api/player/gamification/videos/finalize avec fileAssetId et id\u00e9alement durationSeconds, width, height, context (MATCH | TRAINING | UNKNOWN) et/ou skillCategory (extraits match, technique, gardien, etc. ; d\u00e9duit le contexte si absent).",
+              "Liste : GET /api/player/gamification/videos \u2014 vid\u00e9os du joueur + pourcentage de compl\u00e9tion du profil vid\u00e9o.",
+              "La plateforme calcule un score 0\u2013100 (mock d\u00e9terministe rempla\u00e7able par l'IA), applique les r\u00e8gles d'\u00e9ligibilit\u00e9, cr\u00e9dite le wallet BONUS si AWARDED (CREDIT_VIDEO_UPLOAD_REWARD), met \u00e0 jour XP et niveau de progression.",
+              "D\u00e9penses optionnelles : POST /api/player/gamification/spend (idempotencyKey obligatoire) pour les sinks list\u00e9s ci-dessous.",
+            ]} />
+
+            <p className="font-medium text-slate-800 mt-3">Mod&egrave;les Prisma (aper&ccedil;u)</p>
+            <ul className="list-disc list-inside space-y-1 ml-1 text-xs">
+              <li><code>PlayerFootballVideo</code> + <code>PlayerFootballVideoScore</code> : lien utilisateur &harr; <code>FileAsset</code>, statut, cr&eacute;dits accord&eacute;s, d&eacute;tail des points (technique, d&eacute;tection, actions, contexte)</li>
+              <li><code>UserStorageUsage</code> : <code>bytesUsed</code> agr&eacute;g&eacute; par joueur</li>
+              <li><code>User</code> : <code>playerProgressionLevel</code>, <code>gamificationXp</code>, <code>gamificationStorageBonusBytes</code></li>
+              <li><code>FileAsset.contentHash</code> : anti-doublon par contenu pour un m&ecirc;me joueur</li>
+            </ul>
+
+            <p className="font-medium text-slate-800 mt-3">R&egrave;gles de r&eacute;compense (r&eacute;sum&eacute;)</p>
+            <ul className="list-disc list-inside space-y-1 ml-1 text-xs">
+              <li><strong>Rejet</strong> : pas de joueur d&eacute;tect&eacute; (mock), score &lt; 50, vid&eacute;o en doublon (m&ecirc;me <code>contentHash</code>), quota journalier de vid&eacute;os r&eacute;compens&eacute;es atteint selon le plan</li>
+              <li><strong>Cr&eacute;dits</strong> : base 2 + palier selon score (0 / 2 / 4 / 6 si score &ge; 50), bonus % selon le niveau de progression (0&ndash;20 %), <strong>plafond 8 cr&eacute;dits</strong> par vid&eacute;o</li>
+              <li><strong>XP</strong> : gain &agrave; chaque vid&eacute;o r&eacute;compens&eacute;e (ex. 10 + cr&eacute;dits accord&eacute;s) ; niveaux ROOKIE &rarr; PRO d&eacute;riv&eacute;s de l&apos;XP</li>
+            </ul>
+
+            <p className="font-medium text-slate-800 mt-3">Sinks gamification (co&ucirc;ts en cr&eacute;dits)</p>
+            <div className="overflow-x-auto mt-1">
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr className="border-b bg-slate-50">
+                    <th className="text-left p-2 font-semibold text-slate-700">Action API</th>
+                    <th className="text-right p-2 font-semibold text-slate-700">Co&ucirc;t</th>
+                    <th className="text-left p-2 font-semibold text-slate-700">Type transaction</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b"><td className="p-2"><code>VIDEO_BOOST</code></td><td className="p-2 text-right">5</td><td className="p-2"><code>DEBIT_VIDEO_BOOST</code></td></tr>
+                  <tr className="border-b"><td className="p-2"><code>PROFILE_HIGHLIGHT</code></td><td className="p-2 text-right">15</td><td className="p-2"><code>DEBIT_PROFILE_HIGHLIGHT</code></td></tr>
+                  <tr className="border-b"><td className="p-2"><code>RECRUITER_VIDEO_SEND</code></td><td className="p-2 text-right">20</td><td className="p-2"><code>DEBIT_RECRUITER_VIDEO_SEND</code></td></tr>
+                  <tr className="border-b"><td className="p-2"><code>ADVANCED_ANALYSIS</code></td><td className="p-2 text-right">5</td><td className="p-2"><code>DEBIT_ADVANCED_ANALYSIS</code></td></tr>
+                  <tr className="border-b"><td className="p-2"><code>FULL_PLAYER_REPORT</code></td><td className="p-2 text-right">10</td><td className="p-2"><code>DEBIT_FULL_PLAYER_REPORT</code></td></tr>
+                  <tr className="border-b"><td className="p-2"><code>CLUB_APPLICATION</code></td><td className="p-2 text-right">5</td><td className="p-2"><code>DEBIT_CLUB_APPLICATION</code></td></tr>
+                  <tr className="border-b"><td className="p-2"><code>PLAYER_RECOMMENDATION</code></td><td className="p-2 text-right">15</td><td className="p-2"><code>DEBIT_PLAYER_RECOMMENDATION</code></td></tr>
+                  <tr className="border-b"><td className="p-2"><code>DIRECT_RECRUITER_ACCESS</code></td><td className="p-2 text-right">25</td><td className="p-2"><code>DEBIT_DIRECT_RECRUITER_ACCESS</code></td></tr>
+                  <tr><td className="p-2"><code>STORAGE_GB_1</code></td><td className="p-2 text-right">10</td><td className="p-2"><code>DEBIT_STORAGE_GB_PURCHASE</code> (+1 Go sur <code>gamificationStorageBonusBytes</code>)</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p className="font-medium text-slate-800 mt-3">Code source</p>
+            <p className="text-xs text-slate-600"><code>src/lib/gamification/</code> (score mock, quotas, sinks, <code>PlayerGamificationService</code>), extensions <code>PLAN_CONFIG</code> et <code>PROGRESSION_CREDIT_BONUS_PCT</code> dans <code>src/lib/services/credits/types.ts</code>.</p>
+
+            <InfoCard title="Effets produit">
+              Les appels <code>spend</code> d&eacute;bitent les cr&eacute;dits et tracent les transactions ; les effets m&eacute;tier concrets (boost d&apos;une vid&eacute;o, envoi recruteur, etc.) doivent &ecirc;tre branch&eacute;s dans les modules concern&eacute;s apr&egrave;s un d&eacute;bit r&eacute;ussi.
+            </InfoCard>
           </DocSection>
         </AccordionContent>
       </AccordionItem>
@@ -1701,7 +1787,7 @@ function CreditsDoc() {
             <SectionIcon icon={ArrowDownUp} color="bg-emerald-500" />
             <div className="text-left">
               <p className="font-semibold text-slate-900">Comment gagner des cr&eacute;dits</p>
-              <p className="text-xs text-slate-500 font-normal">Abonnement, achat, follows, consultations, signatures, bonus</p>
+              <p className="text-xs text-slate-500 font-normal">Abonnement, achat, follows, consultations, signatures, bonus, vid&eacute;os foot</p>
             </div>
           </div>
         </AccordionTrigger>
@@ -1743,6 +1829,11 @@ function CreditsDoc() {
                 <p className="font-medium text-slate-800">6. Bonus admin (CREDIT_BONUS)</p>
                 <p>Un admin peut cr&eacute;diter directement n&apos;importe quel wallet d&apos;un utilisateur via la fiche admin.</p>
               </div>
+
+              <div>
+                <p className="font-medium text-slate-800">7. R&eacute;compense upload vid&eacute;o foot (CREDIT_VIDEO_UPLOAD_REWARD)</p>
+                <p>R&eacute;serv&eacute; aux <strong>joueurs</strong>. Apr&egrave;s upload (<code>FileAsset</code> vid&eacute;o) et appel &agrave; <code>POST /api/player/gamification/videos/finalize</code>, si la vid&eacute;o est &eacute;ligible, les cr&eacute;dits sont vers&eacute;s dans le wallet <strong>BONUS</strong> (voir section &laquo; Gamification vid&eacute;os foot &raquo;). Cl&eacute; d&apos;idempotence <code>video_upload_[fileAssetId]</code>.</p>
+              </div>
             </div>
           </DocSection>
         </AccordionContent>
@@ -1755,7 +1846,7 @@ function CreditsDoc() {
             <SectionIcon icon={Coins} color="bg-orange-500" />
             <div className="text-left">
               <p className="font-semibold text-slate-900">Comment d&eacute;penser des cr&eacute;dits</p>
-              <p className="text-xs text-slate-500 font-normal">Follows, consultations de listings, retraits</p>
+              <p className="text-xs text-slate-500 font-normal">Follows, listings, gamification joueur, retraits</p>
             </div>
           </div>
         </AccordionTrigger>
@@ -1791,6 +1882,12 @@ function CreditsDoc() {
                   </table>
                 </div>
                 <p className="text-xs text-slate-500 mt-1">Paiement unique par listing (pas de re-facturation). V&eacute;rifiable via <code>GET /api/credits/listings/[id]/check</code>.</p>
+              </div>
+
+              <div>
+                <p className="font-medium text-slate-800">Gamification joueur &mdash; visibilit&eacute;, IA, opportunit&eacute;s, stockage</p>
+                <p><code>POST /api/player/gamification/spend</code> avec <code>action</code>, <code>idempotencyKey</code> (unique par intention de paiement) et optionnellement <code>referenceId</code>. D&eacute;bite selon l&apos;ordre BONUS &rarr; SUBSCRIPTION &rarr; PURCHASED &rarr; EARNED ; enregistre <code>referenceType: GAMIFICATION_SPEND</code> pour l&apos;idempotence c&ocirc;t&eacute; serveur.</p>
+                <p className="text-xs text-slate-500 mt-1">D&eacute;tail des actions et co&ucirc;ts : section &laquo; Gamification vid&eacute;os foot (joueurs) &raquo;. Consultation profil payante (<code>DEBIT_PROFILE_VIEW</code>) reste sur les routes cr&eacute;dits listings/profil existantes.</p>
               </div>
             </div>
           </DocSection>
@@ -1920,7 +2017,9 @@ function CreditsDoc() {
                   <tr className="border-b"><td className="p-2">Follows par heure</td><td className="p-2 text-right">50</td></tr>
                   <tr className="border-b"><td className="p-2">Op&eacute;rations cr&eacute;dits par minute</td><td className="p-2 text-right">10</td></tr>
                   <tr className="border-b"><td className="p-2">Utilisateurs par IP (24h)</td><td className="p-2 text-right">3</td></tr>
-                  <tr><td className="p-2">Profondeur d&eacute;tection boucles (BFS)</td><td className="p-2 text-right">5</td></tr>
+                  <tr className="border-b"><td className="p-2">Profondeur d&eacute;tection boucles (BFS)</td><td className="p-2 text-right">5</td></tr>
+                  <tr className="border-b"><td className="p-2"><code>VIDEO_FINALIZE</code> (finalisation vid&eacute;o joueur)</td><td className="p-2 text-right">10 / min (m&ecirc;me compteur que op&eacute;rations cr&eacute;dits)</td></tr>
+                  <tr><td className="p-2"><code>GAMIFICATION_SPEND</code></td><td className="p-2 text-right">10 / min</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2026,8 +2125,8 @@ function CreditsDoc() {
           <div className="flex items-center">
             <SectionIcon icon={Webhook} color="bg-slate-700" />
             <div className="text-left">
-              <p className="font-semibold text-slate-900">Routes API (27+ endpoints)</p>
-              <p className="text-xs text-slate-500 font-normal">Toutes les routes li&eacute;es aux cr&eacute;dits</p>
+              <p className="font-semibold text-slate-900">Routes API (cr&eacute;dits + gamification)</p>
+              <p className="text-xs text-slate-500 font-normal">Wallets, abonnement, listings, retraits, vid&eacute;os foot joueur</p>
             </div>
           </div>
         </AccordionTrigger>
@@ -2041,6 +2140,17 @@ function CreditsDoc() {
                   <li><code>GET /api/credits/transactions</code> &mdash; Historique filtrable</li>
                   <li><code>POST /api/credits/topup</code> &mdash; Achat de cr&eacute;dits via Stripe</li>
                   <li><code>POST /api/credits/follow-spend</code> &mdash; D&eacute;bit imm&eacute;diat pour follow</li>
+                </ul>
+              </div>
+
+              <div>
+                <p className="font-medium text-slate-800">Gamification joueur (vid&eacute;os foot)</p>
+                <ul className="list-disc list-inside space-y-0.5 ml-1 text-xs">
+                  <li><code>GET /api/player/gamification/status</code> &mdash; Niveau, XP, quotas stockage, uploads r&eacute;compens&eacute;s aujourd&apos;hui, soldes, tarifs des sinks</li>
+                  <li><code>GET /api/player/gamification/videos</code> &mdash; Vid&eacute;os scouting du joueur, jauge de compl&eacute;tion profil vid&eacute;o</li>
+                  <li><code>POST /api/player/gamification/videos/finalize</code> &mdash; Score, cr&eacute;dits BONUS si &eacute;ligible, XP / progression (<code>skillCategory</code> optionnel)</li>
+                  <li><code>POST /api/player/gamification/spend</code> &mdash; D&eacute;penses gamification (idempotencyKey requis)</li>
+                  <li><code>POST /api/files/upload-proxy</code> &mdash; Si joueur + VIDEO : quota stockage, <code>contentHash</code>, <code>UserStorageUsage</code> ; r&eacute;ponse <code>403 STORAGE_QUOTA_EXCEEDED</code> si d&eacute;passement</li>
                 </ul>
               </div>
 
@@ -2166,8 +2276,8 @@ function CreditsDoc() {
           <div className="flex items-center">
             <SectionIcon icon={Fingerprint} color="bg-cyan-600" />
             <div className="text-left">
-              <p className="font-semibold text-slate-900">Services backend (12 fichiers)</p>
-              <p className="text-xs text-slate-500 font-normal">Architecture technique du syst&egrave;me</p>
+              <p className="font-semibold text-slate-900">Services backend</p>
+              <p className="text-xs text-slate-500 font-normal">Cr&eacute;dits (<code>src/lib/services/credits/</code>) + gamification (<code>src/lib/gamification/</code>)</p>
             </div>
           </div>
         </AccordionTrigger>
@@ -2193,11 +2303,19 @@ function CreditsDoc() {
                   <tr className="border-b"><td className="p-2"><code>expiration.service.ts</code></td><td className="p-2">Expiration annuelle SUBSCRIPTION + BONUS</td></tr>
                   <tr className="border-b"><td className="p-2"><code>fraud.service.ts</code></td><td className="p-2">Fingerprinting, boucles, multi-comptes, rate limiting</td></tr>
                   <tr className="border-b"><td className="p-2"><code>signature.service.ts</code></td><td className="p-2">Soumission, revue, compl&eacute;ment</td></tr>
-                  <tr className="border-b"><td className="p-2"><code>types.ts</code></td><td className="p-2">Constantes, configuration des plans, types d&apos;erreurs</td></tr>
+                  <tr className="border-b"><td className="p-2"><code>types.ts</code></td><td className="p-2">Constantes, <code>PLAN_CONFIG</code> (stockage, limites upload/jour), bonus progression, erreurs</td></tr>
                   <tr><td className="p-2"><code>index.ts</code></td><td className="p-2">Barrel export</td></tr>
                 </tbody>
               </table>
             </div>
+
+            <p className="font-medium text-slate-800 mt-4">Gamification (<code>src/lib/gamification/</code>) :</p>
+            <ul className="list-disc list-inside space-y-0.5 ml-1 text-xs mt-1">
+              <li><code>player-gamification.service.ts</code> &mdash; Finalisation vid&eacute;o, spend, statut agr&eacute;g&eacute;</li>
+              <li><code>video-quality-score.ts</code> &mdash; Score mock 0&ndash;100 et calcul de r&eacute;compense</li>
+              <li><code>storage-quota.ts</code> &mdash; Quota effectif plan + bonus Go, assert avant upload</li>
+              <li><code>sink-costs.ts</code>, <code>player-progression.ts</code> &mdash; Co&ucirc;ts API et niveaux XP</li>
+            </ul>
           </DocSection>
         </AccordionContent>
       </AccordionItem>

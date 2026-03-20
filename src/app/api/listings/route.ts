@@ -11,12 +11,14 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const position = searchParams.get("position")
-    const status = searchParams.get("status") || "PUBLISHED"
-    const page = parseInt(searchParams.get("page") || "1")
-    const limit = parseInt(searchParams.get("limit") || "20")
+    const ALLOWED_STATUSES = ["DRAFT", "PUBLISHED", "CLOSED"] as const
+    const rawStatus = searchParams.get("status") || "PUBLISHED"
+    const status = ALLOWED_STATUSES.includes(rawStatus as any) ? rawStatus : "PUBLISHED"
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1") || 1)
+    const limit = Math.min(Math.max(1, parseInt(searchParams.get("limit") || "20") || 20), 100)
 
     const where: any = {
-      status: status as any,
+      status,
     }
 
     if (position) {

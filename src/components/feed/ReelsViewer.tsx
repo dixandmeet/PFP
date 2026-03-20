@@ -111,6 +111,7 @@ export function ReelsViewer({
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const currentReel = reels[currentIndex]
+  const currentVideoUrl = currentReel?.videoUrl?.trim() ?? ""
 
   // Réinitialiser l'erreur vidéo quand on change de reel
   useEffect(() => {
@@ -149,15 +150,15 @@ export function ReelsViewer({
   // Gérer la lecture vidéo lors du changement d'index
   useEffect(() => {
     const video = videoRef.current
-    if (!video) return
+    if (!video || !currentVideoUrl) return
 
     video.currentTime = 0
     setProgress(0)
 
     if (isPlaying) {
-      video.play().catch(() => setIsPlaying(false))
+      void video.play().catch(() => setIsPlaying(false))
     }
-  }, [currentIndex])
+  }, [currentIndex, currentVideoUrl, isPlaying])
 
   // Mettre à jour la progression et la durée
   useEffect(() => {
@@ -266,11 +267,10 @@ export function ReelsViewer({
 
   const togglePlay = () => {
     const video = videoRef.current
-    if (!video) return
+    if (!video || !currentVideoUrl) return
 
     if (video.paused) {
-      video.play()
-      setIsPlaying(true)
+      void video.play().catch(() => setIsPlaying(false))
     } else {
       video.pause()
       setIsPlaying(false)
@@ -535,7 +535,7 @@ export function ReelsViewer({
         >
           <video
             ref={(el) => { videoRef.current = el }}
-            src={currentReel.videoUrl}
+            src={currentVideoUrl || undefined}
             className={cn("w-full h-full object-contain", videoLoadError && "hidden")}
             loop
             playsInline

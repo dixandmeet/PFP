@@ -1,13 +1,13 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ShieldCheck, FileCheck, Globe, Cpu } from "lucide-react"
+import { ShieldCheck, FileCheck, Globe, Layers } from "lucide-react"
 
 const pillars = [
   { label: "Identité vérifiée", description: "Chaque profil est authentifié", icon: ShieldCheck },
   { label: "Mandats conformes", description: "Processus encadré et sécurisé", icon: FileCheck },
   { label: "Réseau ouvert", description: "Du football amateur au haut niveau", icon: Globe },
-  { label: "Outils intelligents", description: "IA & matching au service du terrain", icon: Cpu },
+  { label: "Fonctionnalités pro", description: "Matching et filtrage pour cibler les bons profils", icon: Layers },
 ]
 
 export function TrustStrip() {

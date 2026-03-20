@@ -31,8 +31,17 @@ export function handleApiError(error: unknown) {
     if (error.message.includes("Non authentifié")) {
       return errorResponse("Non authentifié", 401)
     }
-    if (error.message.includes("Accès interdit") || error.message.includes("permission")) {
-      return errorResponse("Accès interdit", 403)
+    if (
+      error.message.includes("Accès interdit") ||
+      error.message.includes("permission") ||
+      error.message.includes("Réservé aux joueurs")
+    ) {
+      return errorResponse(
+        error.message.includes("Réservé aux joueurs")
+          ? error.message
+          : "Accès interdit",
+        403
+      )
     }
     if (error.message.includes("Non trouvé") || error.message.includes("n'existe pas")) {
       return errorResponse("Ressource non trouvée", 404)

@@ -17,5 +17,7 @@ export default async function PlayerCreditsPage({
   const { tab } = await searchParams
   const defaultTab = tab && VALID_TABS.includes(tab) ? tab : "overview"
 
-  return <CreditsPageClient defaultTab={defaultTab} />
+  return (
+    <CreditsPageClient defaultTab={defaultTab} showPlayerGamification />
+  )
 }

@@ -107,6 +107,16 @@ const transactionTypeLabels: Record<string, { label: string; isCredit: boolean }
   DEBIT_WITHDRAWAL: { label: "Retrait", isCredit: false },
   EXPIRATION: { label: "Expiration", isCredit: false },
   REFUND: { label: "Ajustement admin", isCredit: false },
+  CREDIT_VIDEO_UPLOAD_REWARD: { label: "Récompense upload vidéo", isCredit: true },
+  DEBIT_VIDEO_BOOST: { label: "Boost vidéo", isCredit: false },
+  DEBIT_PROFILE_HIGHLIGHT: { label: "Mise en avant profil", isCredit: false },
+  DEBIT_RECRUITER_VIDEO_SEND: { label: "Envoi vidéo recruteurs", isCredit: false },
+  DEBIT_ADVANCED_ANALYSIS: { label: "Analyse avancée (IA)", isCredit: false },
+  DEBIT_FULL_PLAYER_REPORT: { label: "Rapport joueur complet", isCredit: false },
+  DEBIT_CLUB_APPLICATION: { label: "Candidature club", isCredit: false },
+  DEBIT_PLAYER_RECOMMENDATION: { label: "Mise en recommandation", isCredit: false },
+  DEBIT_DIRECT_RECRUITER_ACCESS: { label: "Accès direct recruteur", isCredit: false },
+  DEBIT_STORAGE_GB_PURCHASE: { label: "Achat stockage +1 Go", isCredit: false },
 }
 
 const statusLabels: Record<string, { label: string; color: string }> = {

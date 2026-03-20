@@ -3,10 +3,13 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AgentProfileCard } from "@/components/profile/AgentProfileCard"
 import { UserFeed } from "@/components/profile/UserFeed"
+import { AgentProfileJourneyTab } from "@/components/agent/profile/AgentProfileJourneyTab"
+import { AgentDashboardSection } from "@/components/agent/profile/AgentDashboardSection"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2 } from "lucide-react"
+import { Compass, Loader2, PenSquare } from "lucide-react"
 
 interface UserProfile {
   id: string
@@ -174,13 +177,44 @@ export default function AgentProfilePage() {
           onCoverPhotoChange={handleCoverPhotoChange}
         />
 
-        {/* Section Publications */}
+        {/* Dashboard agent */}
+        <AgentDashboardSection
+          userId={user.id}
+          agentProfileId={user.agentProfile.id}
+          agentProfile={user.agentProfile}
+        />
+
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.6 }}
         >
-          <UserFeed userId={user.id} currentUserId={user.id} />
+          <Tabs defaultValue="parcours-agent" className="w-full">
+            <TabsList className="grid h-12 w-full grid-cols-2 gap-1 rounded-xl border border-slate-200 bg-white p-1">
+              <TabsTrigger
+                value="parcours-agent"
+                className="h-full gap-2 rounded-lg text-sm font-semibold text-slate-500 transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold-500 data-[state=active]:to-gold-600 data-[state=active]:text-stadium-950 data-[state=active]:shadow-sm data-[state=active]:ring-2 data-[state=active]:ring-gold-400/50"
+              >
+                <Compass className="h-4 w-4 shrink-0" />
+                Parcours agent
+              </TabsTrigger>
+              <TabsTrigger
+                value="posts"
+                className="h-full gap-2 rounded-lg text-sm font-semibold text-slate-500 transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-gold-500 data-[state=active]:to-gold-600 data-[state=active]:text-stadium-950 data-[state=active]:shadow-sm data-[state=active]:ring-2 data-[state=active]:ring-gold-400/50"
+              >
+                <PenSquare className="h-4 w-4 shrink-0" />
+                Posts
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="parcours-agent" className="mt-5">
+              <AgentProfileJourneyTab userId={user.id} agentProfileId={user.agentProfile.id} />
+            </TabsContent>
+
+            <TabsContent value="posts" className="mt-5">
+              <UserFeed userId={user.id} currentUserId={user.id} />
+            </TabsContent>
+          </Tabs>
         </motion.div>
       </div>
     </div>

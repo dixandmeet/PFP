@@ -97,10 +97,11 @@ export function MediaGallery({ mediaUrls, className, postId, postContent, postUs
   const togglePlay = (index: number, e: React.MouseEvent) => {
     e.stopPropagation()
     const video = videoRefs.current[index]
-    if (!video) return
+    if (!video || !video.src) return
     if (video.paused) {
-      video.play()
-      setPlayingVideos(prev => ({ ...prev, [index]: true }))
+      void video.play().catch(() => {
+        setPlayingVideos(prev => ({ ...prev, [index]: false }))
+      })
     } else {
       video.pause()
       setPlayingVideos(prev => ({ ...prev, [index]: false }))

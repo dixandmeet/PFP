@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2, Trophy, PenSquare } from "lucide-react"
+import { Loader2, Trophy, PenSquare, Video } from "lucide-react"
 import { UserFeed } from "@/components/profile/UserFeed"
 import {
   ProfileHeader,
@@ -12,6 +12,7 @@ import {
   InterestsPanel,
   ProfilePresentationCard,
   CareerTimeline,
+  ProfileVideoScoutingTab,
 } from "@/components/player/profile"
 import { InsightsDevPanel } from "@/components/player/insights"
 import { useProfileInsights } from "@/hooks/useProfileInsights"
@@ -173,20 +174,27 @@ export default function PlayerProfilePage() {
       />
 
       <Tabs defaultValue="parcours" className="w-full">
-        <TabsList className="w-full h-12 p-1 bg-white border border-slate-200 rounded-xl">
+        <TabsList className="w-full h-12 p-1 bg-white border border-slate-200 rounded-xl grid grid-cols-3 gap-1">
           <TabsTrigger
             value="parcours"
-            className="flex-1 h-full rounded-lg font-semibold text-sm gap-2 text-slate-500 data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all"
+            className="h-full rounded-lg font-semibold text-sm gap-2 text-slate-500 data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all data-[state=active]:ring-2 data-[state=active]:ring-pitch-500/40"
           >
             <Trophy className="h-4 w-4" />
             Parcours
           </TabsTrigger>
           <TabsTrigger
             value="posts"
-            className="flex-1 h-full rounded-lg font-semibold text-sm gap-2 text-slate-500 data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all"
+            className="h-full rounded-lg font-semibold text-sm gap-2 text-slate-500 data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all data-[state=active]:ring-2 data-[state=active]:ring-pitch-500/40"
           >
             <PenSquare className="h-4 w-4" />
             Posts
+          </TabsTrigger>
+          <TabsTrigger
+            value="videos"
+            className="h-full rounded-lg font-semibold text-sm gap-2 text-slate-500 data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all data-[state=active]:ring-2 data-[state=active]:ring-pitch-500/40"
+          >
+            <Video className="h-4 w-4" />
+            Vidéos
           </TabsTrigger>
         </TabsList>
 
@@ -196,6 +204,10 @@ export default function PlayerProfilePage() {
 
         <TabsContent value="posts" className="mt-5">
           <UserFeed userId={user.id} currentUserId={user.id} />
+        </TabsContent>
+
+        <TabsContent value="videos" className="mt-5">
+          <ProfileVideoScoutingTab />
         </TabsContent>
       </Tabs>
 

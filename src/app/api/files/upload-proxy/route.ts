@@ -4,10 +4,17 @@
 //   2. FormData : Content-Type = multipart/form-data (fallback)
 // Les vidéos non-browser (avi, mkv, wmv, flv…) sont transcodées en MP4 via ffmpeg-static
 import { NextResponse } from "next/server"
+import { createHash } from "crypto"
+import { Role } from "@prisma/client"
 import { requireAuth } from "@/lib/permissions/rbac"
 import { handleApiError } from "@/lib/utils/api-helpers"
 import { generateFileKey, getPublicUrl } from "@/lib/s3"
 import { prisma } from "@/lib/prisma"
+import {
+  assertPlayerVideoStorageAllows,
+  recordPlayerVideoStorageBytes,
+  StorageQuotaExceededError,
+} from "@/lib/gamification/storage-quota"
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
 import { writeFile, mkdir, readFile, unlink } from "fs/promises"
 import { execFile } from "child_process"
@@ -185,6 +192,15 @@ export async function POST(request: Request) {
     // Valider le type de fichier — fallback sur POST_MEDIA si invalide
     const safeFileType = VALID_FILE_TYPES.has(fileType) ? fileType : "POST_MEDIA"
 
+    if (isVideo && user.role === Role.PLAYER && safeFileType === "VIDEO") {
+      await assertPlayerVideoStorageAllows(
+        user.id,
+        user.role,
+        safeFileType,
+        buffer.length
+      )
+    }
+
     const key = generateFileKey(user.id, filename)
 
     let fileUrl: string
@@ -222,6 +238,11 @@ export async function POST(request: Request) {
       fileUrl = `/uploads/${user.id}/${safeName}`
     }
 
+    const contentHash =
+      isVideo && safeFileType === "VIDEO"
+        ? createHash("sha256").update(buffer).digest("hex")
+        : null
+
     const fileAsset = await prisma.fileAsset.create({
       data: {
         key,
@@ -230,6 +251,7 @@ export async function POST(request: Request) {
         mimeType: contentType,
         size: buffer.length,
         type: safeFileType as any,
+        contentHash,
         ownerId: user.id,
         ownerType: "USER",
         accessPolicy: {
@@ -238,6 +260,15 @@ export async function POST(request: Request) {
         },
       }
     })
+
+    if (isVideo && user.role === Role.PLAYER && safeFileType === "VIDEO") {
+      await recordPlayerVideoStorageBytes(
+        user.id,
+        user.role,
+        safeFileType,
+        buffer.length
+      )
+    }
 
     return NextResponse.json({
       fileAsset: {
@@ -248,6 +279,12 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error("Erreur upload proxy:", error)
+    if (error instanceof StorageQuotaExceededError) {
+      return NextResponse.json(
+        { error: error.message, code: "STORAGE_QUOTA_EXCEEDED" },
+        { status: 403 }
+      )
+    }
     return handleApiError(error)
   }
 }

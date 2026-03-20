@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { MessageSquare, TrendingUp, Building2, ShieldCheck, User, Send, CheckCircle2, Zap } from "lucide-react"
+import { MessageSquare, TrendingUp, Building2, ShieldCheck, User, Send, CheckCircle2 } from "lucide-react"
 
 export function AIStudio() {
   const [activeTab, setActiveTab] = useState(0)
@@ -190,9 +190,8 @@ export function AIStudio() {
                   <div className="rounded-2xl bg-base-content p-5">
                     <div className="flex items-center gap-2 mb-4">
                       <ShieldCheck className="w-4 h-4 text-primary" />
-                      <h4 className="text-[14px] font-semibold text-white flex items-center gap-2">
+                      <h4 className="text-[14px] font-semibold text-white">
                         Validation en 2 étapes
-                        <Zap className="w-3.5 h-3.5 text-amber-400" />
                       </h4>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-6">

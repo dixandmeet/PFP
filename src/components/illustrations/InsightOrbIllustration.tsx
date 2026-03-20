@@ -3,7 +3,8 @@
 import { motion } from "framer-motion"
 import { useMotionConfig } from "@/components/motion/MotionProvider"
 
-export function AICopilot() {
+/** Illustration abstraite réseau / données (sans thème « IA »). */
+export function InsightOrbIllustration() {
   const { shouldReduceMotion } = useMotionConfig()
 
   return (
@@ -14,7 +15,7 @@ export function AICopilot() {
       className="w-full h-full"
     >
       <defs>
-        <linearGradient id="aiGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id="orbGradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#0A84FF" />
           <stop offset="50%" stopColor="#2AC3A2" />
           <stop offset="100%" stopColor="#0A84FF" />
@@ -24,7 +25,7 @@ export function AICopilot() {
           <stop offset="50%" stopColor="#2AC3A2" stopOpacity="0.1" />
           <stop offset="100%" stopColor="#0A84FF" stopOpacity="0" />
         </radialGradient>
-        <filter id="aiGlow">
+        <filter id="softGlow">
           <feGaussianBlur stdDeviation="8" result="coloredBlur" />
           <feMerge>
             <feMergeNode in="coloredBlur" />
@@ -33,7 +34,6 @@ export function AICopilot() {
         </filter>
       </defs>
 
-      {/* Outer glow rings */}
       <motion.circle
         cx="200"
         cy="200"
@@ -53,7 +53,7 @@ export function AICopilot() {
         cx="200"
         cy="200"
         r="120"
-        stroke="url(#aiGradient)"
+        stroke="url(#orbGradient)"
         strokeWidth="1"
         opacity="0.3"
         animate={shouldReduceMotion ? {} : {
@@ -67,14 +67,13 @@ export function AICopilot() {
         }}
       />
 
-      {/* Central orb */}
       <motion.circle
         cx="200"
         cy="200"
         r="80"
-        fill="url(#aiGradient)"
+        fill="url(#orbGradient)"
         opacity="0.15"
-        filter="url(#aiGlow)"
+        filter="url(#softGlow)"
         animate={shouldReduceMotion ? {} : {
           scale: [1, 1.08, 1],
         }}
@@ -89,9 +88,9 @@ export function AICopilot() {
         cy="200"
         r="60"
         fill="white"
-        stroke="url(#aiGradient)"
+        stroke="url(#orbGradient)"
         strokeWidth="2"
-        filter="url(#aiGlow)"
+        filter="url(#softGlow)"
         animate={shouldReduceMotion ? {} : {
           scale: [1, 1.05, 1],
         }}
@@ -103,12 +102,11 @@ export function AICopilot() {
         }}
       />
 
-      {/* Inner core */}
       <motion.circle
         cx="200"
         cy="200"
         r="30"
-        fill="url(#aiGradient)"
+        fill="url(#orbGradient)"
         opacity="0.4"
         animate={shouldReduceMotion ? {} : {
           scale: [1, 1.2, 1],
@@ -121,7 +119,6 @@ export function AICopilot() {
         }}
       />
 
-      {/* Rotating data particles */}
       {!shouldReduceMotion && (
         <>
           <motion.g
@@ -160,10 +157,9 @@ export function AICopilot() {
         </>
       )}
 
-      {/* Data flow curves */}
       <motion.path
         d="M 100 150 Q 150 100, 200 120"
-        stroke="url(#aiGradient)"
+        stroke="url(#orbGradient)"
         strokeWidth="2"
         strokeDasharray="6 6"
         opacity="0.4"
@@ -177,7 +173,7 @@ export function AICopilot() {
       />
       <motion.path
         d="M 300 150 Q 250 100, 200 120"
-        stroke="url(#aiGradient)"
+        stroke="url(#orbGradient)"
         strokeWidth="2"
         strokeDasharray="6 6"
         opacity="0.4"
@@ -192,7 +188,7 @@ export function AICopilot() {
       />
       <motion.path
         d="M 100 250 Q 150 300, 200 280"
-        stroke="url(#aiGradient)"
+        stroke="url(#orbGradient)"
         strokeWidth="2"
         strokeDasharray="6 6"
         opacity="0.4"
@@ -207,7 +203,7 @@ export function AICopilot() {
       />
       <motion.path
         d="M 300 250 Q 250 300, 200 280"
-        stroke="url(#aiGradient)"
+        stroke="url(#orbGradient)"
         strokeWidth="2"
         strokeDasharray="6 6"
         opacity="0.4"
@@ -221,7 +217,6 @@ export function AICopilot() {
         }}
       />
 
-      {/* Sparkle effects */}
       {!shouldReduceMotion && (
         <>
           <motion.circle

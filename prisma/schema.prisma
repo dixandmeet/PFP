@@ -125,6 +125,39 @@ enum FileAssetType {
   POST_MEDIA
 }
 
+// Progression joueur (vidéos / crédits) — distinct de SubscriptionPlan.ELITE
+enum PlayerProgressionLevel {
+  ROOKIE
+  AMATEUR
+  COMPETITOR
+  ELITE
+  PRO
+}
+
+enum FootballVideoContext {
+  UNKNOWN
+  MATCH
+  TRAINING
+}
+
+// Catégorie « scouting » — une vidéo par slot idéal pour le profil
+enum FootballVideoSkillCategory {
+  UNSPECIFIED
+  MATCH_HIGHLIGHTS
+  TECHNICAL
+  PHYSICAL_ATHLETIC
+  SET_PIECES
+  GOALKEEPING
+  TACTICAL
+  PORTRAIT
+}
+
+enum PlayerFootballVideoStatus {
+  PENDING_REVIEW
+  AWARDED
+  REJECTED
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -164,6 +197,13 @@ model User {
   auditLogs AuditLog[]
   emailLogs EmailLog[]
 
+  // Gamification joueur (vidéos foot)
+  playerProgressionLevel       PlayerProgressionLevel @default(ROOKIE)
+  gamificationXp               Int                    @default(0)
+  gamificationStorageBonusBytes BigInt                @default(0) // +1 Go par achat crédits
+  playerFootballVideos         PlayerFootballVideo[]
+  storageUsage                 UserStorageUsage?
+
   // Messaging
   conversations ConversationParticipant[]
   sentMessages  Message[]
@@ -193,6 +233,10 @@ model User {
 
   // Membres admin du club
   clubMemberships ClubMember[]
+
+  // Rating système FIFA
+  playerRating     PlayerRating?
+  skillEvaluations VideoSkillEvaluation[] @relation("SkillEvaluator")
 
   @@index([email])
   @@index([role])
@@ -788,6 +832,9 @@ model FileAsset {
   size     Int
   type     FileAssetType
 
+  // Empreinte contenu (vidéos) — anti-doublon & scoring
+  contentHash String? @db.VarChar(64)
+
   // Owner
   ownerId   String
   ownerType String // "USER", "PLAYER", "CLUB", etc.
@@ -799,10 +846,152 @@ model FileAsset {
   playerProfileId String?
   playerProfile   PlayerProfile? @relation(fields: [playerProfileId], references: [id], onDelete: SetNull)
 
+  playerFootballVideo PlayerFootballVideo?
+
   createdAt DateTime @default(now())
 
   @@index([ownerId])
   @@index([playerProfileId])
+  @@index([contentHash])
+}
+
+// Vidéo foot uploadée par un joueur — récompense crédits & qualité
+model PlayerFootballVideo {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileAssetId String    @unique
+  fileAsset   FileAsset @relation(fields: [fileAssetId], references: [id], onDelete: Cascade)
+  contentHash String?   @db.VarChar(64)
+
+  durationSeconds Int?
+  width           Int?
+  height          Int?
+
+  context FootballVideoContext @default(UNKNOWN)
+
+  skillCategory FootballVideoSkillCategory @default(UNSPECIFIED)
+
+  status         PlayerFootballVideoStatus
+  rejectReason   String?
+  creditsAwarded Int                       @default(0)
+  totalScore     Int?
+  deletedAt      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  scoreDetail     PlayerFootballVideoScore?
+  skillEvaluation VideoSkillEvaluation?
+
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@index([contentHash])
+}
+
+model PlayerFootballVideoScore {
+  id      String              @id @default(cuid())
+  videoId String              @unique
+  video   PlayerFootballVideo @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  technicalPts Int // max 40
+  detectionPts Int // max 30
+  actionsPts   Int // max 20
+  contextPts   Int // max 10
+
+  durationOk      Boolean
+  stabilityOk     Boolean
+  lightingOk      Boolean
+  resolutionOk    Boolean
+  playerVisible   Boolean
+  fullBodyOk      Boolean
+  faceDetected    Boolean
+  singleAction    Boolean
+  multipleActions Boolean
+  contextMatch    Boolean
+  contextTraining Boolean
+
+  analysisVersion String @default("mock_v1")
+  mockSeed        String?
+
+  createdAt DateTime @default(now())
+}
+
+// ============================================
+// Player Rating System (FIFA-like)
+// ============================================
+
+// Évaluation des compétences football par un admin (séparé du score qualité vidéo)
+model VideoSkillEvaluation {
+  id      String              @id @default(cuid())
+  videoId String              @unique
+  video   PlayerFootballVideo @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  evaluatorId String
+  evaluator   User   @relation("SkillEvaluator", fields: [evaluatorId], references: [id])
+
+  // Scores par attribut (0–100)
+  pacScore Int @default(0)
+  finScore Int @default(0)
+  tecScore Int @default(0)
+  visScore Int @default(0)
+  phyScore Int @default(0)
+  defScore Int @default(0)
+  gkScore  Int @default(0)
+
+  // Sous-critères bruts (ex: { "accuracy": 18, "power": 15 })
+  subCriteria Json?
+
+  // Score composite pondéré par catégorie vidéo
+  compositeScore Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([videoId])
+  @@index([evaluatorId])
+}
+
+// Carte FIFA du joueur (calculée à partir des évaluations vidéo)
+model PlayerRating {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Attributs individuels (0–99, échelle FIFA)
+  pac Int @default(0)
+  fin Int @default(0)
+  tec Int @default(0)
+  vis Int @default(0)
+  phy Int @default(0)
+  def Int @default(0)
+  gk  Int @default(0)
+
+  // Note globale (0–99)
+  ovr Int @default(0)
+
+  // Position utilisée pour le calcul OVR
+  ratingPosition String?
+
+  // Nombre de vidéos évaluées
+  evaluatedVideoCount Int @default(0)
+
+  // Niveau de confiance (LOW, MEDIUM, HIGH)
+  confidenceLevel String @default("LOW")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ovr])
+  @@index([userId])
+}
+
+// Stockage agrégé par utilisateur (quota abonnement)
+model UserStorageUsage {
+  userId    String @id
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bytesUsed BigInt @default(0)
+  updatedAt DateTime @updatedAt
 }
 
 model Notification {
@@ -1199,6 +1388,17 @@ enum TransactionType {
   DEBIT_WITHDRAWAL // Retrait vers compte bancaire
   EXPIRATION // Expiration annuelle (1er janvier)
   REFUND // Remboursement admin
+  // Gamification vidéos & sinks joueur
+  CREDIT_VIDEO_UPLOAD_REWARD
+  DEBIT_VIDEO_BOOST
+  DEBIT_PROFILE_HIGHLIGHT
+  DEBIT_RECRUITER_VIDEO_SEND
+  DEBIT_ADVANCED_ANALYSIS
+  DEBIT_FULL_PLAYER_REPORT
+  DEBIT_CLUB_APPLICATION
+  DEBIT_PLAYER_RECOMMENDATION
+  DEBIT_DIRECT_RECRUITER_ACCESS
+  DEBIT_STORAGE_GB_PURCHASE
 }
 
 enum TransactionStatus {

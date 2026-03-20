@@ -26,6 +26,7 @@ export type Permission =
   | "admin:manage_fraud"
   | "admin:trigger_expiration"
   | "admin:review_signature"
+  | "admin:evaluate_video_skill"
 
 // Permissions par rôle
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
@@ -112,6 +113,7 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "admin:manage_fraud",
     "admin:trigger_expiration",
     "admin:review_signature",
+    "admin:evaluate_video_skill",
   ],
 }
 

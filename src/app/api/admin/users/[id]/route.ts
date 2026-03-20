@@ -296,7 +296,14 @@ export async function GET(
       return NextResponse.json({ error: "Utilisateur non trouvé" }, { status: 404 })
     }
 
-    return NextResponse.json({ user })
+    // Convertir les BigInt en Number pour la sérialisation JSON
+    const safeUser = JSON.parse(
+      JSON.stringify(user, (_, value) =>
+        typeof value === "bigint" ? Number(value) : value
+      )
+    )
+
+    return NextResponse.json({ user: safeUser })
   } catch (error) {
     console.error("Error fetching user:", error)
     return NextResponse.json(

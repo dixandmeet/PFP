@@ -1,4 +1,4 @@
-import { SubscriptionPlan, WalletType } from "@prisma/client"
+import { SubscriptionPlan, WalletType, PlayerProgressionLevel } from "@prisma/client"
 
 // Configuration des plans d'abonnement
 export const PLAN_CONFIG: Record<SubscriptionPlan, {
@@ -6,37 +6,60 @@ export const PLAN_CONFIG: Record<SubscriptionPlan, {
   monthlyCredits: number
   redistributionRate: number
   stripePriceId: string
+  /** Quota stockage fichiers joueur (octets) */
+  storageQuotaBytes: number
+  /** Vidéos max pouvant être récompensées (crédits) par jour — anti-spam */
+  maxRewardedUploadsPerDay: number
 }> = {
   FREE: {
     priceEur: 0,
     monthlyCredits: 0,
     redistributionRate: 0,
     stripePriceId: "",
+    storageQuotaBytes: 500 * 1024 * 1024,
+    maxRewardedUploadsPerDay: 2,
   },
   STARTER: {
     priceEur: 10,
     monthlyCredits: 10,
     redistributionRate: 0.25,
     stripePriceId: process.env.STRIPE_PRICE_STARTER || "",
+    storageQuotaBytes: 5 * 1024 * 1024 * 1024,
+    maxRewardedUploadsPerDay: 5,
   },
   GROWTH: {
     priceEur: 50,
     monthlyCredits: 50,
     redistributionRate: 0.30,
     stripePriceId: process.env.STRIPE_PRICE_GROWTH || "",
+    storageQuotaBytes: 15 * 1024 * 1024 * 1024,
+    maxRewardedUploadsPerDay: 8,
   },
   PRO: {
     priceEur: 200,
     monthlyCredits: 200,
     redistributionRate: 0.40,
     stripePriceId: process.env.STRIPE_PRICE_PRO || "",
+    storageQuotaBytes: 40 * 1024 * 1024 * 1024,
+    maxRewardedUploadsPerDay: 15,
   },
   ELITE: {
     priceEur: 500,
     monthlyCredits: 500,
     redistributionRate: 0.50,
     stripePriceId: process.env.STRIPE_PRICE_ELITE || "",
+    storageQuotaBytes: 100 * 1024 * 1024 * 1024,
+    maxRewardedUploadsPerDay: 20,
   },
+}
+
+/** Bonus % sur les crédits gagnés par upload vidéo (après score, plafond 8 appliqué séparément) */
+export const PROGRESSION_CREDIT_BONUS_PCT: Record<PlayerProgressionLevel, number> = {
+  ROOKIE: 0,
+  AMATEUR: 0.05,
+  COMPETITOR: 0.1,
+  ELITE: 0.15,
+  PRO: 0.2,
 }
 
 // Coût de consultation par division

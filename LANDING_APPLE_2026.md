@@ -37,7 +37,7 @@ src/
 │   │   └── AnimatedCard.tsx              # Card animée (Client)
 │   └── illustrations/
 │       ├── HeroNetwork.tsx               # Illustration réseau (Client)
-│       ├── AICopilot.tsx                 # Illustration IA (Client)
+│       ├── InsightOrbIllustration.tsx    # Illustration réseau / données (Client)
 │       └── SecurityVault.tsx             # Illustration sécurité (Client)
 └── tailwind.config.ts                    # Config Tailwind Apple
 ```
@@ -92,7 +92,7 @@ src/
 ### Illustrations SVG
 
 - **HeroNetwork**: Float + pulse sur nœuds, lignes animées
-- **AICopilot**: Rotation lente + pulse central
+- **InsightOrbIllustration**: Rotation lente + pulse central
 - **SecurityVault**: Glow subtil + scanning lines
 
 ### Accessibilité
@@ -178,7 +178,7 @@ La landing page est organisée en sections avec ancres :
 - Design horizontal (desktop) / vertical (mobile)
 
 ### 6. AIStudio
-- Illustration AICopilot
+- Illustration InsightOrbIllustration
 - 3 assistants IA
 - Badge validation humaine
 

@@ -61,7 +61,7 @@ export async function proxy(request: NextRequest) {
   // Laisser passer les routes API d'onboarding et admin clubs (auth vérifiée dans les handlers)
   if (
     pathname.startsWith("/api/onboarding") ||
-    pathname.startsWith("/api/admin/clubs") ||
+    pathname.startsWith("/api/admin/") ||
     pathname.startsWith("/api/users/search") ||
     pathname.startsWith("/api/users/create-creator") ||
     pathname.startsWith("/api/invitations/creator")

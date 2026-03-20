@@ -6,12 +6,12 @@ import { useToast } from "@/components/ui/use-toast"
 import { Button } from "@/components/ui/button"
 import { FeedCard } from "@/components/feed/FeedCard"
 import { CreatePostDialog } from "@/components/feed/CreatePostDialog"
-import { 
-  Loader2, 
+import {
+  Loader2,
   MessageSquare,
   Plus,
   TrendingUp,
-  PenLine
+  PenLine,
 } from "lucide-react"
 
 interface Post {
@@ -139,30 +139,37 @@ export function UserFeed({ userId, currentUserId }: UserFeedProps) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-[2rem] bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.03),0_2px_4px_rgba(0,0,0,0.05),0_12px_24px_rgba(0,0,0,0.05)] p-12"
+        className="rounded-2xl border border-stadium-100/90 bg-gradient-to-b from-white to-stadium-50/40 p-8 sm:p-12 shadow-[0_4px_24px_-4px_rgba(15,81,50,0.08)]"
       >
-        <div className="text-center max-w-md mx-auto">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
-            <MessageSquare className="h-10 w-10 text-gray-300" />
+        <div className="mx-auto max-w-md text-center">
+          <div className="relative mx-auto mb-6 flex h-24 w-24 items-center justify-center">
+            <div
+              className="absolute inset-0 rounded-2xl bg-gradient-to-br from-pitch-400/25 via-pitch-500/10 to-transparent blur-xl"
+              aria-hidden
+            />
+            <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl border border-pitch-100/80 bg-gradient-to-br from-pitch-50 to-white shadow-sm">
+              <MessageSquare className="h-9 w-9 text-pitch-500/80" strokeWidth={1.5} />
+            </div>
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">
+          <h3 className="text-xl font-bold tracking-tight text-stadium-900 sm:text-2xl">
             {isOwner ? "Partagez votre première publication" : "Aucune publication"}
           </h3>
-          <p className="text-gray-500 mb-8">
-            {isOwner 
-              ? "Commencez à partager du contenu avec votre réseau professionnel."
-              : "Cet utilisateur n'a pas encore publié de contenu."
-            }
+          <p className="mt-2 text-sm leading-relaxed text-stadium-600 sm:text-base">
+            {isOwner
+              ? "Une annonce, une analyse, un repérage : vos publications renforcent votre visibilité auprès des clubs et des joueurs."
+              : "Cet utilisateur n'a pas encore publié de contenu."}
           </p>
           {isOwner && (
-            <Button 
-              onClick={() => setCreateDialogOpen(true)}
-              size="lg"
-              className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/25"
-            >
-              <PenLine className="mr-2 h-5 w-5" />
-              Créer ma première publication
-            </Button>
+            <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
+              <Button
+                onClick={() => setCreateDialogOpen(true)}
+                size="lg"
+                className="h-12 w-full rounded-xl bg-gradient-to-r from-pitch-600 to-pitch-700 px-6 text-base font-semibold text-white shadow-lg shadow-pitch-600/25 transition hover:from-pitch-700 hover:to-pitch-800 sm:w-auto sm:min-w-[240px]"
+              >
+                <PenLine className="mr-2 h-5 w-5 shrink-0" />
+                Rédiger une publication
+              </Button>
+            </div>
           )}
         </div>
         {isOwner && (

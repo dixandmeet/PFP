@@ -96,6 +96,7 @@ export default function ReelsPage() {
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const currentReel = reels[currentIndex]
+  const currentVideoUrl = currentReel?.videoUrl?.trim() ?? ""
 
   // Charger les reels
   const loadReels = useCallback(async (pageNum: number) => {
@@ -157,15 +158,15 @@ export default function ReelsPage() {
   // Gérer la lecture vidéo
   useEffect(() => {
     const video = videoRef.current
-    if (!video || !currentReel) return
+    if (!video || !currentReel || !currentVideoUrl) return
 
     video.currentTime = 0
     setProgress(0)
 
     if (isPlaying) {
-      video.play().catch(() => setIsPlaying(false))
+      void video.play().catch(() => setIsPlaying(false))
     }
-  }, [currentIndex, currentReel])
+  }, [currentIndex, currentReel, currentVideoUrl, isPlaying])
 
   // Progression
   useEffect(() => {
@@ -258,10 +259,9 @@ export default function ReelsPage() {
 
   const togglePlay = () => {
     const video = videoRef.current
-    if (!video) return
+    if (!video || !currentVideoUrl) return
     if (video.paused) {
-      video.play()
-      setIsPlaying(true)
+      void video.play().catch(() => setIsPlaying(false))
     } else {
       video.pause()
       setIsPlaying(false)
@@ -512,7 +512,7 @@ export default function ReelsPage() {
         >
           <video
             ref={videoRef}
-            src={currentReel.videoUrl}
+            src={currentVideoUrl || undefined}
             className="w-full h-full object-contain"
             loop
             playsInline

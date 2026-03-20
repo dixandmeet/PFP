@@ -26,7 +26,7 @@ const NOTIFICATION_ICONS: Record<string, React.ComponentProps<typeof Ionicons>["
   POST_LIKE: "heart",
   POST_COMMENT: "chatbubble",
   FOLLOW: "person-add",
-  AI_ACTION_COMPLETED: "sparkles",
+  AI_ACTION_COMPLETED: "checkmark-done",
 }
 
 function NotificationItem({
