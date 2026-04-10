@@ -1,6 +1,6 @@
 {
   "cli": {
-    "version": ">= 12.0.0"
+    "version": ">= 16.32.0"
   },
   "build": {
     "development": {
@@ -14,19 +14,9 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
-    }
-  },
-  "submit": {
-    "production": {
-      "ios": {
-        "appleId": "",
-        "ascAppId": "",
-        "appleTeamId": ""
-      },
-      "android": {
-        "serviceAccountKeyPath": "",
-        "track": "internal"
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://profootprofile.com"
       }
     }
   }

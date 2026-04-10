@@ -3,32 +3,50 @@ import { useState, useCallback } from "react"
 import { router } from "expo-router"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Ionicons } from "@expo/vector-icons"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { startOfMonth } from "date-fns"
 import { useAuthStore } from "@/stores/auth-store"
-import { Role } from "@pfp/shared-constants"
+import { api } from "@/lib/api"
 
 export default function DashboardScreen() {
   const { user } = useAuthStore()
+  const queryClient = useQueryClient()
   const [refreshing, setRefreshing] = useState(false)
-  const isPlayer = user?.role === Role.PLAYER
 
-  const onRefresh = useCallback(() => {
+  const { data: appsThisMonth } = useQuery({
+    queryKey: ["dashboard-applications-month"],
+    queryFn: async () => {
+      const res = await api.get<{ applications: Array<{ createdAt: string }> }>("/applications")
+      if (!res.success || !res.data?.applications) return null
+      const start = startOfMonth(new Date())
+      return res.data.applications.filter((a) => new Date(a.createdAt) >= start).length
+    },
+  })
+
+  const { data: profileViewsTotal } = useQuery({
+    queryKey: ["dashboard-profile-views-total"],
+    queryFn: async () => {
+      const res = await api.get<{ total: number }>("/profile-views?page=1&limit=1")
+      if (!res.success || res.data == null) return null
+      return typeof res.data.total === "number" ? res.data.total : null
+    },
+  })
+
+  const onRefresh = useCallback(async () => {
     setRefreshing(true)
-    setTimeout(() => setRefreshing(false), 1500)
-  }, [])
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["dashboard-applications-month"] }),
+      queryClient.invalidateQueries({ queryKey: ["dashboard-profile-views-total"] }),
+    ])
+    setRefreshing(false)
+  }, [queryClient])
 
-  const quickActions = isPlayer
-    ? [
-        { icon: "search" as const, label: "Chercher", route: "/(tabs)/opportunities" },
-        { icon: "document-text" as const, label: "Candidatures", route: "/(tabs)/player/applications" },
-        { icon: "people" as const, label: "Agents", route: "/(tabs)/player/agents" },
-        { icon: "wallet" as const, label: "Crédits", route: "/(tabs)/player/credits" },
-      ]
-    : [
-        { icon: "search" as const, label: "Opportunités", route: "/(tabs)/opportunities" },
-        { icon: "person-add" as const, label: "Soumettre", route: "/(tabs)/agent/submissions" },
-        { icon: "document" as const, label: "Mandats", route: "/(tabs)/agent/mandates" },
-        { icon: "wallet" as const, label: "Crédits", route: "/(tabs)/agent/credits" },
-      ]
+  const quickActions = [
+    { icon: "search" as const, label: "Chercher", route: "/(tabs)/opportunities" },
+    { icon: "document-text" as const, label: "Candidatures", route: "/(tabs)/player/applications" },
+    { icon: "people" as const, label: "Agents", route: "/(tabs)/player/agents" },
+    { icon: "wallet" as const, label: "Crédits", route: "/(tabs)/player/credits" },
+  ]
 
   return (
     <SafeAreaView className="flex-1 bg-stadium-950">
@@ -38,7 +56,6 @@ export default function DashboardScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#22c55e" />
         }
       >
-        {/* Header */}
         <View className="px-6 pt-4 pb-6">
           <View className="flex-row items-center justify-between">
             <View>
@@ -57,17 +74,15 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Role badge */}
           <View className="flex-row mt-3">
             <View className="bg-pitch-500/15 px-3 py-1 rounded-full">
               <Text className="text-pitch-400 text-xs font-semibold">
-                {isPlayer ? "⚽ Joueur" : "🤝 Agent"}
+                Joueur
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Quick Actions */}
         <View className="px-6 mb-8">
           <Text className="text-white text-base font-semibold mb-4">
             Actions rapides
@@ -91,7 +106,6 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* Stats Cards */}
         <View className="px-6 mb-8">
           <Text className="text-white text-base font-semibold mb-4">
             Statistiques
@@ -99,20 +113,23 @@ export default function DashboardScreen() {
           <View className="flex-row gap-3">
             <View className="flex-1 bg-stadium-900 border border-stadium-800 rounded-2xl p-4">
               <Text className="text-stadium-400 text-xs">
-                {isPlayer ? "Candidatures" : "Soumissions"}
+                Candidatures
               </Text>
-              <Text className="text-white text-2xl font-bold mt-1">--</Text>
+              <Text className="text-white text-2xl font-bold mt-1">
+                {appsThisMonth == null ? "—" : String(appsThisMonth)}
+              </Text>
               <Text className="text-stadium-500 text-xs mt-1">Ce mois</Text>
             </View>
             <View className="flex-1 bg-stadium-900 border border-stadium-800 rounded-2xl p-4">
               <Text className="text-stadium-400 text-xs">Vues profil</Text>
-              <Text className="text-white text-2xl font-bold mt-1">--</Text>
-              <Text className="text-stadium-500 text-xs mt-1">Cette semaine</Text>
+              <Text className="text-white text-2xl font-bold mt-1">
+                {profileViewsTotal == null ? "—" : String(profileViewsTotal)}
+              </Text>
+              <Text className="text-stadium-500 text-xs mt-1">Au total</Text>
             </View>
           </View>
         </View>
 
-        {/* Recent Activity */}
         <View className="px-6 mb-8">
           <Text className="text-white text-base font-semibold mb-4">
             Activité récente

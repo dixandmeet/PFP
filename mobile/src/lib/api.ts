@@ -4,7 +4,22 @@ import type { ApiResponse } from "@pfp/shared-types"
 const TOKEN_KEY = "pfp_auth_token"
 const REFRESH_TOKEN_KEY = "pfp_refresh_token"
 
-let baseUrl = __DEV__ ? "http://localhost:3000" : "https://profootprofile.com"
+function normalizeBaseUrl(url: string): string {
+  return url.replace(/\/$/, "")
+}
+
+function resolveInitialBaseUrl(): string {
+  const fromEnv = process.env.EXPO_PUBLIC_API_URL?.trim()
+  if (fromEnv) {
+    return normalizeBaseUrl(fromEnv)
+  }
+  if (__DEV__) {
+    return "http://localhost:3000"
+  }
+  return "https://profootprofile.com"
+}
+
+let baseUrl = resolveInitialBaseUrl()
 
 export function getBaseUrl(): string {
   return baseUrl
@@ -34,6 +49,7 @@ export async function removeToken(): Promise<void> {
 type FetchOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
   body?: unknown
+  /** En-têtes supplémentaires (fusionnés avec Content-Type et Cookie si besoin) */
   headers?: Record<string, string>
   authenticated?: boolean
 }
@@ -42,11 +58,11 @@ export async function apiFetch<T = unknown>(
   endpoint: string,
   options: FetchOptions = {}
 ): Promise<ApiResponse<T>> {
-  const { method = "GET", body, headers = {}, authenticated = true } = options
+  const { method = "GET", body, headers: extraHeaders = {}, authenticated = true } = options
 
   const requestHeaders: Record<string, string> = {
     "Content-Type": "application/json",
-    ...headers,
+    ...extraHeaders,
   }
 
   if (authenticated) {

@@ -1,75 +1,102 @@
 import { View, Text, FlatList, TouchableOpacity, RefreshControl } from "react-native"
 import { useState, useCallback } from "react"
+import { router } from "expo-router"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Ionicons } from "@expo/vector-icons"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "@/lib/api"
-import { useAuthStore } from "@/stores/auth-store"
-import { Role } from "@pfp/shared-constants"
-import type { Listing } from "@pfp/shared-types"
 
-function ListingCard({ listing }: { listing: Listing }) {
+type ListingRow = {
+  id: string
+  title?: string | null
+  description?: string | null
+  position?: string
+  level?: string | null
+  location?: string | null
+  createdAt?: string
+  club?: { clubName: string; logoUrl?: string | null }
+  clubProfile?: { clubName?: string | null }
+  consulted?: boolean
+  consultationCost?: number
+}
+
+function ListingCard({ listing }: { listing: ListingRow }) {
+  const clubLabel = listing.club?.clubName ?? listing.clubProfile?.clubName ?? null
+  const title = listing.title?.trim() || "Annonce"
+  const desc = listing.description?.trim() || (listing.consulted === false ? "Détail disponible après consultation." : "")
+
   return (
     <TouchableOpacity
       className="bg-stadium-900 border border-stadium-800 rounded-2xl mx-4 mb-3 p-4"
       activeOpacity={0.7}
+      onPress={() => router.push(`/listing/${listing.id}`)}
     >
       <View className="flex-row items-start justify-between">
         <View className="flex-1 mr-3">
           <Text className="text-white text-base font-semibold" numberOfLines={2}>
-            {listing.title}
+            {title}
           </Text>
-          {listing.club && (
+          {clubLabel ? (
             <Text className="text-stadium-400 text-sm mt-1">
-              {listing.club.clubName}
+              {clubLabel}
             </Text>
-          )}
+          ) : null}
         </View>
-        <View className="bg-pitch-500/15 px-2.5 py-1 rounded-full">
-          <Text className="text-pitch-400 text-xs font-medium">
-            {listing.position}
-          </Text>
-        </View>
+        {listing.position ? (
+          <View className="bg-pitch-500/15 px-2.5 py-1 rounded-full">
+            <Text className="text-pitch-400 text-xs font-medium">
+              {listing.position}
+            </Text>
+          </View>
+        ) : null}
       </View>
 
-      <Text className="text-stadium-400 text-sm mt-2 leading-5" numberOfLines={2}>
-        {listing.description}
-      </Text>
+      {desc ? (
+        <Text className="text-stadium-400 text-sm mt-2 leading-5" numberOfLines={2}>
+          {desc}
+        </Text>
+      ) : null}
 
-      <View className="flex-row items-center mt-3 gap-4">
-        {listing.location && (
+      <View className="flex-row items-center mt-3 gap-4 flex-wrap">
+        {listing.location ? (
           <View className="flex-row items-center">
             <Ionicons name="location-outline" size={14} color="#71717a" />
             <Text className="text-stadium-500 text-xs ml-1">{listing.location}</Text>
           </View>
-        )}
-        {listing.level && (
+        ) : null}
+        {listing.level ? (
           <View className="flex-row items-center">
             <Ionicons name="trophy-outline" size={14} color="#71717a" />
             <Text className="text-stadium-500 text-xs ml-1">{listing.level}</Text>
           </View>
-        )}
-        <View className="flex-row items-center">
-          <Ionicons name="time-outline" size={14} color="#71717a" />
-          <Text className="text-stadium-500 text-xs ml-1">
-            {new Date(listing.createdAt).toLocaleDateString("fr-FR")}
-          </Text>
-        </View>
+        ) : null}
+        {listing.createdAt ? (
+          <View className="flex-row items-center">
+            <Ionicons name="time-outline" size={14} color="#71717a" />
+            <Text className="text-stadium-500 text-xs ml-1">
+              {new Date(listing.createdAt).toLocaleDateString("fr-FR")}
+            </Text>
+          </View>
+        ) : null}
+        {listing.consulted === false && listing.consultationCost != null ? (
+          <View className="flex-row items-center">
+            <Ionicons name="lock-closed-outline" size={14} color="#a3e635" />
+            <Text className="text-pitch-400 text-xs ml-1">{listing.consultationCost} cr.</Text>
+          </View>
+        ) : null}
       </View>
     </TouchableOpacity>
   )
 }
 
 export default function OpportunitiesScreen() {
-  const { user } = useAuthStore()
   const [refreshing, setRefreshing] = useState(false)
-  const isPlayer = user?.role === Role.PLAYER
 
   const { data: listings, refetch, isLoading } = useQuery({
     queryKey: ["listings"],
     queryFn: async () => {
-      const result = await api.get<Listing[]>("/listings?status=PUBLISHED")
-      return result.data || []
+      const result = await api.get<{ listings: ListingRow[] }>("/listings?status=PUBLISHED")
+      return result.data?.listings ?? []
     },
   })
 
@@ -81,15 +108,12 @@ export default function OpportunitiesScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-stadium-950">
-      {/* Header */}
       <View className="px-6 py-4 border-b border-stadium-800">
         <Text className="text-white text-lg font-bold">
-          {isPlayer ? "Annonces" : "Opportunités"}
+          Annonces
         </Text>
         <Text className="text-stadium-400 text-sm mt-1">
-          {isPlayer
-            ? "Trouvez votre prochaine opportunité"
-            : "Identifiez les meilleures opportunités pour vos joueurs"}
+          Trouvez votre prochaine opportunité
         </Text>
       </View>
 

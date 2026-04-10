@@ -13,7 +13,7 @@ export async function POST(
     const { id: listingId } = await params
 
     // Rate limit
-    const rateCheck = checkCreditRateLimit(user.id, "LISTING_CONSULT")
+    const rateCheck = await checkCreditRateLimit(user.id, "LISTING_CONSULT")
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { error: "Trop de requêtes. Réessayez plus tard.", retryAfter: rateCheck.retryAfter },

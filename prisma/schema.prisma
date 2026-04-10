@@ -1949,3 +1949,13 @@ model ClubMember {
   @@index([email])
   @@index([inviteToken])
 }
+
+// Événements pour rate limiting HTTP (inscription, renvoi email, etc.)
+model ApiRateLimitEvent {
+  id        String   @id @default(cuid())
+  scope     String
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([scope, key, createdAt])
+}

@@ -26,7 +26,10 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#09090b"
       },
-      "package": "com.profootprofile.app"
+      "package": "com.profootprofile.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -49,11 +52,19 @@
         {
           "photosPermission": "Profoot Profile a besoin d'accéder à vos photos pour les uploads."
         }
-      ],
-      "expo-web-browser"
+      ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "40161b7a-c3a2-4425-a0f9-f6ff8e8a72bc"
+      }
+    },
+    "owner": "kevintbu"
   }
 }

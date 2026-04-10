@@ -35,22 +35,14 @@ export async function POST(request: NextRequest) {
       select: { id: true, name: true, email: true, emailVerified: true },
     })
 
-    if (!targetUser) {
-      return NextResponse.json(
-        { error: "Aucun utilisateur trouvé avec cet email" },
-        { status: 404 }
-      )
-    }
-
-    // Vérifier que l'email est vérifié
-    if (!targetUser.emailVerified) {
-      return NextResponse.json(
-        {
-          error: "L'email de cet utilisateur n'est pas vérifié. Il doit d'abord vérifier son email.",
-          emailVerified: false,
-        },
-        { status: 400 }
-      )
+    // Generic response to prevent user enumeration
+    if (!targetUser || !targetUser.emailVerified) {
+      return NextResponse.json({
+        success: true,
+        message: "Si cette adresse est enregistrée et vérifiée, un code de vérification a été envoyé.",
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+        remainingAttempts: 2,
+      })
     }
 
     // Vérifier le rate limit

@@ -57,12 +57,15 @@ function LoginContent() {
     }
     
     const errorParam = searchParams.get("error")
-    if (errorParam) {
-      if (errorParam === "OAuthAccountNotLinked") {
-        setError("Un compte existe déjà avec cet email. Connectez-vous avec votre mot de passe.")
-      } else if (errorParam === "OAuthCallback") {
-        setError("Erreur lors de la connexion avec Google. Veuillez réessayer.")
-      }
+    const codeParam = searchParams.get("code")
+    if (errorParam === "OAuthAccountNotLinked") {
+      setError("Un compte existe déjà avec cet email. Connectez-vous avec votre mot de passe.")
+    } else if (errorParam === "OAuthCallback") {
+      setError("Erreur lors de la connexion avec Google. Veuillez réessayer.")
+    } else if (codeParam === "email_not_verified") {
+      setError(
+        "Vérifiez votre adresse e-mail avant de vous connecter. Consultez votre boîte de réception ou demandez un nouveau lien depuis la page « Vérifiez votre e-mail » après inscription."
+      )
     }
   }, [searchParams])
 
@@ -104,7 +107,13 @@ function LoginContent() {
       })
 
       if (result?.error) {
-        setError("Email ou mot de passe incorrect")
+        if (result.code === "email_not_verified") {
+          setError(
+            "Vérifiez votre adresse e-mail avant de vous connecter. Un lien de confirmation vous a été envoyé à l’inscription."
+          )
+        } else {
+          setError("Email ou mot de passe incorrect")
+        }
       } else {
         const callbackUrl = searchParams.get("callbackUrl")
         // Validate callback URL: must start with "/" but not "//" (protocol-relative) or "/\"

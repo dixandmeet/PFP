@@ -1,9 +1,11 @@
 // Connexion mobile via Google : vérifie le token Google et retourne un token de session.
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { authConfig } from "@/lib/auth"
 import { encode } from "next-auth/jwt"
 import { z } from "zod"
+import { getClientIp } from "@/lib/request-ip"
+import { checkAndRecordRateLimit } from "@/lib/rate-limit/api-rate-limit"
 
 const bodySchema = z.object({
   idToken: z.string().min(1),
@@ -34,8 +36,23 @@ async function verifyGoogleToken(idToken: string) {
   }
 }
 
-export async function POST(request: Request) {
+const MOBILE_GOOGLE_MAX_PER_IP = 10
+const MOBILE_GOOGLE_IP_WINDOW_MS = 15 * 60 * 1000 // 15 min
+
+export async function POST(request: NextRequest) {
   try {
+    // Rate limit par IP
+    const clientIp = getClientIp(request) ?? "unknown"
+    const ipLimit = await checkAndRecordRateLimit(
+      "mobile_google_ip", clientIp, MOBILE_GOOGLE_MAX_PER_IP, MOBILE_GOOGLE_IP_WINDOW_MS
+    )
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { error: "Trop de tentatives. Réessayez plus tard.", retryAfter: ipLimit.retryAfterSec },
+        { status: 429 }
+      )
+    }
+
     const body = await request.json()
     const { idToken } = bodySchema.parse(body)
 
@@ -62,16 +79,14 @@ export async function POST(request: Request) {
     })
 
     if (!user && !existingAccount) {
-      // Aucun utilisateur trouvé - on ne crée pas de compte automatiquement
-      // L'utilisateur doit d'abord s'inscrire
+      // Generic error to prevent account enumeration
       return NextResponse.json(
-        { error: "Aucun compte trouvé avec cet email. Veuillez d'abord créer un compte." },
-        { status: 404 }
+        { error: "Connexion impossible. Vérifiez votre compte ou inscrivez-vous." },
+        { status: 401 }
       )
     }
 
     if (existingAccount && !user) {
-      // Compte Google lié mais utilisateur introuvable (cas rare)
       user = await prisma.user.findUnique({
         where: { id: existingAccount.userId },
       })
@@ -79,8 +94,8 @@ export async function POST(request: Request) {
 
     if (!user) {
       return NextResponse.json(
-        { error: "Utilisateur introuvable" },
-        { status: 404 }
+        { error: "Connexion impossible. Vérifiez votre compte ou inscrivez-vous." },
+        { status: 401 }
       )
     }
 

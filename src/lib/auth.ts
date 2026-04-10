@@ -3,12 +3,18 @@ import NextAuth from "next-auth"
 import type { NextAuthConfig } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
+import { CredentialsSignin } from "@auth/core/errors"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "./prisma"
 import { sendEmail, emailTemplates } from "./email"
 import { getBaseUrl } from "./url"
 import bcrypt from "bcryptjs"
 import { Role } from "@prisma/client"
+
+/** Jeté dans authorize() si le mot de passe est bon mais l’email n’est pas vérifié. */
+class EmailNotVerifiedError extends CredentialsSignin {
+  code = "email_not_verified"
+}
 
 declare module "next-auth" {
   interface Session {
@@ -45,7 +51,8 @@ export const authConfig: NextAuthConfig = {
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      allowDangerousEmailAccountLinking: true,
+      // Account linking is handled manually in signIn callback below
+      // to prevent account takeover via unverified emails.
     }),
     Credentials({
       name: "Credentials",
@@ -73,6 +80,10 @@ export const authConfig: NextAuthConfig = {
 
         if (!isPasswordValid) {
           return null
+        }
+
+        if (!user.emailVerified) {
+          throw new EmailNotVerifiedError()
         }
 
         return {
@@ -148,15 +159,52 @@ export const authConfig: NextAuthConfig = {
       return `${baseUrl}/welcome`
     },
     async signIn({ user, account }) {
-      // Google OAuth: le rôle par défaut PLAYER est géré par le schema Prisma (@default)
-      // Pour les utilisateurs existants qui se reconnectent via Google, on vérifie par email
       if (account?.provider === "google" && user.email) {
-        await prisma.user.findUnique({
-          where: { email: user.email },
-          select: { id: true },
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email.toLowerCase() },
+          select: { id: true, emailVerified: true },
         })
-        // Si l'utilisateur existe déjà, c'est une reconnexion - pas de traitement spécial
-        // Si c'est un nouvel utilisateur, PrismaAdapter le créera après ce callback
+
+        if (existingUser) {
+          // Check if a Google account is already linked
+          const linkedAccount = await prisma.account.findFirst({
+            where: { userId: existingUser.id, provider: "google" },
+          })
+
+          if (!linkedAccount) {
+            // Only allow auto-linking if the existing account's email is verified.
+            // This prevents account takeover: an attacker with a Google account
+            // matching an unverified email cannot hijack the account.
+            if (!existingUser.emailVerified) {
+              return false // Block sign-in — email not verified, linking unsafe
+            }
+            // Safe to link: user proved email ownership via verification
+            await prisma.account.create({
+              data: {
+                userId: existingUser.id,
+                type: "oauth",
+                provider: "google",
+                providerAccountId: account.providerAccountId,
+                access_token: account.access_token,
+                refresh_token: account.refresh_token,
+                expires_at: account.expires_at,
+                token_type: account.token_type,
+                scope: account.scope,
+                id_token: account.id_token,
+              },
+            })
+            // Update user info from Google if missing
+            if (!existingUser.emailVerified) {
+              await prisma.user.update({
+                where: { id: existingUser.id },
+                data: { emailVerified: new Date() },
+              })
+            }
+            // Set user.id so the JWT callback gets the right user
+            user.id = existingUser.id
+          }
+        }
+        // If no existing user, PrismaAdapter will create one after this callback
       }
       return true
     },

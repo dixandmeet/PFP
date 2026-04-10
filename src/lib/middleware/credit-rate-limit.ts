@@ -1,43 +1,25 @@
 /**
- * Rate limiter in-memory pour les opérations de crédit
- * Pour production à grande échelle, migrer vers Redis/Upstash
+ * Rate limiter pour les opérations de crédit — basé sur la DB (via ApiRateLimitEvent).
+ * Fonctionne correctement avec plusieurs instances (serverless, multi-process).
  */
+import { checkAndRecordRateLimit } from "@/lib/rate-limit/api-rate-limit"
 
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
-
-// Nettoyage périodique des entrées expirées (toutes les 5 minutes)
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, entry] of rateLimitMap.entries()) {
-    if (now > entry.resetAt) {
-      rateLimitMap.delete(key)
-    }
-  }
-}, 5 * 60 * 1000)
-
-export function checkCreditRateLimit(
+export async function checkCreditRateLimit(
   userId: string,
   operation: string,
   maxRequests: number = 10,
   windowMs: number = 60_000
-): { allowed: boolean; remaining: number; retryAfter?: number } {
-  const key = `credit:${userId}:${operation}`
-  const now = Date.now()
-  const entry = rateLimitMap.get(key)
+): Promise<{ allowed: boolean; remaining: number; retryAfter?: number }> {
+  const key = `${userId}:${operation}`
+  const result = await checkAndRecordRateLimit("credit_op", key, maxRequests, windowMs)
 
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(key, { count: 1, resetAt: now + windowMs })
-    return { allowed: true, remaining: maxRequests - 1 }
-  }
-
-  if (entry.count >= maxRequests) {
+  if (!result.allowed) {
     return {
       allowed: false,
       remaining: 0,
-      retryAfter: Math.ceil((entry.resetAt - now) / 1000),
+      retryAfter: result.retryAfterSec,
     }
   }
 
-  entry.count++
-  return { allowed: true, remaining: maxRequests - entry.count }
+  return { allowed: true, remaining: Math.max(0, maxRequests - 1) }
 }

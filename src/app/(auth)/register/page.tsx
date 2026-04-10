@@ -4,6 +4,7 @@
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
+import { Turnstile } from "@marsidev/react-turnstile"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -100,6 +101,10 @@ function RegisterContent() {
   const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: "", color: "" })
   const [acceptTerms, setAcceptTerms] = useState(false)
   const [termsError, setTermsError] = useState("")
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [turnstile110200Host, setTurnstile110200Host] = useState<string | null>(null)
+
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
   // Vérifier les erreurs OAuth
   useEffect(() => {
@@ -193,38 +198,40 @@ function RegisterContent() {
       return
     }
 
+    if (turnstileSiteKey && !turnstileToken) {
+      setError("Veuillez valider la vérification anti-robot ci-dessous.")
+      return
+    }
+
     setLoading(true)
 
     try {
-      // 1. Créer le compte
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, role }),
+        body: JSON.stringify({
+          email,
+          password,
+          role,
+          ...(turnstileToken ? { turnstileToken } : {}),
+        }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || "Une erreur est survenue")
+        setTurnstileToken(null)
+        if (response.status === 429 && data.retryAfter) {
+          setError(
+            `${data.error || "Trop de tentatives."} Réessayez dans environ ${data.retryAfter} s.`
+          )
+        } else {
+          setError(data.error || data.message || "Une erreur est survenue")
+        }
         return
       }
 
-      // 2. Auto-login après inscription
-      const signInResult = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      })
-
-      if (signInResult?.error) {
-        // Si l'auto-login échoue, rediriger vers login
-        router.push("/login?registered=true")
-        return
-      }
-
-      // 3. Rediriger vers la page d'onboarding
-      router.push("/onboarding")
+      router.push(`/check-email?email=${encodeURIComponent(email)}`)
     } catch (err) {
       setError("Une erreur est survenue. Veuillez réessayer.")
     } finally {
@@ -602,6 +609,42 @@ function RegisterContent() {
                   )}
                 </AnimatePresence>
               </div>
+
+              {turnstileSiteKey ? (
+                <div className="flex flex-col items-center gap-2">
+                  <Turnstile
+                    siteKey={turnstileSiteKey}
+                    onSuccess={(token) => {
+                      setTurnstile110200Host(null)
+                      setTurnstileToken(token)
+                    }}
+                    onExpire={() => setTurnstileToken(null)}
+                    onError={(code) => {
+                      setTurnstileToken(null)
+                      if (String(code) === "110200") {
+                        setTurnstile110200Host(
+                          typeof window !== "undefined" ? window.location.hostname : ""
+                        )
+                      } else {
+                        setTurnstile110200Host(null)
+                      }
+                    }}
+                  />
+                  {turnstile110200Host !== null ? (
+                    <p className="text-xs text-amber-800 text-center max-w-sm leading-relaxed">
+                      Turnstile (erreur 110200) : l’hôte « {turnstile110200Host || "…"} » n’est pas
+                      autorisé pour cette clé. Dans Cloudflare → Turnstile → ce widget, utilisez «
+                      Ajouter des noms d’hôte » et ajoutez cet hôte (ex.{" "}
+                      <span className="font-mono">localhost</span> pour le dev local), en plus de
+                      votre domaine de production.
+                    </p>
+                  ) : (
+                    <p className="text-xs text-stadium-500 text-center">
+                      Protection anti-robot (Cloudflare Turnstile)
+                    </p>
+                  )}
+                </div>
+              ) : null}
 
               {/* Bouton d'inscription */}
               <Button

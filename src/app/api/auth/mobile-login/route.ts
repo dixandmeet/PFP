@@ -1,27 +1,60 @@
 // Connexion mobile : retourne le token de session en JSON (pas de cookie)
 // pour que l’app puisse le stocker et l’envoyer en header Cookie.
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { authConfig } from "@/lib/auth"
 import { encode } from "next-auth/jwt"
 import { z } from "zod"
+import { getClientIp } from "@/lib/request-ip"
+import {
+  peekRateLimit,
+  recordRateLimitEvent,
+} from "@/lib/rate-limit/api-rate-limit"
 
 const bodySchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
 })
 
-export async function POST(request: Request) {
+const LOGIN_MAX_PER_IP = 10
+const LOGIN_IP_WINDOW_MS = 15 * 60 * 1000 // 15 min
+const LOGIN_MAX_PER_EMAIL = 5
+const LOGIN_EMAIL_WINDOW_MS = 15 * 60 * 1000 // 15 min
+
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { email, password } = bodySchema.parse(body)
 
+    const clientIp = getClientIp(request) ?? "unknown"
+    const emailLower = email.toLowerCase()
+
+    // Rate limit par IP
+    const ipLimit = await peekRateLimit("login_ip", clientIp, LOGIN_MAX_PER_IP, LOGIN_IP_WINDOW_MS)
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { error: "Trop de tentatives de connexion. Réessayez plus tard.", retryAfter: ipLimit.retryAfterSec },
+        { status: 429 }
+      )
+    }
+
+    // Rate limit par email
+    const emailLimit = await peekRateLimit("login_email", emailLower, LOGIN_MAX_PER_EMAIL, LOGIN_EMAIL_WINDOW_MS)
+    if (!emailLimit.allowed) {
+      return NextResponse.json(
+        { error: "Trop de tentatives de connexion pour ce compte. Réessayez plus tard.", retryAfter: emailLimit.retryAfterSec },
+        { status: 429 }
+      )
+    }
+
     const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
+      where: { email: emailLower },
     })
 
     if (!user || !user.password) {
+      await recordRateLimitEvent("login_ip", clientIp)
+      await recordRateLimitEvent("login_email", emailLower)
       return NextResponse.json(
         { error: "Email ou mot de passe incorrect" },
         { status: 401 }
@@ -30,8 +63,21 @@ export async function POST(request: Request) {
 
     const valid = await bcrypt.compare(password, user.password)
     if (!valid) {
+      await recordRateLimitEvent("login_ip", clientIp)
+      await recordRateLimitEvent("login_email", emailLower)
       return NextResponse.json(
         { error: "Email ou mot de passe incorrect" },
+        { status: 401 }
+      )
+    }
+
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        {
+          error:
+            "Vérifiez votre adresse e-mail avant de vous connecter. Un lien vous a été envoyé à l’inscription.",
+          code: "EMAIL_NOT_VERIFIED",
+        },
         { status: 401 }
       )
     }

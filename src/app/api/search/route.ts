@@ -2,6 +2,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { handleApiError } from "@/lib/utils/api-helpers"
+import { getClientIp } from "@/lib/request-ip"
+import { checkAndRecordRateLimit } from "@/lib/rate-limit/api-rate-limit"
+
+const SEARCH_MAX_PER_IP = 30
+const SEARCH_IP_WINDOW_MS = 60 * 1000 // 30 req/min per IP
 
 // Fonction pour normaliser les accents (recherche plus flexible)
 function normalizeString(str: string): string {
@@ -13,9 +18,20 @@ function normalizeString(str: string): string {
 
 export async function GET(request: NextRequest) {
   try {
+    const clientIp = getClientIp(request) ?? "unknown"
+    const ipLimit = await checkAndRecordRateLimit(
+      "search_ip", clientIp, SEARCH_MAX_PER_IP, SEARCH_IP_WINDOW_MS
+    )
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { error: "Trop de recherches. Réessayez dans quelques instants.", retryAfter: ipLimit.retryAfterSec },
+        { status: 429 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const query = searchParams.get("query")
-    const limit = parseInt(searchParams.get("limit") || "5")
+    const limit = Math.min(parseInt(searchParams.get("limit") || "5"), 20) // Cap at 20
 
     if (!query || query.trim().length === 0) {
       return NextResponse.json({

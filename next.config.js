@@ -73,6 +73,17 @@ const nextConfig = {
     },
   },
   async headers() {
+    const isDev = process.env.NODE_ENV === 'development'
+    const scriptSrc = [
+      "'self'",
+      "'unsafe-inline'",
+      ...(isDev ? ["'unsafe-eval'"] : []),
+      'https://js.stripe.com',
+      'https://challenges.cloudflare.com',
+      'https://*.vercel-scripts.com',
+      'https://*.sentry.io',
+    ].join(' ')
+
     return [
       {
         source: '/:path*',
@@ -105,13 +116,13 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.vercel-scripts.com https://*.sentry.io",
+              `script-src ${scriptSrc}`,
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "img-src 'self' data: blob: https: http:",
+              "img-src 'self' data: blob: https:",
               "media-src 'self' blob: https://*.public.blob.vercel-storage.com https://*.r2.cloudflarestorage.com https://*.amazonaws.com",
               "font-src 'self' https://fonts.gstatic.com",
-              "connect-src 'self' https://*.stripe.com https://*.sentry.io https://*.r2.cloudflarestorage.com https://*.amazonaws.com https://*.vercel-insights.com https://*.public.blob.vercel-storage.com wss:",
-              "frame-src 'self' https://js.stripe.com",
+              "connect-src 'self' https://challenges.cloudflare.com https://*.stripe.com https://*.sentry.io https://*.r2.cloudflarestorage.com https://*.amazonaws.com https://*.vercel-insights.com https://*.public.blob.vercel-storage.com",
+              "frame-src 'self' https://js.stripe.com https://challenges.cloudflare.com",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",

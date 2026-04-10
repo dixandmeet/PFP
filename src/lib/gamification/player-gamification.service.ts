@@ -163,7 +163,7 @@ export class PlayerGamificationService {
       }
     }
 
-    const rl = FraudService.checkCreditRateLimit(input.userId, "VIDEO_FINALIZE")
+    const rl = await FraudService.checkCreditRateLimit(input.userId, "VIDEO_FINALIZE")
     if (!rl.allowed) {
       throw new Error(
         `Trop de requêtes. Réessayez dans ${rl.retryAfter ?? 60} s.`
@@ -479,7 +479,7 @@ export class PlayerGamificationService {
     const cfg = GAMIFICATION_SINK[action]
     if (!cfg) throw new Error("Action inconnue")
 
-    const rl = FraudService.checkCreditRateLimit(userId, "GAMIFICATION_SPEND")
+    const rl = await FraudService.checkCreditRateLimit(userId, "GAMIFICATION_SPEND")
     if (!rl.allowed) {
       throw new Error(
         `Trop de requêtes. Réessayez dans ${rl.retryAfter ?? 60} s.`

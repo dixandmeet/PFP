@@ -1,11 +1,34 @@
 import { View, Text, FlatList, TouchableOpacity, RefreshControl } from "react-native"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
+import { router } from "expo-router"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Ionicons } from "@expo/vector-icons"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "@/lib/api"
+import { useAuthStore } from "@/stores/auth-store"
 
-interface Conversation {
+type ParticipantUser = {
+  id: string
+  name: string | null
+  playerProfile?: { firstName?: string; lastName?: string }
+  agentProfile?: { firstName?: string; lastName?: string }
+  clubProfile?: { clubName?: string }
+}
+
+type ApiParticipant = {
+  userId: string
+  lastReadAt?: string | null
+  user: ParticipantUser
+}
+
+type ApiConversation = {
+  id: string
+  lastMessageAt: string | null
+  participants: ApiParticipant[]
+  messages: Array<{ content: string | null; createdAt: string }>
+}
+
+export interface ConversationRow {
   id: string
   lastMessage: string | null
   lastMessageAt: string | null
@@ -17,11 +40,57 @@ interface Conversation {
   unreadCount: number
 }
 
-function ConversationItem({ conversation }: { conversation: Conversation }) {
+function displayName(user: ParticipantUser): string {
+  if (user.name) return user.name
+  if (user.playerProfile) {
+    const f = user.playerProfile.firstName || ""
+    const l = user.playerProfile.lastName || ""
+    const n = `${f} ${l}`.trim()
+    if (n) return n
+  }
+  if (user.agentProfile) {
+    const f = user.agentProfile.firstName || ""
+    const l = user.agentProfile.lastName || ""
+    const n = `${f} ${l}`.trim()
+    if (n) return n
+  }
+  if (user.clubProfile?.clubName) return user.clubProfile.clubName
+  return "Utilisateur"
+}
+
+function mapConversations(raw: ApiConversation[], currentUserId: string | undefined): ConversationRow[] {
+  if (!currentUserId) return []
+  return raw
+    .map((conv) => {
+      const otherParticipant = conv.participants.find((p) => p.user.id !== currentUserId)
+      if (!otherParticipant) return null
+      const last = conv.messages[0]
+      const lastMsgTime = conv.lastMessageAt ? new Date(conv.lastMessageAt).getTime() : 0
+      const myPart = conv.participants.find((p) => p.userId === currentUserId)
+      const readTime = myPart?.lastReadAt ? new Date(myPart.lastReadAt).getTime() : 0
+      const unreadCount = lastMsgTime > readTime && lastMsgTime > 0 ? 1 : 0
+      const u = otherParticipant.user
+      return {
+        id: conv.id,
+        lastMessage: last?.content ?? null,
+        lastMessageAt: conv.lastMessageAt,
+        otherUser: {
+          id: u.id,
+          name: displayName(u),
+          image: null,
+        },
+        unreadCount,
+      }
+    })
+    .filter(Boolean) as ConversationRow[]
+}
+
+function ConversationItem({ conversation }: { conversation: ConversationRow }) {
   return (
     <TouchableOpacity
       className="flex-row items-center px-6 py-4 border-b border-stadium-800/50"
       activeOpacity={0.7}
+      onPress={() => router.push(`/conversation/${conversation.id}`)}
     >
       <View className="w-12 h-12 bg-stadium-700 rounded-full items-center justify-center">
         <Text className="text-white text-base font-bold">
@@ -58,12 +127,15 @@ function ConversationItem({ conversation }: { conversation: Conversation }) {
 
 export default function MessagesScreen() {
   const [refreshing, setRefreshing] = useState(false)
+  const currentUserId = useAuthStore((s) => s.user?.id)
 
   const { data: conversations, refetch, isLoading } = useQuery({
-    queryKey: ["conversations"],
+    queryKey: ["conversations", currentUserId],
+    enabled: !!currentUserId,
     queryFn: async () => {
-      const result = await api.get<Conversation[]>("/messages/conversations")
-      return result.data || []
+      const result = await api.get<{ conversations: ApiConversation[] }>("/messages/conversations")
+      const raw = result.data?.conversations ?? []
+      return mapConversations(raw, currentUserId)
     },
   })
 
@@ -73,18 +145,19 @@ export default function MessagesScreen() {
     setRefreshing(false)
   }, [refetch])
 
+  const list = useMemo(() => conversations ?? [], [conversations])
+
   return (
     <SafeAreaView className="flex-1 bg-stadium-950">
-      {/* Header */}
       <View className="flex-row items-center justify-between px-6 py-4 border-b border-stadium-800">
         <Text className="text-white text-lg font-bold">Messages</Text>
-        <TouchableOpacity className="w-9 h-9 bg-stadium-800 rounded-full items-center justify-center">
-          <Ionicons name="create-outline" size={18} color="#22c55e" />
+        <TouchableOpacity className="w-9 h-9 bg-stadium-800 rounded-full items-center justify-center" disabled>
+          <Ionicons name="create-outline" size={18} color="#52525b" />
         </TouchableOpacity>
       </View>
 
       <FlatList
-        data={conversations}
+        data={list}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <ConversationItem conversation={item} />}
         refreshControl={

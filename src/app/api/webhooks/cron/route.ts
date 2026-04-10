@@ -32,14 +32,14 @@ export async function POST(request: NextRequest) {
         result = await WithdrawalService.processApprovedWithdrawals()
         break
       default:
-        return NextResponse.json({ error: `Job inconnu: ${job}` }, { status: 400 })
+        return NextResponse.json({ error: "Job inconnu" }, { status: 400 })
     }
 
     return NextResponse.json({ job, success: true, result })
   } catch (error) {
-    console.error(`Erreur job ${job}:`, error)
+    console.error(`Erreur job cron:`, error)
     return NextResponse.json(
-      { job, success: false, error: "Erreur lors de l'exécution du job" },
+      { success: false, error: "Erreur lors de l'exécution du job" },
       { status: 500 }
     )
   }

@@ -1,9 +1,7 @@
 import { Redirect, Tabs } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import { useAuthStore } from "@/stores/auth-store"
-import { Role } from "@pfp/shared-constants"
-
-type TabIcon = React.ComponentProps<typeof Ionicons>["name"]
+import { isMobileRole } from "@pfp/shared-constants"
 
 export default function TabsLayout() {
   const { isAuthenticated, user } = useAuthStore()
@@ -12,8 +10,9 @@ export default function TabsLayout() {
     return <Redirect href="/(auth)/login" />
   }
 
-  const isPlayer = user.role === Role.PLAYER
-  const isAgent = user.role === Role.AGENT
+  if (!isMobileRole(user.role)) {
+    return <Redirect href="/role-not-allowed" />
+  }
 
   return (
     <Tabs
@@ -56,7 +55,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="opportunities"
         options={{
-          title: isPlayer ? "Annonces" : "Opportunités",
+          title: "Annonces",
           tabBarIcon: ({ color, size }: { color: string; size: number }) => (
             <Ionicons name="briefcase" size={size} color={color} />
           ),

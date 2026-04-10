@@ -1,20 +1,42 @@
 // Route de vérification d'email
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import crypto from "crypto"
 import { sendTrackedEmail, emailTemplates } from "@/lib/email"
 import { getBaseUrl } from "@/lib/url"
+import { getClientIp } from "@/lib/request-ip"
+import { checkAndRecordRateLimit, peekRateLimit, recordRateLimitEvent } from "@/lib/rate-limit/api-rate-limit"
 
 // POST - Envoyer un email de vérification
 const sendVerificationSchema = z.object({
   email: z.string().email("Email invalide"),
 })
 
-export async function POST(request: Request) {
+const RESEND_MAX_PER_IP_PER_HOUR = 15
+const RESEND_IP_WINDOW_MS = 60 * 60 * 1000
+
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { email } = sendVerificationSchema.parse(body)
+
+    const clientIp = getClientIp(request) ?? "unknown"
+    const ipLimit = await checkAndRecordRateLimit(
+      "resend_verification_ip",
+      clientIp,
+      RESEND_MAX_PER_IP_PER_HOUR,
+      RESEND_IP_WINDOW_MS
+    )
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: "Trop de demandes de renvoi. Réessayez plus tard.",
+          retryAfter: ipLimit.retryAfterSec,
+        },
+        { status: 429 }
+      )
+    }
 
     // Vérifier que l'utilisateur existe
     const user = await prisma.user.findUnique({
@@ -76,9 +98,25 @@ export async function POST(request: Request) {
   }
 }
 
+const VERIFY_GET_MAX_PER_IP = 10
+const VERIFY_GET_IP_WINDOW_MS = 15 * 60 * 1000 // 15 min
+
 // GET - Vérifier le token d'email
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    const clientIp = getClientIp(request) ?? "unknown"
+
+    // Rate limit to prevent token brute force
+    const ipLimit = await peekRateLimit(
+      "verify_email_get_ip", clientIp, VERIFY_GET_MAX_PER_IP, VERIFY_GET_IP_WINDOW_MS
+    )
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { error: "Trop de tentatives. Réessayez plus tard.", retryAfter: ipLimit.retryAfterSec },
+        { status: 429 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const token = searchParams.get("token")
     const email = searchParams.get("email")
@@ -99,6 +137,7 @@ export async function GET(request: Request) {
     })
 
     if (!verificationToken) {
+      await recordRateLimitEvent("verify_email_get_ip", clientIp)
       return NextResponse.json(
         { error: "Token invalide ou expiré" },
         { status: 400 }
@@ -117,6 +156,7 @@ export async function GET(request: Request) {
         }
       })
 
+      await recordRateLimitEvent("verify_email_get_ip", clientIp)
       return NextResponse.json(
         { error: "Token expiré. Veuillez demander un nouveau lien de vérification." },
         { status: 400 }

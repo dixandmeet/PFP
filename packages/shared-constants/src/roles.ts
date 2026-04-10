@@ -8,6 +8,7 @@ export const Role = {
 
 export type Role = (typeof Role)[keyof typeof Role]
 
+/** Rôles autorisés sur l’app mobile (lancement joueurs uniquement). */
 export const MOBILE_ALLOWED_ROLES: Role[] = [Role.PLAYER]
 
 export const ClubRole = {

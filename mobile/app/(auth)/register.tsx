@@ -19,12 +19,10 @@ import { register as registerUser } from "@/lib/auth"
 
 export default function RegisterScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [selectedRole, setSelectedRole] = useState<"PLAYER" | "AGENT">("PLAYER")
 
   const {
     control,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
@@ -34,11 +32,11 @@ export default function RegisterScreen() {
   const onSubmit = async (data: RegisterInput) => {
     setIsSubmitting(true)
     try {
-      const result = await registerUser(data)
+      const result = await registerUser({ ...data, role: "PLAYER" })
       if (result.success) {
         Alert.alert(
-          "Inscription réussie",
-          "Vérifiez votre email pour confirmer votre compte.",
+          "Presque terminé",
+          "Un e-mail de confirmation vous a été envoyé. Ouvrez le lien pour activer votre compte, puis connectez-vous. Sans cette étape, la connexion sera refusée.",
           [{ text: "OK", onPress: () => router.replace("/(auth)/login") }]
         )
       } else {
@@ -51,11 +49,6 @@ export default function RegisterScreen() {
     }
   }
 
-  const handleRoleSelect = (role: "PLAYER" | "AGENT") => {
-    setSelectedRole(role)
-    setValue("role", role)
-  }
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -66,66 +59,18 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View className="flex-1 justify-center px-8 py-12">
-          {/* Header */}
           <View className="items-center mb-10">
             <View className="w-16 h-16 bg-pitch-500 rounded-2xl items-center justify-center mb-4">
               <Text className="text-white text-2xl font-bold">PFP</Text>
             </View>
             <Text className="text-white text-2xl font-bold">
-              Créer un compte
+              Créer un compte joueur
             </Text>
-            <Text className="text-stadium-400 text-sm mt-2">
-              Rejoignez la communauté Profoot Profile
+            <Text className="text-stadium-400 text-sm mt-2 text-center">
+              L’app mobile est réservée aux joueurs. Les agents s’inscrivent sur profootprofile.com.
             </Text>
           </View>
 
-          {/* Role Selection */}
-          <View className="mb-6">
-            <Text className="text-stadium-300 text-sm mb-3 font-medium">
-              Je suis...
-            </Text>
-            <View className="flex-row gap-3">
-              <TouchableOpacity
-                className={`flex-1 py-4 rounded-xl border-2 items-center ${
-                  selectedRole === "PLAYER"
-                    ? "border-pitch-500 bg-pitch-500/10"
-                    : "border-stadium-700 bg-stadium-900"
-                }`}
-                onPress={() => handleRoleSelect("PLAYER")}
-                activeOpacity={0.8}
-              >
-                <Text className="text-2xl mb-1">⚽</Text>
-                <Text
-                  className={`font-semibold ${
-                    selectedRole === "PLAYER" ? "text-pitch-400" : "text-stadium-300"
-                  }`}
-                >
-                  Joueur
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className={`flex-1 py-4 rounded-xl border-2 items-center ${
-                  selectedRole === "AGENT"
-                    ? "border-pitch-500 bg-pitch-500/10"
-                    : "border-stadium-700 bg-stadium-900"
-                }`}
-                onPress={() => handleRoleSelect("AGENT")}
-                activeOpacity={0.8}
-              >
-                <Text className="text-2xl mb-1">🤝</Text>
-                <Text
-                  className={`font-semibold ${
-                    selectedRole === "AGENT" ? "text-pitch-400" : "text-stadium-300"
-                  }`}
-                >
-                  Agent
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Form */}
           <View className="gap-4">
             <View>
               <Text className="text-stadium-300 text-sm mb-2 font-medium">
@@ -228,7 +173,6 @@ export default function RegisterScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Login link */}
           <View className="flex-row justify-center mt-8">
             <Text className="text-stadium-400 text-sm">
               Déjà un compte ?{" "}

@@ -28,6 +28,15 @@ export async function POST(request: NextRequest) {
 
     const { email, code } = parsed.data
 
+    // Ensure the authenticated user is verifying their own email
+    // or is an ADMIN (who may verify on behalf of others)
+    if (session.user.role !== "ADMIN" && session.user.email !== email.toLowerCase()) {
+      return NextResponse.json(
+        { error: "Vous ne pouvez vérifier que votre propre adresse e-mail" },
+        { status: 403 }
+      )
+    }
+
     // Vérifier l'OTP
     const result = await verifyOtp(email, code, "CLUB_CREATOR_VERIFY")
 

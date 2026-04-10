@@ -56,7 +56,7 @@ export class FollowBillingService {
     }
 
     // Vérifier le rate limit
-    const rateCheck = FraudService.checkCreditRateLimit(followerId, "FOLLOW")
+    const rateCheck = await FraudService.checkCreditRateLimit(followerId, "FOLLOW")
     if (!rateCheck.allowed) {
       return { valid: false, reason: "Trop de follows. Réessayez plus tard." }
     }

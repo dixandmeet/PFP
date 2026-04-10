@@ -4,6 +4,13 @@ import { prisma } from "@/lib/prisma"
 import { sendEmail, emailTemplates } from "@/lib/email"
 import crypto from "crypto"
 import { getBaseUrl } from "@/lib/url"
+import { getClientIp } from "@/lib/request-ip"
+import { checkAndRecordRateLimit } from "@/lib/rate-limit/api-rate-limit"
+
+const FORGOT_MAX_PER_IP = 5
+const FORGOT_IP_WINDOW_MS = 60 * 60 * 1000 // 1 hour
+const FORGOT_MAX_PER_EMAIL = 3
+const FORGOT_EMAIL_WINDOW_MS = 60 * 60 * 1000 // 1 hour
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,6 +32,30 @@ export async function POST(request: NextRequest) {
         { error: "Format d'email invalide" },
         { status: 400 }
       )
+    }
+
+    // Rate limit par IP
+    const clientIp = getClientIp(request) ?? "unknown"
+    const ipLimit = await checkAndRecordRateLimit(
+      "forgot_password_ip", clientIp, FORGOT_MAX_PER_IP, FORGOT_IP_WINDOW_MS
+    )
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { error: "Trop de demandes. Réessayez plus tard.", retryAfter: ipLimit.retryAfterSec },
+        { status: 429 }
+      )
+    }
+
+    // Rate limit par email
+    const emailLimit = await checkAndRecordRateLimit(
+      "forgot_password_email", email.toLowerCase(), FORGOT_MAX_PER_EMAIL, FORGOT_EMAIL_WINDOW_MS
+    )
+    if (!emailLimit.allowed) {
+      // Return generic success to prevent email enumeration
+      return NextResponse.json({
+        success: true,
+        message: "Si un compte existe avec cette adresse email, vous recevrez un lien de réinitialisation."
+      })
     }
 
     // Vérifier si l'utilisateur existe

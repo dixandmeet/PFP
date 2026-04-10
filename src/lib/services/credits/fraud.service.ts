@@ -7,9 +7,7 @@ import {
   MAX_FOLLOW_LOOP_DEPTH,
   FraudBlockedError,
 } from "./types"
-
-// Rate limiter in-memory (par process)
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+import { checkAndRecordRateLimit } from "@/lib/rate-limit/api-rate-limit"
 
 export class FraudService {
   /**
@@ -156,32 +154,18 @@ export class FraudService {
   }
 
   /**
-   * Rate limiter pour opérations de crédit
+   * Rate limiter pour opérations de crédit — DB-backed (multi-instance safe)
    */
-  static checkCreditRateLimit(
+  static async checkCreditRateLimit(
     userId: string,
     operation: string
-  ): { allowed: boolean; retryAfter?: number } {
-    const key = `credit:${userId}:${operation}`
-    const now = Date.now()
-
+  ): Promise<{ allowed: boolean; retryAfter?: number }> {
+    const key = `${userId}:${operation}`
     const maxOps = operation === "FOLLOW" ? MAX_FOLLOWS_PER_HOUR : MAX_CREDIT_OPS_PER_MINUTE
     const windowMs = operation === "FOLLOW" ? 60 * 60 * 1000 : 60 * 1000
 
-    const entry = rateLimitMap.get(key)
-
-    if (!entry || now > entry.resetAt) {
-      rateLimitMap.set(key, { count: 1, resetAt: now + windowMs })
-      return { allowed: true }
-    }
-
-    if (entry.count >= maxOps) {
-      const retryAfter = Math.ceil((entry.resetAt - now) / 1000)
-      return { allowed: false, retryAfter }
-    }
-
-    entry.count++
-    return { allowed: true }
+    const result = await checkAndRecordRateLimit("credit_op", key, maxOps, windowMs)
+    return { allowed: result.allowed, retryAfter: result.retryAfterSec }
   }
 
   /**

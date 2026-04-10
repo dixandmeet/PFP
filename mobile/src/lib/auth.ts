@@ -20,7 +20,7 @@ export async function login(credentials: LoginInput): Promise<{ success: boolean
   }
 
   if (!isMobileRole(result.data.user.role)) {
-    return { success: false, error: "Cette application est réservée aux joueurs et agents." }
+    return { success: false, error: "Cette application est réservée aux joueurs." }
   }
 
   await storeToken(result.data.token)
@@ -41,6 +41,14 @@ export async function loginWithCredentials(
 
     const data = await loginRes.json().catch(() => ({}))
     if (!loginRes.ok) {
+      if (data?.code === "EMAIL_NOT_VERIFIED") {
+        return {
+          success: false,
+          error:
+            data?.error ||
+            "Confirmez votre adresse e-mail (lien envoyé à l’inscription) avant de vous connecter.",
+        }
+      }
       return {
         success: false,
         error: data?.error || "Email ou mot de passe incorrect",
@@ -62,7 +70,7 @@ export async function loginWithCredentials(
 
     if (!isMobileRole(meResult.data.role)) {
       await removeToken()
-      return { success: false, error: "Cette application est réservée aux joueurs et agents." }
+      return { success: false, error: "Cette application est réservée aux joueurs." }
     }
 
     return { success: true, user: meResult.data }
@@ -77,10 +85,16 @@ export async function register(
   data: RegisterInput
 ): Promise<{ success: boolean; error?: string }> {
   if (!isMobileRole(data.role)) {
-    return { success: false, error: "Seuls les rôles Joueur et Agent sont disponibles." }
+    return { success: false, error: "L’inscription sur l’app est réservée aux joueurs." }
   }
 
-  const result = await api.post("/auth/register", data, { authenticated: false })
+  const result = await api.post("/auth/register", data, {
+    authenticated: false,
+    headers: {
+      "x-pfp-client": "pfp-mobile",
+      "x-pfp-mobile-secret": process.env.EXPO_PUBLIC_MOBILE_API_SECRET || "",
+    },
+  })
 
   if (!result.success) {
     return { success: false, error: result.error || "Échec de l'inscription" }
@@ -100,6 +114,11 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 
   const result = await api.get<AuthUser>("/users/me")
   if (!result.success || !result.data) {
+    return null
+  }
+
+  if (!isMobileRole(result.data.role)) {
+    await removeToken()
     return null
   }
 
@@ -140,7 +159,7 @@ export async function loginWithGoogle(
 
     if (!isMobileRole(meResult.data.role)) {
       await removeToken()
-      return { success: false, error: "Cette application est réservée aux joueurs et agents." }
+      return { success: false, error: "Cette application est réservée aux joueurs." }
     }
 
     return { success: true, user: meResult.data }
