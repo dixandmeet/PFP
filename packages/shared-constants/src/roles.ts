@@ -8,7 +8,7 @@ export const Role = {
 
 export type Role = (typeof Role)[keyof typeof Role]
 
-export const MOBILE_ALLOWED_ROLES: Role[] = [Role.PLAYER, Role.AGENT]
+export const MOBILE_ALLOWED_ROLES: Role[] = [Role.PLAYER]
 
 export const ClubRole = {
   OWNER: "OWNER",
@@ -24,5 +24,5 @@ export function isClubRole(role: string): boolean {
 }
 
 export function isMobileRole(role: string): boolean {
-  return role === Role.PLAYER || role === Role.AGENT
+  return MOBILE_ALLOWED_ROLES.includes(role as Role)
 }
