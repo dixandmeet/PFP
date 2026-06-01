@@ -10,9 +10,13 @@ const ALLOWED_MIME = ["application/pdf", "image/jpeg", "image/jpg", "image/png"]
 const MAX_SIZE = 10 * 1024 * 1024 // 10 MB
 const ALLOWED_DOC_TYPES = ["PROOF_LEGAL", "REPRESENTATIVE_ID", "POWER_PROOF", "BANK_RIB"] as const
 
-const USE_LOCAL_STORAGE = process.env.USE_LOCAL_STORAGE === "true" || !process.env.S3_ENDPOINT
+// Priorité : Vercel Blob (prod) > S3/MinIO > disque local (dev sans S3)
+const USE_VERCEL_BLOB = !!process.env.BLOB_READ_WRITE_TOKEN
+const USE_LOCAL_STORAGE =
+  !USE_VERCEL_BLOB && (process.env.USE_LOCAL_STORAGE === "true" || !process.env.S3_ENDPOINT)
+const USE_S3 = !USE_VERCEL_BLOB && !USE_LOCAL_STORAGE
 
-const s3Client = !USE_LOCAL_STORAGE
+const s3Client = USE_S3
   ? new S3Client({
       endpoint: process.env.S3_ENDPOINT,
       region: process.env.S3_REGION || "us-east-1",
@@ -27,11 +31,6 @@ const s3Client = !USE_LOCAL_STORAGE
 const BUCKET = process.env.S3_BUCKET || "profoot-files"
 
 type RouteContext = { params: Promise<{ id: string }> }
-
-function getPublicUrl(key: string): string {
-  if (USE_LOCAL_STORAGE) return "" // non utilisé en local
-  return `${process.env.S3_ENDPOINT}/${BUCKET}/${key}`
-}
 
 function generateFileKey(clubId: string, docType: string, filename: string): string {
   const timestamp = Date.now()
@@ -90,21 +89,25 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    let fileUrl: string
-
     const ALLOWED_EXTENSIONS = ["pdf", "jpg", "jpeg", "png"]
     const rawExt = file.name.split(".").pop()?.toLowerCase() || "pdf"
     const safeExt = ALLOWED_EXTENSIONS.includes(rawExt) ? rawExt : "pdf"
+    const safeName = `${docType}-${Date.now()}.${safeExt}`
 
-    if (USE_LOCAL_STORAGE || !s3Client) {
-      // Stockage privé (hors public/ pour éviter l'accès non authentifié)
-      const uploadDir = path.join(process.cwd(), "private-uploads", "clubs", clubId)
-      await mkdir(uploadDir, { recursive: true })
-      const safeName = `${docType}-${Date.now()}.${safeExt}`
-      const filePath = path.join(uploadDir, safeName)
-      await writeFile(filePath, buffer)
-      fileUrl = `/api/uploads/clubs/${clubId}/${safeName}`
-    } else {
+    // URL logique servie au frontend — toujours auth-guardée via /api/uploads/...
+    const logicalUrl = `/api/uploads/clubs/${clubId}/${safeName}`
+    let storageKey: string | null = null
+
+    if (USE_VERCEL_BLOB) {
+      const { put } = await import("@vercel/blob")
+      const blob = await put(`clubs/${clubId}/${safeName}`, buffer, {
+        access: "public", // Vercel Blob n'a pas de mode privé natif — la confidentialité passe par /api/uploads
+        contentType: file.type,
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+        addRandomSuffix: true, // URL non devinable même si on connaît le chemin logique
+      })
+      storageKey = blob.url
+    } else if (USE_S3 && s3Client) {
       try {
         await s3Client.send(
           new PutObjectCommand({
@@ -114,17 +117,20 @@ export async function POST(request: NextRequest, context: RouteContext) {
             ContentType: file.type,
           })
         )
-        fileUrl = getPublicUrl(key)
+        storageKey = `s3://${BUCKET}/${key}`
       } catch (s3Err: unknown) {
-        console.error("[KYC upload] S3 error:", s3Err)
-        // Fallback vers stockage privé si S3 échoue
+        console.error("[KYC upload] S3 error, fallback disque:", s3Err)
         const uploadDir = path.join(process.cwd(), "private-uploads", "clubs", clubId)
         await mkdir(uploadDir, { recursive: true })
-        const safeName = `${docType}-${Date.now()}.${safeExt}`
-        const filePath = path.join(uploadDir, safeName)
-        await writeFile(filePath, buffer)
-        fileUrl = `/api/uploads/clubs/${clubId}/${safeName}`
+        await writeFile(path.join(uploadDir, safeName), buffer)
+        storageKey = null
       }
+    } else {
+      // Disque local (dev sans Blob/S3)
+      const uploadDir = path.join(process.cwd(), "private-uploads", "clubs", clubId)
+      await mkdir(uploadDir, { recursive: true })
+      await writeFile(path.join(uploadDir, safeName), buffer)
+      storageKey = null
     }
 
     const doc = await prisma.clubKycDocument.upsert({
@@ -132,7 +138,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
         clubId_type: { clubId, type: docType as "PROOF_LEGAL" | "REPRESENTATIVE_ID" | "POWER_PROOF" | "BANK_RIB" },
       },
       update: {
-        url: fileUrl,
+        url: logicalUrl,
+        storageKey,
         filename: file.name,
         mime: file.type,
         size: file.size,
@@ -143,7 +150,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
       create: {
         clubId,
         type: docType as "PROOF_LEGAL" | "REPRESENTATIVE_ID" | "POWER_PROOF" | "BANK_RIB",
-        url: fileUrl,
+        url: logicalUrl,
+        storageKey,
         filename: file.name,
         mime: file.type,
         size: file.size,

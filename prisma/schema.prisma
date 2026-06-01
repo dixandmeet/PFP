@@ -1782,11 +1782,12 @@ model ClubKycDocument {
   clubId String
   club   ClubProfile @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
-  type     ClubKycDocumentType
-  url      String // S3 URL
-  filename String
-  mime     String
-  size     Int // Taille en octets
+  type       ClubKycDocumentType
+  url        String // URL logique auth-guardée (/api/uploads/clubs/...)
+  storageKey String? // URL/clé du stockage réel (Vercel Blob, S3). Null en dev local (lecture disque).
+  filename   String
+  mime       String
+  size       Int // Taille en octets
 
   uploadedAt       DateTime  @default(now())
   verifiedAt       DateTime?

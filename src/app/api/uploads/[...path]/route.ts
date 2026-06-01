@@ -1,8 +1,11 @@
 // GET /api/uploads/[...path] — Sert les fichiers privés avec authentification
+// Stockage : Vercel Blob (prod) ou disque local (dev). Le doc en DB porte storageKey
+// (URL Blob https:// ou s3://...) ; sinon on retombe sur le disque.
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { readFile } from "fs/promises"
 import path from "path"
+import { prisma } from "@/lib/prisma"
 
 const MIME_TYPES: Record<string, string> = {
   pdf: "application/pdf",
@@ -35,6 +38,8 @@ export async function GET(
     const isStaffKyc = relativePath.startsWith("staff-kyc/")
     const isClubKyc = relativePath.startsWith("clubs/")
 
+    let docStorageKey: string | null = null
+
     if (isStaffKyc) {
       // staff-kyc/{userId}/... — seul l'utilisateur ou un admin peut accéder
       const fileUserId = filePath[1] // staff-kyc/{userId}/filename
@@ -43,22 +48,49 @@ export async function GET(
       }
     } else if (isClubKyc) {
       // clubs/{clubId}/... — seul le propriétaire du club ou un admin peut accéder
-      if (session.user.role !== "ADMIN") {
-        const { prisma } = await import("@/lib/prisma")
-        const clubId = filePath[1] // clubs/{clubId}/filename
-        const club = await prisma.clubProfile.findUnique({
-          where: { id: clubId },
-          select: { userId: true },
-        })
-        if (!club || club.userId !== session.user.id) {
-          return NextResponse.json({ error: "Acces refuse" }, { status: 403 })
-        }
+      const clubId = filePath[1]
+      const club = await prisma.clubProfile.findUnique({
+        where: { id: clubId },
+        select: { userId: true },
+      })
+      if (!club) {
+        return NextResponse.json({ error: "Ressource introuvable" }, { status: 404 })
       }
+      if (session.user.role !== "ADMIN" && club.userId !== session.user.id) {
+        return NextResponse.json({ error: "Acces refuse" }, { status: 403 })
+      }
+      // Récupérer l'emplacement réel du fichier
+      const requestedUrl = `/api/uploads/${relativePath}`
+      const doc = await prisma.clubKycDocument.findFirst({
+        where: { clubId, url: requestedUrl },
+        select: { storageKey: true, mime: true },
+      })
+      docStorageKey = doc?.storageKey ?? null
     } else {
       return NextResponse.json({ error: "Ressource introuvable" }, { status: 404 })
     }
 
-    // Lire le fichier depuis le dossier privé
+    // Si on a un storageKey distant (Blob), on stream depuis là-bas
+    if (docStorageKey && docStorageKey.startsWith("https://")) {
+      const upstream = await fetch(docStorageKey)
+      if (!upstream.ok || !upstream.body) {
+        return NextResponse.json({ error: "Fichier introuvable" }, { status: 404 })
+      }
+      const ext = path.extname(relativePath).slice(1).toLowerCase()
+      const contentType =
+        upstream.headers.get("content-type") || MIME_TYPES[ext] || "application/octet-stream"
+      return new NextResponse(upstream.body, {
+        status: 200,
+        headers: {
+          "Content-Type": contentType,
+          "Content-Disposition": "inline",
+          "Cache-Control": "private, no-store",
+          "X-Content-Type-Options": "nosniff",
+        },
+      })
+    }
+
+    // Sinon : lecture disque (dev local ou ancien doc avant Blob)
     const absolutePath = path.join(process.cwd(), "private-uploads", ...filePath)
 
     // Vérifier que le chemin résolu reste dans le dossier private-uploads
