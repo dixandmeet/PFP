@@ -262,12 +262,7 @@ export function Sidebar({ role, clubActive }: SidebarProps) {
           </button>
         </div>
 
-        <ProfileHeaderCard
-          role={role}
-          messageCount={messageCount}
-          opportunityCount={0}
-          staffContext={isStaffContext}
-        />
+        <ProfileHeaderCard role={role} staffContext={isStaffContext} />
 
         {isClubRole(role) && <ProfileSwitcher />}
 
