@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils"
 import { Check } from "lucide-react"
 
 const STEPS = [
-  { key: "CREATOR", label: "Vérification", description: "Identité du créateur" },
   { key: "CLUB_INFO", label: "Infos Club", description: "Informations légales" },
   { key: "KYC", label: "Documents", description: "Pièces justificatives" },
   { key: "SUBMIT", label: "Soumission", description: "Validation finale" },
@@ -40,7 +39,6 @@ export function OnboardingStepper({
               )}
             >
               <div className="flex flex-col items-center">
-                {/* Circle */}
                 <div
                   className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all duration-300",
@@ -57,7 +55,6 @@ export function OnboardingStepper({
                     index + 1
                   )}
                 </div>
-                {/* Label */}
                 <div className="mt-2 text-center">
                   <p
                     className={cn(
@@ -76,14 +73,11 @@ export function OnboardingStepper({
                   </p>
                 </div>
               </div>
-              {/* Connector line */}
               {index < STEPS.length - 1 && (
                 <div
                   className={cn(
                     "flex-1 h-0.5 mx-2 mt-[-20px] transition-all duration-300",
-                    isPast || isCompleted
-                      ? "bg-pitch-600"
-                      : "bg-gray-200"
+                    isPast || isCompleted ? "bg-pitch-600" : "bg-gray-200"
                   )}
                 />
               )}

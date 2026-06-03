@@ -3,18 +3,18 @@
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { OnboardingStepper, type StepKey as StepperStepKey } from "./OnboardingStepper"
-import { Step1CreatorVerification } from "./Step1CreatorVerification"
 import { Step2ClubInfo } from "./Step2ClubInfo"
 import { Step3KycDocuments } from "./Step3KycDocuments"
 import { Step4Submit } from "./Step4Submit"
 import { Loader2, AlertCircle, CheckCircle2, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-type StepKey = "CREATOR" | "CLUB_INFO" | "KYC" | "SUBMIT" | "DONE"
+type DbStepKey = "CREATOR" | "CLUB_INFO" | "KYC" | "SUBMIT" | "DONE"
+type StepKey = StepperStepKey | "DONE"
 
 export interface OnboardingSession {
   id: string
-  currentStep: StepKey
+  currentStep: DbStepKey
   creatorOtpVerifiedAt: string | null
   verifiedCreatorEmail: string | null
   clubId: string | null
@@ -43,9 +43,19 @@ export interface OnboardingSession {
   } | null
 }
 
-function completedStepsFromSession(data: OnboardingSession): StepKey[] {
-  const completed: StepKey[] = []
-  if (data.creatorOtpVerifiedAt) completed.push("CREATOR")
+function toDisplayStep(step: DbStepKey): StepKey {
+  if (step === "CREATOR") return "CLUB_INFO"
+  if (step === "DONE") return "DONE"
+  return step
+}
+
+function toStepperStep(step: StepKey): StepperStepKey {
+  if (step === "DONE") return "SUBMIT"
+  return step
+}
+
+function completedStepsFromSession(data: OnboardingSession): StepperStepKey[] {
+  const completed: StepperStepKey[] = []
   if (data.clubId) completed.push("CLUB_INFO")
   if ((data.club?.kycDocuments?.length ?? 0) >= 3) completed.push("KYC")
   if (data.club?.status === "PENDING_REVIEW") completed.push("SUBMIT")
@@ -55,6 +65,7 @@ function completedStepsFromSession(data: OnboardingSession): StepKey[] {
 function normalizeOnboardingSession(raw: OnboardingSession): OnboardingSession {
   return {
     ...raw,
+    currentStep: raw.currentStep === "CREATOR" ? "CLUB_INFO" : raw.currentStep,
     creatorOtpVerifiedAt: raw.creatorOtpVerifiedAt
       ? String(raw.creatorOtpVerifiedAt)
       : null,
@@ -86,9 +97,9 @@ export function ClubOnboardingWizard({
     normalizedInitial
   )
   const [currentStep, setCurrentStep] = useState<StepKey>(
-    normalizedInitial?.currentStep ?? "CREATOR"
+    normalizedInitial ? toDisplayStep(normalizedInitial.currentStep) : "CLUB_INFO"
   )
-  const [completedSteps, setCompletedSteps] = useState<StepKey[]>(
+  const [completedSteps, setCompletedSteps] = useState<StepperStepKey[]>(
     normalizedInitial ? completedStepsFromSession(normalizedInitial) : []
   )
   const [loading, setLoading] = useState(!normalizedInitial)
@@ -97,11 +108,10 @@ export function ClubOnboardingWizard({
   const applySession = useCallback((data: OnboardingSession) => {
     const normalized = normalizeOnboardingSession(data)
     setSession(normalized)
-    setCurrentStep(normalized.currentStep)
+    setCurrentStep(toDisplayStep(normalized.currentStep))
     setCompletedSteps(completedStepsFromSession(normalized))
   }, [])
 
-  // Rechargement client après une action (OTP, sauvegarde, etc.)
   const loadSession = useCallback(async () => {
     try {
       const res = await fetch("/api/onboarding/session")
@@ -126,28 +136,20 @@ export function ClubOnboardingWizard({
     }
   }, [normalizedInitial, loadSession])
 
-  // Handlers de navigation
-  const handleCreatorVerified = (email: string) => {
-    setCompletedSteps((prev) => [...new Set([...prev, "CREATOR" as StepKey])])
-    setCurrentStep("CLUB_INFO")
-    // Recharger la session
-    loadSession()
-  }
-
   const handleClubSaved = (clubId: string) => {
-    setCompletedSteps((prev) => [...new Set([...prev, "CLUB_INFO" as StepKey])])
+    setCompletedSteps((prev) => [...new Set([...prev, "CLUB_INFO" as StepperStepKey])])
     setCurrentStep("KYC")
     loadSession()
   }
 
   const handleKycComplete = async () => {
-    setCompletedSteps((prev) => [...new Set([...prev, "KYC" as StepKey])])
-    await loadSession() // Rafraîchir pour inclure les documents uploadés
+    setCompletedSteps((prev) => [...new Set([...prev, "KYC" as StepperStepKey])])
+    await loadSession()
     setCurrentStep("SUBMIT")
   }
 
   const handleSubmitted = () => {
-    setCompletedSteps((prev) => [...new Set([...prev, "SUBMIT" as StepKey])])
+    setCompletedSteps((prev) => [...new Set([...prev, "SUBMIT" as StepperStepKey])])
     router.replace("/club/dashboard")
   }
 
@@ -203,7 +205,6 @@ export function ClubOnboardingWizard({
     )
   }
 
-  // Préparer les defaultValues pour Step2
   const clubDefaults = session?.club
     ? {
         clubName: session.club.clubName,
@@ -224,7 +225,7 @@ export function ClubOnboardingWizard({
   return (
     <div className="space-y-8">
       <OnboardingStepper
-        currentStep={currentStep === "DONE" ? "SUBMIT" : currentStep}
+        currentStep={toStepperStep(currentStep)}
         completedSteps={completedSteps}
       />
 
@@ -235,7 +236,6 @@ export function ClubOnboardingWizard({
         </div>
       )}
 
-      {/* Club rejeté - message d'info */}
       {session?.club?.status === "REJECTED" && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
           <div className="flex items-start gap-2">
@@ -253,19 +253,12 @@ export function ClubOnboardingWizard({
       )}
 
       <div className="bg-white rounded-2xl border border-stadium-200 p-6 md:p-8 shadow-sm">
-        {currentStep === "CREATOR" && (
-          <Step1CreatorVerification
-            onVerified={handleCreatorVerified}
-            onBack={() => router.back()}
-          />
-        )}
-
         {currentStep === "CLUB_INFO" && (
           <Step2ClubInfo
             defaultValues={clubDefaults}
             clubId={session?.clubId}
             onSaved={handleClubSaved}
-            onBack={() => setCurrentStep("CREATOR")}
+            onBack={() => router.back()}
           />
         )}
 
@@ -305,12 +298,10 @@ export function ClubOnboardingWizard({
                 filename: d.filename,
               })) || []
             }
-            creatorEmail={session.verifiedCreatorEmail || ""}
             onSubmit={handleSubmitted}
             onBack={() => setCurrentStep("KYC")}
           />
         )}
-
       </div>
     </div>
   )

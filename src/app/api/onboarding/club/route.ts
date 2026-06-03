@@ -3,7 +3,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { clubInfoSchema } from "@/lib/validators/club-onboarding-schemas"
-import { linkClubToSession } from "@/lib/services/club-onboarding-service"
+import {
+  getOrCreateOnboardingSession,
+  linkClubToSession,
+} from "@/lib/services/club-onboarding-service"
 import { createOwnerMembership } from "@/lib/services/club-members"
 
 export async function POST(request: NextRequest) {
@@ -17,24 +20,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
     }
 
-    // Vérifier que l'utilisateur a une session d'onboarding avec OTP vérifié
-    const onboardingSession = await prisma.clubOnboardingSession.findFirst({
-      where: {
-        userId: session.user.id,
-        creatorOtpVerifiedAt: { not: null },
-        currentStep: "CLUB_INFO",
-      },
-      orderBy: { createdAt: "desc" },
-    })
+    const onboardingSession = await getOrCreateOnboardingSession(session.user.id)
 
-    if (!onboardingSession) {
-      return NextResponse.json(
-        { error: "Vous devez d'abord vérifier votre identité (étape 1)" },
-        { status: 403 }
-      )
-    }
-
-    // Vérifier qu'il n'y a pas déjà un club lié
     if (onboardingSession.clubId) {
       return NextResponse.json(
         { error: "Un club est déjà associé à cette session. Utilisez PATCH pour le modifier." },

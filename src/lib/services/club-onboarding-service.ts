@@ -30,6 +30,13 @@ export async function getOnboardingSessionForDisplay(userId: string) {
     })
 
     if (existing) {
+      if (existing.currentStep === "CREATOR") {
+        return prisma.clubOnboardingSession.update({
+          where: { id: existing.id },
+          data: { currentStep: "CLUB_INFO" },
+          include: onboardingSessionInclude,
+        })
+      }
       return existing
     }
   }
@@ -52,6 +59,13 @@ export async function getOrCreateOnboardingSession(userId: string) {
   })
 
   if (existing) {
+    if (existing.currentStep === "CREATOR") {
+      return prisma.clubOnboardingSession.update({
+        where: { id: existing.id },
+        data: { currentStep: "CLUB_INFO" },
+        include: onboardingSessionInclude,
+      })
+    }
     return existing
   }
 
@@ -59,7 +73,7 @@ export async function getOrCreateOnboardingSession(userId: string) {
   return prisma.clubOnboardingSession.create({
     data: {
       userId,
-      currentStep: "CREATOR",
+      currentStep: "CLUB_INFO",
     },
     include: onboardingSessionInclude,
   })
@@ -130,11 +144,6 @@ export async function validateClubCompleteness(clubId: string): Promise<{
 
   if (!club) {
     return { valid: false, errors: ["Club introuvable"] }
-  }
-
-  // Vérifier que le créateur est vérifié (OTP)
-  if (!club.onboardingSession?.creatorOtpVerifiedAt) {
-    errors.push("Le créateur n'a pas été vérifié par OTP")
   }
 
   // Vérifier les infos obligatoires du club

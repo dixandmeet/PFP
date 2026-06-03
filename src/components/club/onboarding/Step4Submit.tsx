@@ -10,7 +10,6 @@ import {
   AlertCircle,
   Building2,
   FileText,
-  ShieldCheck,
 } from "lucide-react"
 import { KYC_DOC_LABELS } from "@/lib/validators/club-onboarding-schemas"
 
@@ -34,7 +33,6 @@ interface KycDoc {
 interface Step4Props {
   club: ClubData
   docs: KycDoc[]
-  creatorEmail: string
   onSubmit: () => void
   onBack: () => void
 }
@@ -42,7 +40,6 @@ interface Step4Props {
 export function Step4Submit({
   club,
   docs,
-  creatorEmail,
   onSubmit,
   onBack,
 }: Step4Props) {
@@ -92,15 +89,6 @@ export function Step4Submit({
 
       {/* Récapitulatif */}
       <div className="space-y-4">
-        {/* Créateur vérifié */}
-        <div className="border rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <ShieldCheck className="w-5 h-5 text-pitch-600" />
-            <h3 className="font-medium text-gray-900">Créateur vérifié</h3>
-          </div>
-          <p className="text-sm text-gray-600 ml-7">{creatorEmail}</p>
-        </div>
-
         {/* Infos club */}
         <div className="border rounded-lg p-4">
           <div className="flex items-center gap-2 mb-3">

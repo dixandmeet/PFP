@@ -23,7 +23,7 @@ export default async function ClubOnboardingPage() {
           Enregistrement de votre club
         </h1>
         <p className="text-stadium-500 mt-2 leading-relaxed">
-          Complétez les 4 étapes ci-dessous pour enregistrer votre club sur
+          Complétez les 3 étapes ci-dessous pour enregistrer votre club sur
           Profoot Profile.
         </p>
       </div>
