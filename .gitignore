@@ -35,6 +35,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Le projet utilise pnpm — pas de lockfile npm (évite la désync des deux lockfiles)
+package-lock.json
+
 
 # uploads locaux (dev)
 /public/uploads
