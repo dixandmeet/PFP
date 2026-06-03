@@ -35,7 +35,8 @@ import { ReportsStats } from "@/components/reports/ReportsStats"
 import { ReportsToolbar } from "@/components/reports/ReportsToolbar"
 import { ReportCard } from "@/components/reports/ReportCard"
 import { SkeletonReportCard } from "@/components/reports/SkeletonReportCard"
-import { getReportTemplates } from "@/lib/reports/templates"
+import { getReportTemplates, type ReportTemplate } from "@/lib/reports/templates"
+import { ReportTemplatesSection } from "@/components/reports/ReportTemplatesSection"
 
 const reportSchema = z.object({
   title: z.string().min(1, "Le titre est requis"),
@@ -314,6 +315,12 @@ export default function AgentReportsPage() {
     setAuthorTypeFilter("ALL")
   }
 
+  const handleUseTemplate = (template: ReportTemplate) => {
+    reset({ authorType: "AGENT", title: template.suggestedTitle || template.name })
+    setTemplateId(template.id)
+    setDialogOpen(true)
+  }
+
   if (loading) {
     return (
       <div className="max-w-6xl mx-auto px-6 py-6 space-y-6">
@@ -388,23 +395,31 @@ export default function AgentReportsPage() {
       )}
 
       {reports.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="inline-flex p-5 bg-stadium-50 rounded-full mb-5">
-            <FileText className="h-10 w-10 text-stadium-300" />
+        <div className="space-y-10">
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="inline-flex p-5 bg-stadium-50 rounded-full mb-5">
+              <FileText className="h-10 w-10 text-stadium-300" />
+            </div>
+            <h3 className="text-lg font-semibold text-stadium-900 mb-1">
+              Aucun rapport pour le moment
+            </h3>
+            <p className="text-sm text-stadium-500 mb-5 max-w-sm">
+              Commencez par créer votre premier rapport professionnel
+            </p>
+            <Button
+              onClick={() => setDialogOpen(true)}
+              className="bg-pitch-600 hover:bg-pitch-700 text-white rounded-xl font-semibold"
+            >
+              <Plus className="mr-1.5 h-4 w-4" />
+              Créer un rapport
+            </Button>
           </div>
-          <h3 className="text-lg font-semibold text-stadium-900 mb-1">
-            Aucun rapport pour le moment
-          </h3>
-          <p className="text-sm text-stadium-500 mb-5 max-w-sm">
-            Commencez par créer votre premier rapport professionnel
-          </p>
-          <Button
-            onClick={() => setDialogOpen(true)}
-            className="bg-pitch-600 hover:bg-pitch-700 text-white rounded-xl font-semibold"
-          >
-            <Plus className="mr-1.5 h-4 w-4" />
-            Créer un rapport
-          </Button>
+
+          <ReportTemplatesSection
+            audience="AGENT"
+            kind="PLAYER"
+            onUseTemplate={handleUseTemplate}
+          />
         </div>
       ) : filteredReports.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -419,17 +434,25 @@ export default function AgentReportsPage() {
           </button>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredReports.map((report) => (
-            <ReportCard
-              key={report.id}
-              report={report}
-              onView={handleViewReport}
-              onShare={handleShareReport}
-              onEdit={handleEditReport}
-              onDelete={confirmDelete}
-            />
-          ))}
+        <div className="space-y-10">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {filteredReports.map((report) => (
+              <ReportCard
+                key={report.id}
+                report={report}
+                onView={handleViewReport}
+                onShare={handleShareReport}
+                onEdit={handleEditReport}
+                onDelete={confirmDelete}
+              />
+            ))}
+          </div>
+
+          <ReportTemplatesSection
+            audience="AGENT"
+            kind="PLAYER"
+            onUseTemplate={handleUseTemplate}
+          />
         </div>
       )}
 

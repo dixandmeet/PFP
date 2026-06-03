@@ -26,6 +26,8 @@ import {
   CLUB_REPORTS_BASE,
 } from "@/lib/reports/club-report-display"
 import { cn } from "@/lib/utils"
+import { ReportTemplatesSection } from "@/components/reports/ReportTemplatesSection"
+import type { ReportTemplate } from "@/lib/reports/templates"
 
 type TabId = "players" | "matches" | "received"
 
@@ -115,6 +117,13 @@ export default function ClubReportsPage() {
       ? `${CLUB_REPORTS_BASE}/new?kind=match`
       : `${CLUB_REPORTS_BASE}/new?kind=player`
 
+  const templateKind = tab === "matches" ? "MATCH" : "PLAYER"
+
+  const handleUseTemplate = (template: ReportTemplate) => {
+    const kind = template.kind === "MATCH" ? "match" : "player"
+    router.push(`${CLUB_REPORTS_BASE}/new?kind=${kind}&template=${template.id}`)
+  }
+
   return (
     <div className="container mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -174,10 +183,12 @@ export default function ClubReportsPage() {
       </div>
 
       {loading ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <SkeletonReportCard key={i} />
-          ))}
+        <div className="space-y-10">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonReportCard key={i} />
+            ))}
+          </div>
         </div>
       ) : error ? (
         <div className="rounded-2xl border border-stadium-200 bg-white p-12 text-center">
@@ -188,40 +199,60 @@ export default function ClubReportsPage() {
           </Button>
         </div>
       ) : filteredReports.length === 0 ? (
-        <div className="rounded-2xl border border-stadium-200 bg-white p-12 text-center">
-          <FileText className="mx-auto mb-3 h-12 w-12 text-stadium-300" />
-          <p className="font-medium text-stadium-700">Aucun rapport</p>
-          <p className="mt-1 text-sm text-stadium-500">
-            {tab === "received"
-              ? "Les rapports joints par les agents apparaîtront ici."
-              : "Créez votre premier rapport pour commencer."}
-          </p>
+        <div className="space-y-10">
+          <div className="rounded-2xl border border-stadium-200 bg-white p-12 text-center">
+            <FileText className="mx-auto mb-3 h-12 w-12 text-stadium-300" />
+            <p className="font-medium text-stadium-700">Aucun rapport</p>
+            <p className="mt-1 text-sm text-stadium-500">
+              {tab === "received"
+                ? "Les rapports joints par les agents apparaîtront ici."
+                : "Créez votre premier rapport pour commencer."}
+            </p>
+            {tab !== "received" && (
+              <Button asChild className="mt-4">
+                <Link href={newHref}>Créer un rapport</Link>
+              </Button>
+            )}
+          </div>
+
           {tab !== "received" && (
-            <Button asChild className="mt-4">
-              <Link href={newHref}>Créer un rapport</Link>
-            </Button>
+            <ReportTemplatesSection
+              audience="CLUB"
+              kind={templateKind}
+              onUseTemplate={handleUseTemplate}
+            />
           )}
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredReports.map((report) => (
-            <ClubReportCard
-              key={report.id}
-              report={report}
-              readOnly={readOnly}
-              onView={(id) => router.push(`${CLUB_REPORTS_BASE}/${id}`)}
-              onShare={readOnly ? undefined : handleShare}
-              onEdit={readOnly ? undefined : (id) => router.push(`${CLUB_REPORTS_BASE}/${id}/edit`)}
-              onDelete={
-                readOnly
-                  ? undefined
-                  : (id) => {
-                      setReportToDelete(id)
-                      setDeleteDialogOpen(true)
-                    }
-              }
+        <div className="space-y-10">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {filteredReports.map((report) => (
+              <ClubReportCard
+                key={report.id}
+                report={report}
+                readOnly={readOnly}
+                onView={(id) => router.push(`${CLUB_REPORTS_BASE}/${id}`)}
+                onShare={readOnly ? undefined : handleShare}
+                onEdit={readOnly ? undefined : (id) => router.push(`${CLUB_REPORTS_BASE}/${id}/edit`)}
+                onDelete={
+                  readOnly
+                    ? undefined
+                    : (id) => {
+                        setReportToDelete(id)
+                        setDeleteDialogOpen(true)
+                      }
+                }
+              />
+            ))}
+          </div>
+
+          {tab !== "received" && (
+            <ReportTemplatesSection
+              audience="CLUB"
+              kind={templateKind}
+              onUseTemplate={handleUseTemplate}
             />
-          ))}
+          )}
         </div>
       )}
 

@@ -16,7 +16,7 @@ import {
 import { useToast } from "@/components/ui/use-toast"
 import { ArrowLeft, Loader2, User, Trophy } from "lucide-react"
 import { CLUB_REPORTS_BASE } from "@/lib/reports/club-report-display"
-import { getReportTemplates } from "@/lib/reports/templates"
+import { getReportTemplates, getReportTemplateById } from "@/lib/reports/templates"
 import type { Match } from "@/lib/services/thesportsdb"
 
 type RosterPlayer = {
@@ -32,6 +32,7 @@ function NewClubReportContent() {
   const { toast } = useToast()
 
   const kindParam = searchParams.get("kind") === "match" ? "match" : "player"
+  const templateParam = searchParams.get("template")
   const submissionId = searchParams.get("submissionId")
   const prefillFirst = searchParams.get("firstName")
   const prefillLast = searchParams.get("lastName")
@@ -65,6 +66,17 @@ function NewClubReportContent() {
   const [manualDate, setManualDate] = useState("")
   const [manualCompetition, setManualCompetition] = useState("")
   const [manualVenue, setManualVenue] = useState("")
+
+  useEffect(() => {
+    if (!templateParam) return
+    const template = getReportTemplateById(templateParam)
+    if (template && template.audience.includes("CLUB")) {
+      setTemplateId(template.id)
+      if (template.suggestedTitle) {
+        setTitle(template.suggestedTitle)
+      }
+    }
+  }, [templateParam])
 
   useEffect(() => {
     if (prefillFirst && prefillLast && !title) {
