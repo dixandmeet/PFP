@@ -49,9 +49,9 @@ export const clubInfoSchema = z
     }),
     legalForm: z
       .string()
-      .min(1, "La forme juridique est requise")
       .max(200)
-      .transform((v) => v.trim()),
+      .optional()
+      .transform((v) => v?.trim() || undefined),
     registrationNumber: z
       .string()
       .max(100)
@@ -81,21 +81,6 @@ export const clubInfoSchema = z
       .min(5, "L'adresse est requise")
       .max(500)
       .transform((v) => v.trim()),
-  })
-  .superRefine((data, ctx) => {
-    // registrationNumber requis si pays = France
-    if (
-      data.country.toUpperCase() === "FR" ||
-      data.country.toLowerCase() === "france"
-    ) {
-      if (!data.registrationNumber || data.registrationNumber.length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Le numéro SIRET/RNA est requis pour les clubs français",
-          path: ["registrationNumber"],
-        })
-      }
-    }
   })
 
 export type ClubInfoFormData = z.infer<typeof clubInfoSchema>

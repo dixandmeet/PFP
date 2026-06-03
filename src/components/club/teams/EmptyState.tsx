@@ -12,6 +12,8 @@ interface EmptyStateProps {
   onAction?: () => void
   className?: string
   compact?: boolean
+  /** Ligne dashed compacte pour sections internes (joueurs/staff). */
+  inline?: boolean
 }
 
 export function EmptyState({
@@ -22,7 +24,37 @@ export function EmptyState({
   onAction,
   className,
   compact = false,
+  inline = false,
 }: EmptyStateProps) {
+  if (inline) {
+    return (
+      <div
+        className={cn(
+          "flex items-center gap-3 rounded-xl border border-dashed border-stadium-200 bg-stadium-50/50 px-3 py-2.5",
+          className
+        )}
+      >
+        <Icon className="h-4 w-4 shrink-0 text-stadium-400" />
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-medium text-stadium-600">{title}</p>
+          {description && (
+            <p className="text-[11px] text-stadium-400 truncate">{description}</p>
+          )}
+        </div>
+        {actionLabel && onAction && (
+          <Button
+            onClick={onAction}
+            size="sm"
+            variant="ghost"
+            className="h-7 shrink-0 px-2 text-xs text-pitch-600 hover:text-pitch-700 hover:bg-pitch-50"
+          >
+            {actionLabel}
+          </Button>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div
       className={cn(

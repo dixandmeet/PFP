@@ -30,7 +30,7 @@ import { fr } from "date-fns/locale"
 import type { OnboardingSessionEntry } from "./types"
 
 const ONBOARDING_STEPS = [
-  { key: "CREATOR", label: "Identite", icon: Mail },
+  { key: "CREATOR", label: "Identité", icon: Mail },
   { key: "CLUB_INFO", label: "Club", icon: Building2 },
   { key: "KYC", label: "Documents", icon: FileText },
   { key: "SUBMIT", label: "Soumission", icon: Send },
@@ -145,7 +145,7 @@ export function UserOnboardingSection({
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
           {session.creatorOtpVerifiedAt && (
             <div>
-              <p className="text-xs font-medium text-slate-500 mb-1">OTP verifie le</p>
+              <p className="text-xs font-medium text-slate-500 mb-1">OTP vérifié le</p>
               <p className="text-slate-900">
                 {format(new Date(session.creatorOtpVerifiedAt), "dd MMM yyyy HH:mm", { locale: fr })}
               </p>
@@ -153,7 +153,7 @@ export function UserOnboardingSection({
           )}
           {session.verifiedCreatorEmail && (
             <div>
-              <p className="text-xs font-medium text-slate-500 mb-1">Email createur verifie</p>
+              <p className="text-xs font-medium text-slate-500 mb-1">Email créateur vérifié</p>
               <p className="text-slate-900">{session.verifiedCreatorEmail}</p>
             </div>
           )}
@@ -205,7 +205,7 @@ export function UserOnboardingSection({
                 <DialogHeader>
                   <DialogTitle>Rejeter l'onboarding</DialogTitle>
                   <DialogDescription>
-                    Indiquez le motif du rejet. L'utilisateur sera notifie par email.
+                    Indiquez le motif du rejet. L'utilisateur sera notifié par email.
                   </DialogDescription>
                 </DialogHeader>
                 <Textarea

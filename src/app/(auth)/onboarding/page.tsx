@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Combobox } from "@/components/ui/combobox"
 import { COUNTRIES } from "@/lib/constants/countries"
 import { FootballIcon } from "@/components/auth/icons"
+import { getDashboardPath } from "@/lib/utils/role-helpers"
 
 // ─── Icons ──────────────────────────────────────────────────────────────────
 
@@ -116,9 +117,24 @@ const roleOptions = [
   {
     value: "CLUB" as const,
     label: "Club",
-    description: "Présentez votre club et recrutez des talents",
+    description: "Enregistrez votre club ou rejoignez une équipe",
     icon: "🏟️",
     emoji: "🏛️",
+  },
+]
+
+const clubSubRoleOptions = [
+  {
+    value: "OWNER" as const,
+    label: "Propriétaire / Gestionnaire",
+    description: "Enregistrer et faire valider mon club",
+    emoji: "🏟️",
+  },
+  {
+    value: "STAFF" as const,
+    label: "Staff",
+    description: "Rejoindre l'équipe d'un club existant",
+    emoji: "👥",
   },
 ]
 
@@ -176,6 +192,7 @@ export default function OnboardingPage() {
   const [error, setError] = useState("")
   const [direction, setDirection] = useState(1)
   const [selectedRole, setSelectedRole] = useState<"PLAYER" | "AGENT" | "CLUB">("PLAYER")
+  const [clubSubRole, setClubSubRole] = useState<"OWNER" | "STAFF" | null>(null)
   const [roleConfirmed, setRoleConfirmed] = useState(false)
   const [hasExistingProfile, setHasExistingProfile] = useState(false)
   const [checkingProfile, setCheckingProfile] = useState(true) // Block UI until profile check is done
@@ -216,9 +233,9 @@ export default function OnboardingPage() {
         .then(data => {
           if (data.hasProfile) {
             setHasExistingProfile(true)
-            // User already has a profile — redirect to dashboard immediately
-            const r = data.role || "PLAYER"
-            router.replace(r === "ADMIN" ? "/admin" : `/${r.toLowerCase()}/dashboard`)
+            const dashboardPath =
+              data.dashboardPath || getDashboardPath(data.role || "PLAYER")
+            router.replace(dashboardPath)
             // Don't set checkingProfile to false — keep the loading screen until redirect completes
             return
           }
@@ -244,7 +261,40 @@ export default function OnboardingPage() {
       // Safety: if user has existing profile, don't allow role change at all — redirect
       if (hasExistingProfile) {
         const r = (session?.user?.role as string) || "PLAYER"
-        router.replace(r === "ADMIN" ? "/admin" : `/${r.toLowerCase()}/dashboard`)
+        router.replace(getDashboardPath(r))
+        return
+      }
+
+      // CLUB role: sous-choix propriétaire vs staff
+      if (selectedRole === "CLUB") {
+        if (!clubSubRole) {
+          setError("Choisissez si vous enregistrez un club ou rejoignez une équipe en tant que staff")
+          return
+        }
+
+        const targetRole = clubSubRole === "OWNER" ? "CLUB" : "CLUB_STAFF"
+        setLoading(true)
+        try {
+          if (targetRole !== session?.user?.role) {
+            const res = await fetch("/api/users/me", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ role: targetRole }),
+            })
+            if (!res.ok) {
+              const data = await res.json()
+              throw new Error(data.error || "Erreur lors du changement de rôle")
+            }
+            await update({ role: targetRole })
+          }
+          router.push(
+            clubSubRole === "OWNER" ? "/club/onboarding" : "/club/staff-onboarding"
+          )
+        } catch (err: unknown) {
+          setError(err instanceof Error ? err.message : "Erreur inattendue")
+        } finally {
+          setLoading(false)
+        }
         return
       }
 
@@ -261,20 +311,13 @@ export default function OnboardingPage() {
             const data = await res.json()
             throw new Error(data.error || "Erreur lors du changement de rôle")
           }
-          // Update the session with new role
           await update({ role: selectedRole })
-        } catch (err: any) {
-          setError(err.message)
+        } catch (err: unknown) {
+          setError(err instanceof Error ? err.message : "Erreur inattendue")
           setLoading(false)
           return
         }
         setLoading(false)
-      }
-
-      // CLUB role has its own dedicated onboarding flow with KYC verification
-      if (selectedRole === "CLUB") {
-        router.push("/club/onboarding")
-        return
       }
 
       setRoleConfirmed(true)
@@ -377,7 +420,7 @@ export default function OnboardingPage() {
       }
 
       await update()
-      router.push(`/${role.toLowerCase()}/dashboard`)
+      router.push(getDashboardPath(role))
     } catch (err: any) {
       setError(err.message || "Une erreur est survenue")
     } finally {
@@ -390,7 +433,7 @@ export default function OnboardingPage() {
     // Otherwise redirect to home page — user can come back later
     if (hasExistingProfile) {
       const r = (session?.user?.role as string) || "PLAYER"
-      router.push(r === "ADMIN" ? "/admin" : `/${r.toLowerCase()}/dashboard`)
+      router.push(getDashboardPath(r))
     } else {
       router.push("/")
     }
@@ -591,7 +634,11 @@ export default function OnboardingPage() {
                             key={opt.value}
                             variants={staggerItem}
                             type="button"
-                            onClick={() => !isDisabled && setSelectedRole(opt.value)}
+                            onClick={() => {
+                              if (isDisabled) return
+                              setSelectedRole(opt.value)
+                              if (opt.value !== "CLUB") setClubSubRole(null)
+                            }}
                             whileHover={!isDisabled ? { scale: 1.01 } : {}}
                             whileTap={!isDisabled ? { scale: 0.99 } : {}}
                             className={`
@@ -630,6 +677,63 @@ export default function OnboardingPage() {
                           </motion.button>
                         )
                       })}
+
+                      {selectedRole === "CLUB" && (
+                        <motion.div
+                          variants={staggerContainer}
+                          initial="initial"
+                          animate="animate"
+                          className="mt-4 pt-4 border-t border-stadium-100 space-y-3"
+                        >
+                          <p className="text-sm font-medium text-stadium-600 px-1">
+                            Quel type de compte club ?
+                          </p>
+                          {clubSubRoleOptions.map((opt) => {
+                            const isSubSelected = clubSubRole === opt.value
+                            return (
+                              <motion.button
+                                key={opt.value}
+                                variants={staggerItem}
+                                type="button"
+                                onClick={() => setClubSubRole(opt.value)}
+                                whileHover={{ scale: 1.01 }}
+                                whileTap={{ scale: 0.99 }}
+                                className={`
+                                  relative w-full p-4 rounded-xl border-2 text-left transition-all duration-200 flex items-center gap-3
+                                  ${isSubSelected
+                                    ? "border-pitch-500 bg-pitch-50/80 shadow-sm shadow-pitch-500/10"
+                                    : "border-stadium-200 hover:border-stadium-300 hover:bg-stadium-50/50"
+                                  }
+                                `}
+                              >
+                                <div className={`
+                                  w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0
+                                  ${isSubSelected ? "bg-pitch-100" : "bg-stadium-100"}
+                                `}>
+                                  {opt.emoji}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className={`font-semibold text-sm ${isSubSelected ? "text-pitch-700" : "text-stadium-800"}`}>
+                                    {opt.label}
+                                  </div>
+                                  <div className={`text-xs mt-0.5 ${isSubSelected ? "text-pitch-500" : "text-stadium-400"}`}>
+                                    {opt.description}
+                                  </div>
+                                </div>
+                                {isSubSelected && (
+                                  <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="w-5 h-5 bg-pitch-500 rounded-full flex items-center justify-center flex-shrink-0"
+                                  >
+                                    <CheckIcon />
+                                  </motion.div>
+                                )}
+                              </motion.button>
+                            )
+                          })}
+                        </motion.div>
+                      )}
                     </motion.div>
                   )}
 

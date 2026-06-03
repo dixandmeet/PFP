@@ -105,7 +105,7 @@ export function WithdrawalPanel({ earnedBalance }: { earnedBalance: number }) {
         setError(data.error || "Erreur lors du retrait")
       }
     } catch {
-      setError("Erreur reseau")
+      setError("Erreur réseau")
     } finally {
       setSubmitting(false)
     }
@@ -216,7 +216,7 @@ export function WithdrawalPanel({ earnedBalance }: { earnedBalance: number }) {
                 <input
                   type="number"
                   min="100"
-                  placeholder="Montant a retirer..."
+                  placeholder="Montant à retirer..."
                   value={amount}
                   onChange={(e) => { setAmount(e.target.value); setError("") }}
                   className="w-full pl-10 pr-4 py-3 border-2 border-stadium-200 rounded-xl text-sm focus:border-pitch-500 focus:ring-2 focus:ring-pitch-100 outline-none transition-all"

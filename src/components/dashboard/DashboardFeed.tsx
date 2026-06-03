@@ -189,9 +189,9 @@ export function DashboardFeed({
               <Clock className="h-6 w-6 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-stadium-900">Club en cours de verification</h3>
+              <h3 className="font-semibold text-stadium-900">Club en cours de vérification</h3>
               <p className="text-sm text-stadium-600 mt-1">
-                Votre demande d&apos;enregistrement est en cours de verification par notre equipe. Vous serez notifie une fois la validation terminee.
+                Votre demande d&apos;enregistrement est en cours de vérification par notre équipe. Vous serez notifié une fois la validation terminée.
               </p>
             </div>
           </div>
@@ -209,9 +209,9 @@ export function DashboardFeed({
               <ClipboardList className="h-6 w-6 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-stadium-900">Demande refusee</h3>
+              <h3 className="font-semibold text-stadium-900">Demande refusée</h3>
               <p className="text-sm text-stadium-600 mt-1">
-                Votre demande d&apos;enregistrement a ete refusee. Veuillez corriger les informations et resoumettre.
+                Votre demande d&apos;enregistrement a été refusée. Veuillez corriger les informations et resoumettre.
               </p>
               <span className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium text-red-600">
                 Corriger et resoumettre

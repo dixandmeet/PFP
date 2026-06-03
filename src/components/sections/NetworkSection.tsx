@@ -56,7 +56,7 @@ export function NetworkSection() {
   }
 
   return (
-    <section id="reseau" className="relative py-24 md:py-32 bg-white overflow-hidden">
+    <section id="réseau" className="relative py-24 md:py-32 bg-white overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(34,197,94,0.04),transparent)]" />
       

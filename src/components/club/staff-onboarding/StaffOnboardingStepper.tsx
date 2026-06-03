@@ -6,6 +6,7 @@ import { Check } from "lucide-react"
 const STEPS = [
   { key: "PROFILE", label: "Profil", description: "Informations personnelles" },
   { key: "KYC", label: "Identité", description: "Pièce d'identité" },
+  { key: "INVITE", label: "Club", description: "Rejoindre un club" },
 ] as const
 
 export type StaffStepKey = (typeof STEPS)[number]["key"]
@@ -23,7 +24,7 @@ export function StaffOnboardingStepper({
 
   return (
     <nav aria-label="Étapes d'inscription staff" className="mb-8">
-      <ol className="flex items-center w-full max-w-md mx-auto">
+      <ol className="flex items-center w-full max-w-lg mx-auto">
         {STEPS.map((step, index) => {
           const isCompleted = completedSteps.includes(step.key)
           const isCurrent = step.key === currentStep
@@ -75,10 +76,8 @@ export function StaffOnboardingStepper({
               {index < STEPS.length - 1 && (
                 <div
                   className={cn(
-                    "flex-1 h-0.5 mx-4 mt-[-20px] transition-all duration-300",
-                    isPast || isCompleted
-                      ? "bg-pitch-600"
-                      : "bg-gray-200"
+                    "flex-1 h-0.5 mx-2 sm:mx-4 mt-[-20px] transition-all duration-300",
+                    isPast || isCompleted ? "bg-pitch-600" : "bg-gray-200"
                   )}
                 />
               )}

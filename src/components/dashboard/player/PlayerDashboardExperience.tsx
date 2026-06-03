@@ -49,7 +49,7 @@ type MeResponse = {
   } | null
 }
 
-type SectionKey = "profil" | "stats" | "score" | "opportunites" | "videos" | "feed"
+type SectionKey = "profil" | "stats" | "score" | "opportunités" | "videos" | "feed"
 
 export function PlayerDashboardExperience() {
   const searchParams = useSearchParams()
@@ -183,7 +183,7 @@ export function PlayerDashboardExperience() {
       section === "profil" ||
       section === "stats" ||
       section === "score" ||
-      section === "opportunites" ||
+      section === "opportunités" ||
       section === "videos"
     ) {
       setSelectedSection(section)
@@ -247,9 +247,9 @@ export function PlayerDashboardExperience() {
     },
     {
       icon: CircleUserRound,
-      label: "Completer les infos personnelles",
-      description: "Des informations d'identite et de contact sont manquantes",
-      ctaLabel: "Completer",
+      label: "Compléter les infos personnelles",
+      description: "Des informations d'identité et de contact sont manquantes",
+      ctaLabel: "Compléter",
       href: "/player/profile/edit",
       done: !!me?.playerProfile?.firstName && !!me?.playerProfile?.lastName && !!me?.playerProfile?.dateOfBirth,
     },
@@ -263,7 +263,7 @@ export function PlayerDashboardExperience() {
     },
     {
       icon: BarChart3,
-      label: "Ajouter les donnees physiques",
+      label: "Ajouter les données physiques",
       description: "Taille, poids, pied fort",
       ctaLabel: "Ajouter",
       href: "/player/profile/edit?focus=stats",
@@ -272,7 +272,7 @@ export function PlayerDashboardExperience() {
     {
       icon: Send,
       label: "Publier un premier post",
-      description: "Restez actif pour augmenter votre visibilite",
+      description: "Restez actif pour augmenter votre visibilité",
       ctaLabel: "Publier",
       href: "/player/dashboard?section=feed",
       done: postsCount > 0,
@@ -280,7 +280,7 @@ export function PlayerDashboardExperience() {
     {
       icon: UserPlus,
       label: "Suivre au moins 5 clubs",
-      description: "Developpez votre reseau pour recevoir des opportunites pertinentes",
+      description: "Developpez votre réseau pour recevoir des opportunités pertinentes",
       ctaLabel: "Suivre",
       href: "/search?tab=clubs",
       done: followingCount >= 5,
@@ -291,37 +291,37 @@ export function PlayerDashboardExperience() {
     { icon: TrendingUp, label: "Vues du profil", value: String(profileViews), trend: profileViews > 0 ? "+100%" : "0%" },
     { icon: Users, label: "Abonnes", value: String(followersCount), trend: followersCount > 0 ? "+100%" : "0%" },
     { icon: UserPlus, label: "Abonnements", value: String(followingCount), trend: followingCount > 0 ? "+100%" : "0%" },
-    { icon: PlayCircle, label: "Videos publiees", value: String(videosCount), trend: videosCount > 0 ? "+100%" : "0%" },
-    { icon: Heart, label: "Likes recus", value: String(likesReceived), trend: likesReceived > 0 ? "+100%" : "0%" },
-    { icon: MessageSquare, label: "Messages recus", value: String(messagesCount), trend: messagesCount > 0 ? "+100%" : "0%" },
+    { icon: PlayCircle, label: "Videos publiées", value: String(videosCount), trend: videosCount > 0 ? "+100%" : "0%" },
+    { icon: Heart, label: "Likes reçus", value: String(likesReceived), trend: likesReceived > 0 ? "+100%" : "0%" },
+    { icon: MessageSquare, label: "Messages reçus", value: String(messagesCount), trend: messagesCount > 0 ? "+100%" : "0%" },
   ]
 
   const opportunities = [
     {
       icon: Trophy,
       title: "Clubs qui recherchent votre poste",
-      description: `${opportunityClubsCount} clubs suggeres selon votre profil.`,
+      description: `${opportunityClubsCount} clubs suggérés selon votre profil.`,
       ctaLabel: "Voir",
       href: "/player/opportunities",
     },
     {
       icon: Activity,
       title: "Scouts actifs dans votre region",
-      description: `${profileViews} consultations de profil peuvent indiquer un interet scout.`,
+      description: `${profileViews} consultations de profil peuvent indiquer un intérêt scout.`,
       ctaLabel: "Voir",
       href: "/search?tab=agents",
     },
     {
       icon: Users,
-      title: "Agents suggeres",
-      description: `${opportunityAgentsCount} agents pertinents detectes.`,
+      title: "Agents suggérés",
+      description: `${opportunityAgentsCount} agents pertinents détectés.`,
       ctaLabel: "Voir",
       href: "/player/agents",
     },
     {
       icon: Columns,
       title: "Joueurs similaires",
-      description: `${opportunityPlayersCount} profils similaires trouves.`,
+      description: `${opportunityPlayersCount} profils similaires trouvés.`,
       ctaLabel: "Voir",
       href: "/search?tab=players",
     },
@@ -333,7 +333,7 @@ export function PlayerDashboardExperience() {
     { key: "profil", label: "Profil" },
     { key: "stats", label: "Stats" },
     { key: "score", label: "Score" },
-    { key: "opportunites", label: "Opportunites" },
+    { key: "opportunités", label: "Opportunités" },
     { key: "videos", label: "Videos" },
   ] as const
   const pendingProfileActions = actions.filter((action) => !action.done).length
@@ -341,9 +341,9 @@ export function PlayerDashboardExperience() {
     profil: pendingProfileActions,
     videos: videosCount === 0 ? 1 : 0,
     feed: postsCount === 0 ? 1 : 0,
-    opportunites: followingCount < 5 ? 1 : 0,
+    opportunités: followingCount < 5 ? 1 : 0,
   }
-  const priorityOrder: SectionKey[] = ["profil", "videos", "feed", "opportunites", "stats", "score"]
+  const priorityOrder: SectionKey[] = ["profil", "videos", "feed", "opportunités", "stats", "score"]
   const prioritySection =
     priorityOrder.find((key) => (sectionIndicators[key] ?? 0) > 0) ?? null
   const nextProfileAction = actions.find((action) => !action.done) ?? null
@@ -351,7 +351,7 @@ export function PlayerDashboardExperience() {
   return (
     <div className="min-h-screen">
       <div className="container mx-auto max-w-[1320px] px-4 py-6 sm:px-6">
-        <DashboardTopBar title="Dashboard Joueur" ctaLabel="Completer le profil" ctaHref="/player/profile/edit" />
+        <DashboardTopBar title="Dashboard Joueur" ctaLabel="Compléter le profil" ctaHref="/player/profile/edit" />
 
         <div
           className={`sticky z-20 mt-4 overflow-x-auto rounded-2xl border border-stadium-200 bg-white/95 p-2.5 shadow-sm backdrop-blur transition-transform duration-300 xl:top-4 ${
@@ -364,7 +364,7 @@ export function PlayerDashboardExperience() {
             </p>
             {pendingProfileActions > 0 && (
               <p className="text-[11px] font-medium text-pitch-700">
-                {pendingProfileActions} action{pendingProfileActions > 1 ? "s" : ""} a completer
+                {pendingProfileActions} action{pendingProfileActions > 1 ? "s" : ""} a compléter
               </p>
             )}
           </div>
@@ -390,7 +390,7 @@ export function PlayerDashboardExperience() {
                             ? "bg-pitch-700 text-white"
                             : "bg-pitch-200 text-pitch-800"
                         }`}
-                        title="Action recommandee dans cette section"
+                        title="Action recommandée dans cette section"
                       >
                         {sectionIndicators[item.key]}
                       </span>
@@ -421,7 +421,7 @@ export function PlayerDashboardExperience() {
                     {loading ? "Chargement de votre espace..." : "Objectif du jour: passer au niveau superieur"}
                   </p>
                   <p className="mt-1 text-xs text-stadium-600">
-                    Concentrez-vous sur une section a la fois pour avancer plus vite.
+                    Concentrez-vous sur une section à la fois pour avancer plus vite.
                   </p>
                 </div>
               </div>
@@ -430,13 +430,13 @@ export function PlayerDashboardExperience() {
             {selectedSection === "profil" && <DashboardSection
               id="section-profil"
               title="🚀 Ameliore ton profil"
-              subtitle="Completer ton profil augmente la visibilite et les opportunites."
+              subtitle="Compléter ton profil augmente la visibilité et les opportunités."
               className="border-pitch-200 bg-gradient-to-b from-pitch-50 to-white"
             >
               {nextProfileAction && (
                 <div className="mb-4 rounded-xl border border-pitch-200 bg-pitch-50 p-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-pitch-700">
-                    Prochaine action recommandee
+                    Prochaine action recommandée
                   </p>
                   <div className="mt-1 flex items-center justify-between gap-3">
                     <p className="text-sm font-medium text-stadium-900">{nextProfileAction.label}</p>
@@ -458,7 +458,7 @@ export function PlayerDashboardExperience() {
               </div>
               {completion < 100 && (
                 <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                  Plus votre profil est complet, plus vous remontez dans les resultats des recruteurs.
+                  Plus votre profil est complet, plus vous remontez dans les résultats des recruteurs.
                 </p>
               )}
               <div className="mt-4 space-y-2">
@@ -488,15 +488,15 @@ export function PlayerDashboardExperience() {
               />
             </div>}
 
-            {selectedSection === "opportunites" && <DashboardSection
-              id="section-opportunites"
-              title="Opportunites pour toi"
+            {selectedSection === "opportunités" && <DashboardSection
+              id="section-opportunités"
+              title="Opportunités pour toi"
               subtitle="Suggestions personnalisees selon ton profil."
             >
               {followingCount < 5 && (
                 <div className="mb-4 rounded-xl border border-pitch-200 bg-pitch-50 p-3">
                   <p className="text-sm text-stadium-800">
-                    Suivez encore <span className="font-semibold">{5 - followingCount}</span> club(s) pour debloquer plus d&apos;opportunites.
+                    Suivez encore <span className="font-semibold">{5 - followingCount}</span> club(s) pour débloquer plus d&apos;opportunités.
                   </p>
                   <Link
                     href="/search?tab=clubs"
@@ -521,7 +521,7 @@ export function PlayerDashboardExperience() {
               {videosCount === 0 && (
                 <div className="mb-4 rounded-xl border border-pitch-200 bg-pitch-50 p-3">
                   <p className="text-sm text-stadium-800">
-                    Ajoutez une premiere video pour augmenter votre visibilite aupres des recruteurs.
+                    Ajoutez une première video pour augmenter votre visibilité auprès des recruteurs.
                   </p>
                   <Link
                     href="/player/profile/edit?focus=video"
@@ -537,9 +537,9 @@ export function PlayerDashboardExperience() {
                   <p className="mt-1 text-xl font-bold text-stadium-900">{videosCount}</p>
                 </div>
                 <div className="rounded-xl border border-stadium-200 bg-stadium-50 p-3 sm:col-span-2">
-                  <p className="text-xs text-stadium-500">Meilleure video (score qualite)</p>
+                  <p className="text-xs text-stadium-500">Meilleure video (score qualité)</p>
                   <p className="mt-1 text-sm font-semibold text-stadium-900">
-                    {bestVideoScore > 0 ? `Score ${bestVideoScore}/100` : "Aucune video evaluee"}
+                    {bestVideoScore > 0 ? `Score ${bestVideoScore}/100` : "Aucune video évaluée"}
                   </p>
                   <p className="text-xs text-pitch-700">{gamificationXp} XP cumules</p>
                 </div>
@@ -557,13 +557,13 @@ export function PlayerDashboardExperience() {
                 {postsCount === 0 && (
                   <div className="mb-3 rounded-xl border border-pitch-200 bg-pitch-50 p-3">
                     <p className="text-sm text-stadium-800">
-                      Publiez votre premier contenu pour lancer votre dynamique de visibilite.
+                      Publiez votre premier contenu pour lancer votre dynamique de visibilité.
                     </p>
                     <Link
                       href="/player/dashboard?section=feed&compose=1"
                       className="mt-2 inline-flex rounded-lg bg-pitch-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-pitch-700"
                     >
-                      Creer un post
+                      Créer un post
                     </Link>
                   </div>
                 )}

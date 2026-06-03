@@ -70,7 +70,7 @@ export function AgentCardCompact({
               {agent.isVerified && (
                 <Badge className="bg-pitch-50 text-pitch-700 border border-pitch-200 text-[10px] px-1.5 py-0 font-semibold rounded-md">
                   <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
-                  Verifie
+                  Vérifié
                 </Badge>
               )}
               {agent.agencyName && (
@@ -139,7 +139,7 @@ export function AgentCardCompact({
               {agent.isVerified && (
                 <Badge className="bg-pitch-50 text-pitch-700 border border-pitch-200 text-[10px] px-1.5 py-0 font-semibold rounded-md">
                   <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
-                  Verifie
+                  Vérifié
                 </Badge>
               )}
             </div>

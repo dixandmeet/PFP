@@ -28,7 +28,7 @@ export function UserMessagesSection({
           Conversations ({conversations.length})
         </h3>
         <Badge variant="secondary" className="text-xs">
-          {messageCount} messages envoyes
+          {messageCount} messages envoyés
         </Badge>
       </div>
 

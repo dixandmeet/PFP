@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { getPlayerInitials, getClubInitials } from "@/lib/utils/initials"
 import { generateSlug } from "@/lib/utils/slug"
+import { getDashboardPath } from "@/lib/utils/role-helpers"
 
 type SearchType = "all" | "clubs" | "players" | "agents"
 
@@ -465,11 +466,9 @@ function SearchContent() {
   const inputRef = useRef<HTMLInputElement>(null)
   
   // Déterminer l'URL du dashboard selon le rôle
-  const dashboardUrl = session?.user?.role === "ADMIN"
-    ? "/admin"
-    : session?.user?.role
-      ? `/${session.user.role.toLowerCase()}/dashboard`
-      : "/player/dashboard"
+  const dashboardUrl = session?.user?.role
+    ? getDashboardPath(session.user.role)
+    : "/player/dashboard"
   
   // Valider que le tab est une valeur valide
   const validTabs: SearchType[] = ["all", "clubs", "players", "agents"]

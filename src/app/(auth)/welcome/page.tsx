@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { FootballIcon } from "@/components/auth/icons"
+import { getDashboardPath } from "@/lib/utils/role-helpers"
 
 const CheckCircleIcon = () => (
   <svg className="w-20 h-20 text-pitch-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -62,7 +63,7 @@ export default function WelcomePage() {
       if (isNewUser) {
         router.push("/onboarding")
       } else {
-        router.push(role === "ADMIN" ? "/admin" : `/${role.toLowerCase()}/dashboard`)
+        router.push(getDashboardPath(role))
       }
     }
   }, [countdown, router, session, isNewUser])
@@ -88,7 +89,7 @@ export default function WelcomePage() {
 
   const userName = session?.user?.name || session?.user?.email?.split("@")[0] || "Utilisateur"
   const userRole = session?.user?.role || "PLAYER"
-  const dashboardPath = userRole === "ADMIN" ? "/admin" : `/${userRole.toLowerCase()}/dashboard`
+  const dashboardPath = getDashboardPath(userRole)
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pitch-50 via-white to-pitch-50 px-6">

@@ -148,7 +148,7 @@ export function UserCareerSection({
         <div className="flex items-center gap-2">
           <Briefcase className="h-5 w-5 text-slate-500" />
           <h3 className="text-lg font-semibold text-slate-900">
-            Carriere ({visibleEntries.length})
+            Carrière ({visibleEntries.length})
           </h3>
         </div>
         {isEditing && (
@@ -168,7 +168,7 @@ export function UserCareerSection({
       {isEditing && showAddForm && (
         <Card className="p-4 border-dashed border-2 border-emerald-200 bg-emerald-50/30">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-semibold text-slate-700">Nouvelle entree</h4>
+            <h4 className="text-sm font-semibold text-slate-700">Nouvelle entrée</h4>
             <Button
               size="sm"
               variant="ghost"
@@ -302,7 +302,7 @@ export function UserCareerSection({
       {visibleEntries.length === 0 ? (
         <Card className="p-8 text-center">
           <Briefcase className="h-8 w-8 text-slate-300 mx-auto mb-2" />
-          <p className="text-sm text-slate-500">Aucune entree de carriere</p>
+          <p className="text-sm text-slate-500">Aucune entrée de carrière</p>
         </Card>
       ) : (
         <div className="space-y-3">
@@ -491,9 +491,9 @@ export function UserCareerSection({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer cette entree ?</AlertDialogTitle>
+            <AlertDialogTitle>Supprimer cette entrée ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action supprimera definitivement cette entree de carriere.
+              Cette action supprimera définitivement cette entrée de carrière.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -65,7 +65,7 @@ export function ClubProfileForm({ initialData }: ClubProfileFormProps) {
       : null
   )
 
-  // Etats d'upload séparés pour logo et couverture
+  // États d'upload séparés pour logo et couverture
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)
 
@@ -274,7 +274,7 @@ export function ClubProfileForm({ initialData }: ClubProfileFormProps) {
       {/* Header */}
       <PageHeader
         title="Modifier mon profil"
-        subtitle="Mettez a jour les informations de votre club"
+        subtitle="Mettez à jour les informations de votre club"
         icon={Save}
         action={
           <Button
@@ -292,7 +292,7 @@ export function ClubProfileForm({ initialData }: ClubProfileFormProps) {
       {lastSavedAt && (
         <div className="flex items-center gap-1.5 text-xs text-stadium-500 mb-2">
           <Clock className="h-3.5 w-3.5" />
-          <span>Derniere sauvegarde : {lastSavedAt}</span>
+          <span>Dernière sauvegarde : {lastSavedAt}</span>
         </div>
       )}
 

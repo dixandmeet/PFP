@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
 
     const recipient = await prisma.user.findUnique({ where: { id: recipientId } })
     if (!recipient) {
-      return NextResponse.json({ error: "Destinataire non trouve" }, { status: 404 })
+      return NextResponse.json({ error: "Destinataire non trouvé" }, { status: 404 })
     }
 
     // Chercher toutes les conversations entre ces 2 utilisateurs

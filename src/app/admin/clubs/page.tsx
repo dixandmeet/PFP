@@ -578,7 +578,7 @@ function AdminClubsContent() {
                               variant="outline"
                               className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200"
                             >
-                              Deja en BDD
+                              Déjà en BDD
                             </Badge>
                           )}
                         </div>

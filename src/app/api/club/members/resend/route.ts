@@ -22,17 +22,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (!isClubRole(session.user.role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 })
+      return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
     }
 
     const clubInfo = await getClubForUser(session.user.id)
     if (!clubInfo) {
-      return NextResponse.json({ error: "Club non trouve" }, { status: 404 })
+      return NextResponse.json({ error: "Club non trouvé" }, { status: 404 })
     }
 
     if (clubInfo.role !== "OWNER" && clubInfo.role !== "ADMIN") {
       return NextResponse.json(
-        { error: "Seuls les proprietaires et admins peuvent renvoyer une invitation" },
+        { error: "Seuls les propriétaires et admins peuvent renvoyer une invitation" },
         { status: 403 }
       )
     }
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     const parsed = resendSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Donnees invalides", details: parsed.error.flatten().fieldErrors },
+        { error: "Données invalides", details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       )
     }
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     } catch {
       console.error("[API] Failed to resend invitation email to", member.email)
       return NextResponse.json(
-        { error: "Invitation regeneree mais l'email n'a pas pu etre envoye." },
+        { error: "Invitation regeneree mais l'email n'a pas pu etre envoyé." },
         { status: 500 }
       )
     }

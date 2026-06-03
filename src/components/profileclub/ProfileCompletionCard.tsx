@@ -6,7 +6,6 @@ import { motion } from "framer-motion"
 import {
   CheckCircle2,
   Circle,
-  TrendingUp,
   Loader2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -43,34 +42,7 @@ export function ProfileCompletionCard({
   }
 
   if (percentage === 100) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={cn(
-          "bg-gradient-to-br from-pitch-50 to-pitch-100 rounded-2xl p-6 border border-pitch-200",
-          className
-        )}
-      >
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-pitch-500 rounded-xl">
-            <TrendingUp className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h3 className="font-bold text-pitch-800">Profil complet !</h3>
-            <p className="text-sm text-pitch-600">
-              Votre profil est entièrement renseigné. Bravo !
-            </p>
-          </div>
-        </div>
-        <div className="mt-3 flex items-center gap-2">
-          <div className="h-2 flex-1 bg-pitch-200 rounded-full overflow-hidden">
-            <div className="h-full w-full bg-pitch-500 rounded-full" />
-          </div>
-          <span className="text-sm font-bold text-pitch-700">100%</span>
-        </div>
-      </motion.div>
-    )
+    return null
   }
 
   return (

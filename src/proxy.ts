@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
+import { getDashboardPath } from "@/lib/utils/role-helpers"
 
 export async function proxy(request: NextRequest) {
   // Must match Auth.js cookie names: HTTPS uses __Secure-authjs.session-token.
@@ -95,13 +96,6 @@ export async function proxy(request: NextRequest) {
   // Pour les routes auth-only, pas besoin de vérifier le rôle
   if (isAuthOnlyRoute) {
     return NextResponse.next()
-  }
-
-  // Helper pour obtenir le dashboard selon le rôle
-  const getDashboardPath = (userRole: string) => {
-    if (userRole === "ADMIN") return "/admin"
-    if (userRole === "CLUB_STAFF") return "/club/dashboard"
-    return `/${userRole.toLowerCase()}/dashboard`
   }
 
   // Vérification des routes par rôle

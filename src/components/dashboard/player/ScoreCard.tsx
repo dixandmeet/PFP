@@ -36,7 +36,7 @@ export function ScoreCard({ score, breakdown }: ScoreCardProps) {
       <div className="mt-4">
         <div className="mb-2 flex items-end justify-between">
           <p className="text-3xl font-bold text-stadium-900">{score}/100</p>
-          <p className="text-xs text-stadium-500">Indice de preparation carriere</p>
+          <p className="text-xs text-stadium-500">Indice de preparation carrière</p>
         </div>
         <Progress value={score} className="h-2.5 bg-stadium-100 [&>div]:bg-pitch-600" />
       </div>
@@ -48,10 +48,10 @@ export function ScoreCard({ score, breakdown }: ScoreCardProps) {
               {key === "profile"
                 ? "Profil"
                 : key === "activity"
-                  ? "Activite"
+                  ? "Activité"
                   : key === "engagement"
                     ? "Engagement"
-                    : "Reseau"}
+                    : "Réseau"}
             </p>
             <p className="font-semibold text-stadium-900">{value}/25</p>
           </div>

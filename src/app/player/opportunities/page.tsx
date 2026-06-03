@@ -94,7 +94,7 @@ const statusConfig: Record<string, { label: string; color: string; description: 
   SUBMITTED: {
     label: "Soumise",
     color: "bg-blue-100 text-blue-700",
-    description: "Candidature envoyee au club",
+    description: "Candidature envoyée au club",
   },
   UNDER_REVIEW: {
     label: "En cours",
@@ -109,17 +109,17 @@ const statusConfig: Record<string, { label: string; color: string; description: 
   TRIAL: {
     label: "Essai",
     color: "bg-orange-100 text-orange-700",
-    description: "Periode d'essai en cours",
+    description: "Période d'essai en cours",
   },
   REJECTED: {
-    label: "Refusee",
+    label: "Refusée",
     color: "bg-red-100 text-red-700",
-    description: "Candidature refusee",
+    description: "Candidature refusée",
   },
   ACCEPTED: {
-    label: "Acceptee",
+    label: "Acceptée",
     color: "bg-green-100 text-green-700",
-    description: "Offre acceptee",
+    description: "Offre acceptée",
   },
   SIGNED: {
     label: "Signe",
@@ -219,7 +219,7 @@ function PlayerOpportunitiesContent() {
       setError(true)
       toast({
         title: "Erreur",
-        description: "Impossible de charger les donnees",
+        description: "Impossible de charger les données",
         variant: "destructive",
       })
     } finally {
@@ -269,7 +269,7 @@ function PlayerOpportunitiesContent() {
     if (!playerProfileId) {
       toast({
         title: "Profil manquant",
-        description: "Veuillez d'abord creer votre profil",
+        description: "Veuillez d'abord créer votre profil",
         variant: "destructive",
       })
       return
@@ -277,8 +277,8 @@ function PlayerOpportunitiesContent() {
 
     if (myApplications.has(listing.id)) {
       toast({
-        title: "Deja postule",
-        description: "Vous avez deja postule a cette annonce",
+        title: "Déjà postule",
+        description: "Vous avez déjà postulé à cette annonce",
       })
       return
     }
@@ -309,8 +309,8 @@ function PlayerOpportunitiesContent() {
       }
 
       toast({
-        title: "Candidature envoyee",
-        description: "Votre candidature a ete envoyee avec succes",
+        title: "Candidature envoyée",
+        description: "Votre candidature a été envoyée avec succès",
       })
 
       setMyApplications(new Set([...myApplications, selectedListing.id]))
@@ -353,7 +353,7 @@ function PlayerOpportunitiesContent() {
       }
       toast({
         title: "Candidature annulee",
-        description: "Votre candidature a ete supprimee avec succes",
+        description: "Votre candidature a été supprimée avec succès",
       })
       // Retirer de la liste locale
       setApplications((prev) => prev.filter((a) => a.id !== selectedApplication.id))
@@ -422,7 +422,7 @@ function PlayerOpportunitiesContent() {
     } catch {
       toast({
         title: "Erreur",
-        description: "Erreur reseau",
+        description: "Erreur réseau",
         variant: "destructive",
       })
       return false
@@ -521,7 +521,7 @@ function PlayerOpportunitiesContent() {
                   <AlertCircle className="h-6 w-6 text-red-500" />
                 </div>
                 <p className="text-sm font-medium text-slate-700 mb-1">
-                  Impossible de charger les opportunites
+                  Impossible de charger les opportunités
                 </p>
                 <p className="text-xs text-slate-500 mb-4">
                   Verifiez votre connexion et reessayez
@@ -545,7 +545,7 @@ function PlayerOpportunitiesContent() {
                   <Search className="h-6 w-6 text-slate-400" />
                 </div>
                 <p className="text-sm font-medium text-slate-700 mb-1">
-                  Aucune opportunite trouvee
+                  Aucune opportunité trouvée
                 </p>
                 <p className="text-xs text-slate-500 mb-4">
                   Essayez de modifier vos filtres ou revenez plus tard
@@ -694,7 +694,7 @@ function PlayerOpportunitiesContent() {
                 </div>
                 <p className="text-base font-semibold text-slate-700 mb-1">Aucune candidature</p>
                 <p className="text-sm text-slate-500 mb-5 max-w-xs mx-auto">
-                  Parcourez les opportunites disponibles et postulez pour commencer
+                  Parcourez les opportunités disponibles et postulez pour commencer
                 </p>
                 <Button
                   size="sm"
@@ -702,7 +702,7 @@ function PlayerOpportunitiesContent() {
                   className="rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium shadow-sm"
                 >
                   <Target className="mr-1.5 h-3.5 w-3.5" />
-                  Voir les opportunites
+                  Voir les opportunités
                 </Button>
               </div>
             ) : (
@@ -821,7 +821,7 @@ function PlayerOpportunitiesContent() {
         <DialogContent className="max-w-2xl ring-1 ring-slate-200 rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-slate-900">
-              Postuler a l'annonce
+              Postuler à l'annonce
             </DialogTitle>
             <DialogDescription className="text-sm">
               <span className="font-medium text-slate-700">{selectedListing?.title}</span>
@@ -843,7 +843,7 @@ function PlayerOpportunitiesContent() {
               <Textarea
                 id="coverLetter"
                 {...register("coverLetter")}
-                placeholder="Cher recruteur,&#10;&#10;Je suis tres interesse par cette opportunite..."
+                placeholder="Cher recruteur,&#10;&#10;Je suis très intéressé par cette opportunité..."
                 rows={10}
                 className="border-slate-200 focus:ring-2 focus:ring-green-600/30 resize-none"
               />
@@ -897,7 +897,7 @@ function PlayerOpportunitiesContent() {
               { key: "UNDER_REVIEW", label: "En revue" },
               { key: "SHORTLISTED", label: "Shortliste" },
               { key: "TRIAL", label: "Essai" },
-              { key: "ACCEPTED", label: "Acceptee" },
+              { key: "ACCEPTED", label: "Acceptée" },
               { key: "SIGNED", label: "Signee" },
             ]
             const currentStepIndex = steps.findIndex(s => s.key === selectedApplication.status)
@@ -944,7 +944,7 @@ function PlayerOpportunitiesContent() {
                       {isRejected ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-500/20 text-red-300 ring-1 ring-red-500/30">
                           <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
-                          Refusee
+                          Refusée
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-500/20 text-green-300 ring-1 ring-green-500/30">
@@ -1004,7 +1004,7 @@ function PlayerOpportunitiesContent() {
                           <Send className="h-4 w-4 text-blue-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-slate-700">Candidature envoyee</p>
+                          <p className="text-sm font-medium text-slate-700">Candidature envoyée</p>
                           <p className="text-xs text-slate-400">
                             {new Date(selectedApplication.createdAt).toLocaleDateString("fr-FR", {
                               day: "numeric",
@@ -1022,7 +1022,7 @@ function PlayerOpportunitiesContent() {
                             <RefreshCw className="h-4 w-4 text-amber-600" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-slate-700">Derniere mise a jour</p>
+                            <p className="text-sm font-medium text-slate-700">Dernière mise à jour</p>
                             <p className="text-xs text-slate-400">
                               {new Date(selectedApplication.updatedAt).toLocaleDateString("fr-FR", {
                                 day: "numeric",
@@ -1125,7 +1125,7 @@ function PlayerOpportunitiesContent() {
             <AlertDialogTitle>Annuler cette candidature ?</AlertDialogTitle>
             <AlertDialogDescription>
               Votre candidature pour &quot;{selectedApplication?.listing.title}&quot; sera
-              definitivement supprimee. Le club sera notifie de votre retrait.
+              définitivement supprimée. Le club sera notifié de votre retrait.
               Cette action est irreversible.
             </AlertDialogDescription>
           </AlertDialogHeader>

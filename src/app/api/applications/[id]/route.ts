@@ -83,7 +83,7 @@ export async function DELETE(
         type: "APPLICATION_RECEIVED",
         title: "Candidature annulée",
         message: `${application.playerProfile.firstName} ${application.playerProfile.lastName} a annulé sa candidature pour "${application.listing.title}"`,
-        link: `/club/applications`,
+        link: `/club/recruitment`,
       },
     })
 

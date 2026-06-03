@@ -5,6 +5,12 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { handleApiError } from "@/lib/utils/api-helpers"
+import { isClubRole } from "@/lib/utils/role-helpers"
+import {
+  resolveClubContext,
+  canClubReadReport,
+  canClubEditReport,
+} from "@/lib/services/club-reports"
 
 export async function GET(
   request: NextRequest,
@@ -65,13 +71,18 @@ export async function GET(
         },
       })
 
-      if (agentProfile) {
+      if (agentProfile && report.subjectId) {
         const playerIds = agentProfile.mandates.map(m => m.playerProfileId)
         hasAccess = playerIds.includes(report.subjectId)
       }
     }
 
-    // TODO: Vérifier accessPolicy
+    if (!hasAccess && isClubRole(session.user.role)) {
+      const ctx = await resolveClubContext(session.user.id, session.user.role)
+      if (ctx) {
+        hasAccess = await canClubReadReport(id, ctx.clubProfileId)
+      }
+    }
 
     if (!hasAccess) {
       return NextResponse.json(
@@ -135,9 +146,16 @@ export async function PATCH(
           },
         },
       })
-      if (agentProfile) {
+      if (agentProfile && report.subjectId) {
         const playerIds = agentProfile.mandates.map(m => m.playerProfileId)
         canEdit = playerIds.includes(report.subjectId)
+      }
+    }
+
+    if (!canEdit && isClubRole(session.user.role)) {
+      const ctx = await resolveClubContext(session.user.id, session.user.role)
+      if (ctx) {
+        canEdit = await canClubEditReport(id, ctx.clubProfileId)
       }
     }
 
@@ -241,9 +259,16 @@ export async function DELETE(
           },
         },
       })
-      if (agentProfile) {
+      if (agentProfile && report.subjectId) {
         const playerIds = agentProfile.mandates.map(m => m.playerProfileId)
         canDelete = playerIds.includes(report.subjectId)
+      }
+    }
+
+    if (!canDelete && isClubRole(session.user.role)) {
+      const ctx = await resolveClubContext(session.user.id, session.user.role)
+      if (ctx) {
+        canDelete = await canClubEditReport(id, ctx.clubProfileId)
       }
     }
 

@@ -18,7 +18,7 @@ export async function GET(
     })
 
     if (!participant) {
-      return NextResponse.json({ error: "Acces interdit" }, { status: 403 })
+      return NextResponse.json({ error: "Accès interdit" }, { status: 403 })
     }
 
     const cursor = request.nextUrl.searchParams.get("cursor")
@@ -91,7 +91,7 @@ export async function POST(
     })
 
     if (!participant) {
-      return NextResponse.json({ error: "Acces interdit" }, { status: 403 })
+      return NextResponse.json({ error: "Accès interdit" }, { status: 403 })
     }
 
     const body = await request.json()

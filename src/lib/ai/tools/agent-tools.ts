@@ -136,7 +136,7 @@ export const agentTools: AITool[] = [
           type: "SUBMISSION_RECEIVED",
           title: "Nouvelle soumission d'agent",
           message: `${agentProfile.firstName} ${agentProfile.lastName} vous propose ${playerProfile.firstName} ${playerProfile.lastName}`,
-          link: `/club/applications/${submission.id}`,
+          link: `/club/recruitment`,
         }
       })
 

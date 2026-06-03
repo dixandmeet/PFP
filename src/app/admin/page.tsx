@@ -239,7 +239,7 @@ export default function AdminDashboard() {
                     }
                   : undefined
               }
-              description="vs semaine derniere"
+              description="vs semaine dernière"
             />
             <StatsCard
               variant="kpi"
@@ -306,7 +306,7 @@ export default function AdminDashboard() {
 
         {/* ── Section 3: Moderation & Activity ── */}
         <section>
-          <SectionTitle>Moderation & Activite</SectionTitle>
+          <SectionTitle>Moderation & Activité</SectionTitle>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">
             <StatsCard
               title="Candidatures en attente"
@@ -331,7 +331,7 @@ export default function AdminDashboard() {
 
         {/* ── Section 4: Recent Activity Feeds ── */}
         <section>
-          <SectionTitle>Activite recente</SectionTitle>
+          <SectionTitle>Activité récente</SectionTitle>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-3">
             {/* Recent Users */}
             <FeedCard title="Derniers inscrits" href="/admin/users">
@@ -367,8 +367,8 @@ export default function AdminDashboard() {
               ) : (
                 <EmptyState
                   icon={UserRound}
-                  message="Aucun utilisateur recent"
-                  actionLabel="Gerer les utilisateurs"
+                  message="Aucun utilisateur récent"
+                  actionLabel="Gérer les utilisateurs"
                   actionHref="/admin/users"
                 />
               )}
@@ -408,7 +408,7 @@ export default function AdminDashboard() {
               ) : (
                 <EmptyState
                   icon={MessageSquareText}
-                  message="Aucun post recent"
+                  message="Aucun post récent"
                   actionLabel="Voir le contenu"
                   actionHref="/admin/content"
                 />
@@ -451,7 +451,7 @@ export default function AdminDashboard() {
               ) : (
                 <EmptyState
                   icon={Activity}
-                  message="Aucune action AI recente"
+                  message="Aucune action AI récente"
                   actionLabel="Voir les logs"
                   actionHref="/admin/audit"
                 />

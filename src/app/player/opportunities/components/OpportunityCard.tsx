@@ -194,7 +194,7 @@ export function OpportunityCard({
             disabled
           >
             <CheckCircle className="mr-1.5 h-3.5 w-3.5" />
-            Deja postule
+            Déjà postule
           </Button>
         ) : (
           <Button

@@ -259,7 +259,7 @@ async function main() {
         type: "APPLICATION_RECEIVED",
         title: "Nouvelle candidature",
         message: "Kylian Dupont a postulé à votre annonce.",
-        link: `/club/applications/${application.id}`,
+        link: `/club/recruitment`,
       },
       {
         userId: agentUser.id,

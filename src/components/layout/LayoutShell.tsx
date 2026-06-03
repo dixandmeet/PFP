@@ -7,10 +7,12 @@ import { Sidebar } from "@/components/nav/Sidebar"
 import { GlobalSearch } from "@/components/nav/GlobalSearch"
 
 type Role = "PLAYER" | "AGENT" | "CLUB" | "CLUB_STAFF"
+type ClubMemberRole = "OWNER" | "ADMIN" | "STAFF" | "VIEWER"
 
 interface LayoutShellProps {
   role: Role
   clubActive?: boolean
+  clubMemberRole?: ClubMemberRole
   mainClassName: string
   searchBorderColor?: string
   children: React.ReactNode
@@ -19,6 +21,7 @@ interface LayoutShellProps {
 export function LayoutShell({
   role,
   clubActive,
+  clubMemberRole,
   mainClassName,
   searchBorderColor = "border-slate-200",
   children,
@@ -26,7 +29,7 @@ export function LayoutShell({
   return (
     <MobileNavProvider>
       <div className="flex h-screen overflow-hidden w-full">
-        <Sidebar role={role} clubActive={clubActive} />
+        <Sidebar role={role} clubActive={clubActive} clubMemberRole={clubMemberRole} />
         <main className={mainClassName} style={{ WebkitOverflowScrolling: "touch" }}>
           {/* Header mobile fixe (hamburger + logo + notif + search) */}
           <MobileHeader role={role} />
@@ -47,7 +50,7 @@ export function LayoutShell({
           </div>
 
           {/* Bottom navigation mobile */}
-          <MobileBottomNav role={role} />
+          <MobileBottomNav role={role} clubMemberRole={clubMemberRole} />
         </main>
       </div>
     </MobileNavProvider>

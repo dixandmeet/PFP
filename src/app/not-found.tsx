@@ -66,7 +66,7 @@ export default function NotFound() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          La page que vous cherchez n&apos;existe pas ou a ete deplacee.
+          La page que vous cherchez n&apos;existe pas ou a été déplacée.
           Retournez sur le terrain.
         </motion.p>
 
@@ -89,7 +89,7 @@ export default function NotFound() {
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            Retour a l&apos;accueil
+            Retour à l&apos;accueil
           </Link>
 
           <Link
@@ -111,7 +111,7 @@ export default function NotFound() {
             Profoot Profile
           </span>
           <span className="w-px h-4 bg-stadium-700" />
-          <span>Le reseau du football pro</span>
+          <span>Le réseau du football pro</span>
         </motion.div>
       </div>
     </div>

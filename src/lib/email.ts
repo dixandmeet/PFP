@@ -35,16 +35,21 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions) {
   }
 
   try {
-    const data = await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
       to,
       subject,
       html,
     })
 
+    if (error) {
+      console.error('[Email] Resend error:', error)
+      return { success: false, error }
+    }
+
     return { success: true, data }
   } catch (error) {
-    console.error('Error sending email:', error)
+    console.error('[Email] Network or unexpected error:', error)
     return { success: false, error }
   }
 }
@@ -768,11 +773,11 @@ export const emailTemplates = {
       ADMIN: "Administrateur",
       STAFF: "Staff",
       VIEWER: "Observateur",
-      OWNER: "Proprietaire",
+      OWNER: "Propriétaire",
     }
     const roleLabel = roleLabels[role] || role
     return {
-      subject: `${escapeHtml(inviterName)} vous invite a rejoindre son club - Profoot Profile`,
+      subject: `${escapeHtml(inviterName)} vous invite à rejoindre son club - Profoot Profile`,
       html: `
 <!DOCTYPE html>
 <html lang="fr">
@@ -798,16 +803,16 @@ export const emailTemplates = {
           <tr>
             <td style="padding: 40px;">
               <h2 style="margin: 0 0 16px; color: #18181b; font-size: 20px; font-weight: 600;">
-                Vous etes invite(e) a rejoindre un club
+                Vous êtes invité(e) à rejoindre un club
               </h2>
 
               <p style="margin: 0 0 24px; color: #52525b; font-size: 16px; line-height: 24px;">
-                <strong>${escapeHtml(inviterName)}</strong> vous invite a rejoindre son club sur Profoot Profile
+                <strong>${escapeHtml(inviterName)}</strong> vous invite à rejoindre son club sur Profoot Profile
                 en tant que <strong>${escapeHtml(roleLabel)}</strong>.
               </p>
 
               <p style="margin: 0 0 24px; color: #52525b; font-size: 16px; line-height: 24px;">
-                Cliquez sur le bouton ci-dessous pour accepter l'invitation et acceder a l'espace club.
+                Cliquez sur le bouton ci-dessous pour accepter l'invitation et accéder à l'espace club.
               </p>
 
               <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -848,7 +853,7 @@ export const emailTemplates = {
                 &copy; ${new Date().getFullYear()} Profoot Profile. Tous droits reserves.
               </p>
               <p style="margin: 0; color: #a1a1aa; font-size: 12px; text-align: center;">
-                Cet email a ete envoye automatiquement, merci de ne pas y repondre.
+                Cet email a été envoyé automatiquement, merci de ne pas y répondre.
               </p>
             </td>
           </tr>

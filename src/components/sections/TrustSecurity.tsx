@@ -40,7 +40,7 @@ const certifications = [
 
 export function TrustSecurity() {
   return (
-    <section id="securite" className="relative py-24 sm:py-28 md:py-36 overflow-hidden bg-[#0a0a0a]">
+    <section id="sécurité" className="relative py-24 sm:py-28 md:py-36 overflow-hidden bg-[#0a0a0a]">
       {/* Subtle gradient accents */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_-10%,rgba(34,197,94,0.08),transparent)]" />
       

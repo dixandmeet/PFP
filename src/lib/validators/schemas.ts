@@ -204,6 +204,73 @@ export const createReportSchema = z.object({
   accessPolicy: z.any().optional(),
 })
 
+export const externalPlayerSchema = z.object({
+  id: z.string().optional(),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  primaryPosition: z.string().optional(),
+  nationality: z.string().optional(),
+  currentClub: z.string().optional(),
+  submissionId: z.string().cuid().optional(),
+})
+
+export const matchManualSchema = z.object({
+  opponent: z.string().min(1),
+  date: z.string().min(1),
+  competition: z.string().min(1),
+  venue: z.string().optional(),
+  homeScore: z.number().int().optional(),
+  awayScore: z.number().int().optional(),
+  homeTeam: z.string().optional(),
+  awayTeam: z.string().optional(),
+  sportsDbEventId: z.string().optional(),
+})
+
+const reportSectionsSchema = z.array(z.object({
+  order: z.number().int().min(0),
+  title: z.string().min(1),
+  content: z.string().min(1),
+})).default([])
+
+export const createClubPlayerReportSchema = z.object({
+  reportKind: z.literal("PLAYER"),
+  title: z.string().min(1, "Titre requis"),
+  authorType: z.enum(["SCOUT", "COACH"]).default("SCOUT"),
+  subjectId: z.string().cuid().optional(),
+  externalPlayer: externalPlayerSchema.optional(),
+  sections: reportSectionsSchema,
+  attachments: z.array(z.string()).default([]),
+}).refine(
+  (data) => !!data.subjectId || !!data.externalPlayer,
+  { message: "Sélectionnez un joueur ou renseignez un joueur externe" }
+)
+
+export const createClubMatchReportSchema = z.object({
+  reportKind: z.literal("MATCH"),
+  title: z.string().min(1, "Titre requis"),
+  authorType: z.enum(["SCOUT", "COACH"]).default("COACH"),
+  footballMatchId: z.string().cuid().optional(),
+  matchManual: matchManualSchema.optional(),
+  sections: reportSectionsSchema,
+  attachments: z.array(z.string()).default([]),
+}).refine(
+  (data) => !!data.footballMatchId || !!data.matchManual,
+  { message: "Sélectionnez un match ou saisissez les informations manuellement" }
+)
+
+export const createClubReportSchema = z.union([
+  createClubPlayerReportSchema,
+  createClubMatchReportSchema,
+])
+
+export const updateClubReportSchema = z.object({
+  title: z.string().min(1).optional(),
+  status: z.enum(["DRAFT", "PENDING_APPROVAL", "APPROVED", "REJECTED"]).optional(),
+  authorType: z.enum(["SCOUT", "COACH", "PLAYER", "AGENT"]).optional(),
+  sections: reportSectionsSchema.optional(),
+  attachments: z.array(z.string()).optional(),
+})
+
 // Post
 // content est optionnel quand des médias sont présents (vidéo sans texte)
 export const createPostSchema = z.object({

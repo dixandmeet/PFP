@@ -54,7 +54,13 @@ export default function InviteAcceptPage() {
         const newRole = data.staffOnboarding ? "CLUB_STAFF" : "CLUB"
         await updateSession({ role: newRole })
         if (cancelled) return
-        router.replace(data.staffOnboarding ? "/club/staff-onboarding" : "/club/dashboard")
+        if (data.staffOnboarding && data.staffOnboardingComplete) {
+          router.replace("/club/dashboard")
+        } else if (data.staffOnboarding) {
+          router.replace("/club/staff-onboarding")
+        } else {
+          router.replace("/club/dashboard")
+        }
       } catch {
         if (!cancelled) {
           setStatus("error")

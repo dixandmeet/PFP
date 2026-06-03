@@ -84,6 +84,13 @@ interface Club {
   activeListingsCount: number
 }
 
+interface AgentReport {
+  id: string
+  title: string
+  status: string
+  subjectId: string | null
+}
+
 const statusConfig: Record<string, { label: string; bg: string; text: string; icon: typeof Clock }> = {
   SUBMITTED: { label: "Envoyée", bg: "bg-blue-50", text: "text-blue-700", icon: Send },
   UNDER_REVIEW: { label: "En cours", bg: "bg-amber-50", text: "text-amber-700", icon: Clock },
@@ -106,6 +113,9 @@ export default function AgentSubmissionsPage() {
   const [saving, setSaving] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [filterStatus, setFilterStatus] = useState<string>("ALL")
+  const [agentReports, setAgentReports] = useState<AgentReport[]>([])
+  const [selectedReportIds, setSelectedReportIds] = useState<string[]>([])
+  const [loadingReports, setLoadingReports] = useState(false)
 
   const {
     register,
@@ -165,6 +175,42 @@ export default function AgentSubmissionsPage() {
     loadData()
   }, [])
 
+  const selectedPlayerId = watch("playerProfileId")
+
+  useEffect(() => {
+    if (!selectedPlayerId) {
+      setAgentReports([])
+      setSelectedReportIds([])
+      return
+    }
+    async function loadReports() {
+      setLoadingReports(true)
+      try {
+        const res = await fetch("/api/reports")
+        if (!res.ok) return
+        const data = await res.json()
+        const filtered = (data.reports || []).filter(
+          (r: AgentReport) => r.subjectId === selectedPlayerId
+        )
+        setAgentReports(filtered)
+        setSelectedReportIds((prev) =>
+          prev.filter((id) => filtered.some((r: AgentReport) => r.id === id))
+        )
+      } finally {
+        setLoadingReports(false)
+      }
+    }
+    loadReports()
+  }, [selectedPlayerId])
+
+  const toggleReport = (reportId: string) => {
+    setSelectedReportIds((prev) =>
+      prev.includes(reportId)
+        ? prev.filter((id) => id !== reportId)
+        : [...prev, reportId]
+    )
+  }
+
   const onSubmit = async (data: SubmissionFormData) => {
     setSaving(true)
     try {
@@ -173,7 +219,7 @@ export default function AgentSubmissionsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
-          reportIds: [],
+          reportIds: selectedReportIds,
           attachments: [],
         }),
       })
@@ -192,6 +238,7 @@ export default function AgentSubmissionsPage() {
       })
 
       reset()
+      setSelectedReportIds([])
       setDialogOpen(false)
     } catch (error: any) {
       toast({
@@ -502,6 +549,47 @@ export default function AgentSubmissionsPage() {
                 Un snapshot du profil du joueur sera joint automatiquement
               </p>
             </div>
+
+            {selectedPlayerId && (
+              <div>
+                <Label className="text-sm font-medium text-slate-700 mb-2 block">
+                  Rapports à partager avec le club
+                </Label>
+                {loadingReports ? (
+                  <p className="text-xs text-slate-500">Chargement des rapports…</p>
+                ) : agentReports.length === 0 ? (
+                  <p className="text-xs text-slate-500 rounded-lg bg-slate-50 p-3">
+                    Aucun rapport pour ce joueur. Créez-en un dans{" "}
+                    <a href="/agent/reports" className="text-green-700 font-medium underline">
+                      Mes rapports
+                    </a>
+                    .
+                  </p>
+                ) : (
+                  <div className="max-h-40 space-y-2 overflow-y-auto rounded-xl border border-slate-200 p-2">
+                    {agentReports.map((report) => (
+                      <label
+                        key={report.id}
+                        className="flex cursor-pointer items-start gap-2 rounded-lg px-2 py-1.5 hover:bg-slate-50"
+                      >
+                        <input
+                          type="checkbox"
+                          className="mt-1"
+                          checked={selectedReportIds.includes(report.id)}
+                          onChange={() => toggleReport(report.id)}
+                        />
+                        <span className="text-sm text-slate-800">
+                          {report.title}
+                          <span className="ml-1 text-xs text-slate-400">
+                            ({report.status})
+                          </span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="flex gap-3 justify-end pt-3 border-t border-slate-100">
               <Button

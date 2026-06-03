@@ -30,6 +30,15 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { useSession } from "next-auth/react"
+
+function getReelsBackHref(role: string | undefined): string {
+  if (role === "ADMIN") return "/admin"
+  if (role === "CLUB") return "/club/dashboard"
+  if (role === "CLUB_STAFF") return "/club/dashboard"
+  if (role === "AGENT") return "/agent/dashboard"
+  return "/player/dashboard"
+}
 
 interface ReelUser {
   id: string
@@ -68,6 +77,8 @@ interface Reel {
 }
 
 export default function ReelsPage() {
+  const { data: session } = useSession()
+  const backHref = getReelsBackHref(session?.user?.role)
   const [reels, setReels] = useState<Reel[]>([])
   const [loading, setLoading] = useState(true)
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -481,7 +492,7 @@ export default function ReelsPage() {
               Il n&apos;y a pas encore de vidéos dans le feed. Publiez une vidéo pour créer le premier Reel !
             </p>
           </div>
-          <Link href="/player/dashboard">
+          <Link href={backHref}>
             <Button className="bg-gradient-to-r from-pitch-600 to-pitch-700 text-white font-semibold rounded-xl">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Retour au dashboard
@@ -542,7 +553,7 @@ export default function ReelsPage() {
             showControls ? "opacity-100" : "opacity-0"
           )}>
             <div className="flex items-center gap-3">
-              <Link href="/player/dashboard">
+              <Link href={backHref}>
                 <button className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all">
                   <ArrowLeft className="h-5 w-5 text-white" />
                 </button>

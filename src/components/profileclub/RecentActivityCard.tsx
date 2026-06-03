@@ -51,11 +51,11 @@ export function RecentActivityCard({
       )}
     >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-bold text-lg text-stadium-800">Activite recente</h3>
+        <h3 className="font-bold text-lg text-stadium-800">Activité récente</h3>
         {activities.length > 3 && (
           <button
             type="button"
-            aria-label="Voir toute l'activite"
+            aria-label="Voir toute l'activité"
             className="inline-flex items-center gap-1 text-sm font-medium text-pitch-600 hover:text-pitch-700 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pitch-500 rounded"
           >
             Voir tout
@@ -70,15 +70,15 @@ export function RecentActivityCard({
             <MessageSquare className="h-8 w-8 text-stadium-300" />
           </div>
           <p className="text-stadium-500 font-medium">
-            Aucune activite pour le moment
+            Aucune activité pour le moment
           </p>
           <p className="text-sm text-stadium-400 mt-1 mb-4">
-            Commencez par publier votre premiere annonce
+            Commencez par publier votre première annonce
           </p>
           <button
             type="button"
             onClick={() => router.push("/club/listings")}
-            aria-label="Publier votre premiere annonce"
+            aria-label="Publier votre première annonce"
             className={cn(
               "inline-flex items-center gap-2 px-4 py-2.5",
               "bg-pitch-600 hover:bg-pitch-700 text-white",
@@ -88,7 +88,7 @@ export function RecentActivityCard({
             )}
           >
             <Megaphone className="h-4 w-4" />
-            Publier votre premiere annonce
+            Publier votre première annonce
           </button>
         </div>
       ) : (

@@ -72,8 +72,26 @@ const nextConfig = {
       bodySizeLimit: '10mb',
     },
   },
+  async redirects() {
+    return [
+      {
+        source: '/club_staff/:path*',
+        destination: '/club/:path*',
+        permanent: false,
+      },
+    ]
+  },
   async headers() {
     const isDev = process.env.NODE_ENV === 'development'
+    const googleMapsScript = [
+      'https://maps.googleapis.com',
+      'https://maps.gstatic.com',
+    ]
+    const googleMapsConnect = [
+      'https://maps.googleapis.com',
+      'https://maps.gstatic.com',
+      'https://places.googleapis.com',
+    ]
     const scriptSrc = [
       "'self'",
       "'unsafe-inline'",
@@ -82,6 +100,7 @@ const nextConfig = {
       'https://challenges.cloudflare.com',
       'https://*.vercel-scripts.com',
       'https://*.sentry.io',
+      ...googleMapsScript,
     ].join(' ')
 
     return [
@@ -121,7 +140,7 @@ const nextConfig = {
               "img-src 'self' data: blob: https:",
               "media-src 'self' blob: https://*.public.blob.vercel-storage.com https://*.r2.cloudflarestorage.com https://*.amazonaws.com",
               "font-src 'self' https://fonts.gstatic.com",
-              "connect-src 'self' https://challenges.cloudflare.com https://*.stripe.com https://*.sentry.io https://*.r2.cloudflarestorage.com https://*.amazonaws.com https://*.vercel-insights.com https://*.public.blob.vercel-storage.com",
+              `connect-src 'self' https://challenges.cloudflare.com https://*.stripe.com https://*.sentry.io https://*.r2.cloudflarestorage.com https://*.amazonaws.com https://*.vercel-insights.com https://*.public.blob.vercel-storage.com ${googleMapsConnect.join(' ')}`,
               "frame-src 'self' https://js.stripe.com https://challenges.cloudflare.com",
               "object-src 'none'",
               "base-uri 'self'",

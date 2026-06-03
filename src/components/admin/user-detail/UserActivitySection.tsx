@@ -36,10 +36,10 @@ interface ActivityItem {
 const TEMPLATE_LABELS: Record<string, string> = {
   welcome: "Email de bienvenue",
   otp: "Code OTP",
-  verification: "Verification email",
+  verification: "Vérification email",
   club_submitted: "Club soumis",
-  club_approved: "Club approuve",
-  club_rejected: "Club rejete",
+  club_approved: "Club approuvé",
+  club_rejected: "Club rejeté",
   password_reset: "Reset mot de passe",
   invitation: "Invitation",
 }
@@ -158,7 +158,7 @@ export function UserActivitySection({
 
       {filteredItems.length === 0 ? (
         <p className="text-slate-500 text-sm text-center py-8">
-          Aucune activite
+          Aucune activité
         </p>
       ) : (
         <div className="relative">

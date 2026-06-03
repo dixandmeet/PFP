@@ -12,6 +12,7 @@ export type RateLimitScope =
   | "verify_email_get_ip"
   | "credit_op"
   | "search_ip"
+  | "places_autocomplete_ip"
 
 const PRUNE_OLDER_THAN_MS = 48 * 60 * 60 * 1000
 

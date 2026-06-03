@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react"
 import { Menu, X, ChevronDown, Users, Building2, Briefcase, ArrowRight } from "lucide-react"
 import { FootballIcon } from "@/components/auth/icons"
 import { cn } from "@/lib/utils"
+import { getDashboardPath } from "@/lib/utils/role-helpers"
 
 const navLinks = [
   { 
@@ -21,7 +22,7 @@ const navLinks = [
   },
   { href: "#how-it-works", label: "Comment ça marche" },
   { href: "#studio", label: "Studio", badge: "Nouveau" },
-  { href: "#securite", label: "Sécurité" },
+  { href: "#sécurité", label: "Sécurité" },
 ]
 
 export function TopNav() {
@@ -135,7 +136,7 @@ export function TopNav() {
               {status === "loading" ? (
                 <div className="h-9 w-24 rounded-lg animate-pulse bg-base-content/[0.04]" />
               ) : session?.user ? (
-                <Link href={session.user.role === 'ADMIN' ? '/admin' : `/${session.user.role?.toLowerCase() || 'player'}/dashboard`}>
+                <Link href={getDashboardPath(session.user.role ?? "PLAYER")}>
                   <button className="inline-flex items-center justify-center gap-2 px-4 py-2 text-[13px] font-semibold rounded-lg bg-base-content text-white hover:bg-base-content/90 transition-colors">
                     Mon espace
                     <ArrowRight className="w-3.5 h-3.5" />

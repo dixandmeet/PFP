@@ -3,7 +3,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
-import { isClubRole } from "@/lib/utils/role-helpers"
+
+import { getDashboardPath } from "@/lib/utils/role-helpers"
+import { getClubProfileForUser } from "@/lib/services/club-members"
+
+const IDENTITY_KYC_TYPES = ["IDENTITY_CARD", "PASSPORT", "DRIVING_LICENSE"] as const
 
 export async function GET() {
   try {
@@ -78,6 +82,10 @@ export async function GET() {
             bio: true,
             foundedYear: true,
             isVerified: true,
+            status: true,
+            officialEmail: true,
+            officialPhone: true,
+            address: true,
           }
         },
         clubStaffProfile: {
@@ -93,6 +101,11 @@ export async function GET() {
             skills: true,
           }
         },
+        kycDocuments: {
+          where: { type: { in: [...IDENTITY_KYC_TYPES] } },
+          select: { id: true },
+          take: 1,
+        },
       }
     })
 
@@ -106,27 +119,49 @@ export async function GET() {
     // Déterminer si l'utilisateur a complété son profil
     // Vérifie TOUS les profils (pas seulement celui du rôle actuel)
     // pour empêcher un changement de rôle si un profil existe déjà
-    const hasAnyProfile = !!(fullUser.playerProfile || fullUser.agentProfile || fullUser.clubProfile)
-    
-    // hasProfile = true si le profil correspondant au rôle actuel existe
+    const hasStaffProfile = !!(
+      fullUser.clubStaffProfile?.firstName?.trim() &&
+      fullUser.clubStaffProfile?.lastName?.trim()
+    )
+    const hasStaffIdentityKyc = fullUser.kycDocuments.length > 0
+
+    const hasAnyProfile = !!(
+      fullUser.playerProfile ||
+      fullUser.agentProfile ||
+      fullUser.clubProfile ||
+      fullUser.clubStaffProfile
+    )
+
     let hasProfile = false
     if (fullUser.role === "PLAYER" && fullUser.playerProfile) {
       hasProfile = true
     } else if (fullUser.role === "AGENT" && fullUser.agentProfile) {
       hasProfile = true
-    } else if (isClubRole(fullUser.role) && fullUser.clubProfile) {
+    } else if (fullUser.role === "CLUB" && fullUser.clubProfile) {
+      hasProfile = true
+    } else if (
+      fullUser.role === "CLUB_STAFF" &&
+      hasStaffProfile &&
+      hasStaffIdentityKyc
+    ) {
       hasProfile = true
     }
-    
-    // Si un profil existe pour N'IMPORTE QUEL rôle, on considère hasProfile = true
-    // pour empêcher l'accès à l'onboarding
+
     if (hasAnyProfile) {
       hasProfile = true
     }
 
+    const { kycDocuments: _kycDocuments, clubProfile: directClubProfile, ...userResponse } =
+      fullUser
+
+    const clubProfile =
+      directClubProfile ?? (await getClubProfileForUser(session.user.id))
+
     return NextResponse.json({
-      ...fullUser,
-      hasProfile
+      ...userResponse,
+      clubProfile,
+      hasProfile,
+      dashboardPath: getDashboardPath(fullUser.role),
     })
   } catch (error) {
     console.error("Error fetching user:", error)
@@ -139,7 +174,7 @@ export async function GET() {
 
 // PATCH: Update current user (role change during onboarding)
 const updateMeSchema = z.object({
-  role: z.enum(["PLAYER", "AGENT", "CLUB"]).optional(),
+  role: z.enum(["PLAYER", "AGENT", "CLUB", "CLUB_STAFF"]).optional(),
 })
 
 export async function PATCH(request: NextRequest) {
@@ -165,10 +200,15 @@ export async function PATCH(request: NextRequest) {
           playerProfile: { select: { id: true } },
           agentProfile: { select: { id: true } },
           clubProfile: { select: { id: true } },
+          clubStaffProfile: { select: { id: true } },
         }
       })
 
-      const hasAnyProfile = user?.playerProfile || user?.agentProfile || user?.clubProfile
+      const hasAnyProfile =
+        user?.playerProfile ||
+        user?.agentProfile ||
+        user?.clubProfile ||
+        user?.clubStaffProfile
       if (hasAnyProfile) {
         return NextResponse.json(
           { error: "Impossible de changer de rôle après avoir créé un profil" },

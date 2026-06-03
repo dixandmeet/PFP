@@ -1,4 +1,4 @@
-// API: Club Staff Profile — GET (lire) + PUT (mettre a jour)
+// API: Club Staff Profile — GET (lire) + PUT (mettre à jour)
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"

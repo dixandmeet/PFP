@@ -6,6 +6,8 @@ import { auth } from "@/lib/auth"
 import { handleApiError } from "@/lib/utils/api-helpers"
 import { isClubRole } from "@/lib/utils/role-helpers"
 import { createSubmissionSchema } from "@/lib/validators/schemas"
+import { getClubForUser } from "@/lib/services/club-members"
+import { grantReportClubAccess } from "@/lib/services/club-reports"
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,16 +38,11 @@ export async function GET(request: NextRequest) {
 
       where.agentProfileId = agentProfile.id
     } else if (isClubRole(session.user.role)) {
-      // Récupérer le profil club
-      const clubProfile = await prisma.clubProfile.findUnique({
-        where: { userId: session.user.id },
-      })
-
-      if (!clubProfile) {
+      const clubInfo = await getClubForUser(session.user.id)
+      if (!clubInfo) {
         return NextResponse.json({ submissions: [] })
       }
-
-      where.clubProfileId = clubProfile.id
+      where.clubProfileId = clubInfo.clubProfileId
     } else {
       return NextResponse.json(
         { error: "Accès refusé" },
@@ -91,7 +88,36 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
     })
 
-    return NextResponse.json({ submissions })
+    const allReportIds = [
+      ...new Set(submissions.flatMap((s) => s.reportIds)),
+    ]
+    const reportsById = new Map<string, object>()
+    if (allReportIds.length > 0) {
+      const reports = await prisma.playerReport.findMany({
+        where: { id: { in: allReportIds } },
+        include: {
+          subject: {
+            select: { id: true, firstName: true, lastName: true },
+          },
+          author: {
+            select: { id: true, firstName: true, lastName: true },
+          },
+          sections: { orderBy: { order: "asc" } },
+        },
+      })
+      for (const r of reports) {
+        reportsById.set(r.id, r)
+      }
+    }
+
+    const enriched = submissions.map((s) => ({
+      ...s,
+      reports: s.reportIds
+        .map((id) => reportsById.get(id))
+        .filter(Boolean),
+    }))
+
+    return NextResponse.json({ submissions: enriched })
   } catch (error) {
     return handleApiError(error)
   }
@@ -164,6 +190,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const reportIds = validatedData.reportIds || []
+    if (reportIds.length > 0) {
+      const reports = await prisma.playerReport.findMany({
+        where: { id: { in: reportIds } },
+        select: { id: true, subjectId: true },
+      })
+      if (reports.length !== reportIds.length) {
+        return NextResponse.json(
+          { error: "Un ou plusieurs rapports sont invalides" },
+          { status: 400 }
+        )
+      }
+      const invalid = reports.some(
+        (r) => r.subjectId !== validatedData.playerProfileId
+      )
+      if (invalid) {
+        return NextResponse.json(
+          { error: "Les rapports doivent concerner le joueur proposé" },
+          { status: 403 }
+        )
+      }
+    }
+
     // Créer la soumission
     const submission = await prisma.submission.create({
       data: {
@@ -188,7 +237,7 @@ export async function POST(request: NextRequest) {
             assists: entry.assists,
           })),
         },
-        reportIds: validatedData.reportIds || [],
+        reportIds,
         attachments: validatedData.attachments || [],
       },
       include: {
@@ -216,18 +265,44 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Créer une notification pour le club
-    await prisma.notification.create({
-      data: {
-        userId: submission.clubProfile.userId,
-        type: "SUBMISSION_RECEIVED",
-        title: "Nouvelle soumission agent",
-        message: `${agentProfile.firstName} ${agentProfile.lastName} vous propose ${playerProfile.firstName} ${playerProfile.lastName}`,
-        link: `/club/submissions`,
-      },
-    })
+    if (reportIds.length > 0) {
+      await grantReportClubAccess(
+        reportIds,
+        validatedData.clubProfileId,
+        submission.id
+      )
+    }
 
-    return NextResponse.json(submission, { status: 201 })
+    const notifyUserId = submission.clubProfile.userId
+    if (notifyUserId) {
+      await prisma.notification.create({
+        data: {
+          userId: notifyUserId,
+          type: "SUBMISSION_RECEIVED",
+          title: "Nouvelle soumission agent",
+          message: `${agentProfile.firstName} ${agentProfile.lastName} vous propose ${playerProfile.firstName} ${playerProfile.lastName}`,
+          link: `/club/submissions`,
+        },
+      })
+    }
+
+    const attachedReports =
+      reportIds.length > 0
+        ? await prisma.playerReport.findMany({
+            where: { id: { in: reportIds } },
+            include: {
+              subject: {
+                select: { id: true, firstName: true, lastName: true },
+              },
+              sections: { orderBy: { order: "asc" } },
+            },
+          })
+        : []
+
+    return NextResponse.json(
+      { ...submission, reports: attachedReports },
+      { status: 201 }
+    )
   } catch (error) {
     return handleApiError(error)
   }

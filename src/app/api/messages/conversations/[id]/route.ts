@@ -42,7 +42,7 @@ export async function GET(
     })
 
     if (!conversation) {
-      return NextResponse.json({ error: "Conversation non trouvee" }, { status: 404 })
+      return NextResponse.json({ error: "Conversation non trouvée" }, { status: 404 })
     }
 
     return NextResponse.json({ conversation })

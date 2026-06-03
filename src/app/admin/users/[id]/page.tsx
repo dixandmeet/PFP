@@ -282,8 +282,8 @@ export default function AdminUserDetailPage({
         setErrors({})
         setPendingCareerEntries(null)
         toast({
-          title: "Modifications enregistrees",
-          description: "Les informations de l'utilisateur ont ete mises a jour.",
+          title: "Modifications enregistrées",
+          description: "Les informations de l'utilisateur ont été mises à jour.",
         })
       } else {
         const data = await res.json()
@@ -364,7 +364,7 @@ export default function AdminUserDetailPage({
   }
 
   const handleDeletePost = async (postId: string) => {
-    if (!confirm("Supprimer ce post definitivement ?")) return
+    if (!confirm("Supprimer ce post définitivement ?")) return
     try {
       const res = await fetch(`/api/admin/posts/${postId}`, { method: "DELETE" })
       if (res.ok) {
@@ -405,7 +405,7 @@ export default function AdminUserDetailPage({
   return (
     <div>
       <AdminHeader
-        title="Detail utilisateur"
+        title="Détail utilisateur"
         description={getDisplayName()}
       />
 
@@ -446,7 +446,7 @@ export default function AdminUserDetailPage({
             {user.playerProfile && (
               <TabsTrigger value="career" className="gap-1.5">
                 <Briefcase className="h-3.5 w-3.5" />
-                Carriere ({user.playerProfile.careerEntries.length})
+                Carrière ({user.playerProfile.careerEntries.length})
               </TabsTrigger>
             )}
             <TabsTrigger value="posts" className="gap-1.5">
@@ -479,7 +479,7 @@ export default function AdminUserDetailPage({
             </TabsTrigger>
             <TabsTrigger value="activity" className="gap-1.5">
               <Activity className="h-3.5 w-3.5" />
-              Activite ({user.auditLogs.length + (user.emailLogs?.length || 0) + (user.notifications?.length || 0)})
+              Activité ({user.auditLogs.length + (user.emailLogs?.length || 0) + (user.notifications?.length || 0)})
             </TabsTrigger>
           </TabsList>
 
@@ -504,7 +504,7 @@ export default function AdminUserDetailPage({
             </div>
           </TabsContent>
 
-          {/* Carriere (Joueur uniquement) */}
+          {/* Carrière (Joueur uniquement) */}
           {user.playerProfile && (
             <TabsContent value="career">
               <UserCareerSection
@@ -641,7 +641,7 @@ export default function AdminUserDetailPage({
             />
           </TabsContent>
 
-          {/* Activite */}
+          {/* Activité */}
           <TabsContent value="activity">
             <UserActivitySection
               auditLogs={user.auditLogs}

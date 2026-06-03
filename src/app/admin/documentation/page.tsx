@@ -501,20 +501,20 @@ function PlayerDoc() {
         </AccordionContent>
       </AccordionItem>
 
-      {/* Param&egrave;tres */}
+      {/* Param&egrave;très */}
       <AccordionItem value="settings" className="border rounded-lg px-4">
         <AccordionTrigger className="hover:no-underline">
           <div className="flex items-center">
             <SectionIcon icon={Settings} color="bg-slate-600" />
             <div className="text-left">
-              <p className="font-semibold text-slate-900">Param&egrave;tres</p>
+              <p className="font-semibold text-slate-900">Param&egrave;très</p>
               <p className="text-xs text-slate-500 font-normal">G&eacute;rer ton compte et ta confidentialit&eacute;</p>
             </div>
           </div>
         </AccordionTrigger>
         <AccordionContent>
           <DocSection>
-            <p><strong>A quoi &ccedil;a sert ?</strong> Les param&egrave;tres te permettent de g&eacute;rer les informations de ton compte, ta s&eacute;curit&eacute; et ta visibilit&eacute;.</p>
+            <p><strong>A quoi &ccedil;a sert ?</strong> Les param&egrave;très te permettent de g&eacute;rer les informations de ton compte, ta s&eacute;curit&eacute; et ta visibilit&eacute;.</p>
 
             <p className="font-medium text-slate-800 mt-3">Sections disponibles :</p>
             <ul className="list-disc list-inside space-y-2 ml-1">
@@ -798,13 +798,13 @@ function AgentDoc() {
         </AccordionContent>
       </AccordionItem>
 
-      {/* Recherche, Messages, Notifications, Cr&eacute;dits, Param&egrave;tres */}
+      {/* Recherche, Messages, Notifications, Cr&eacute;dits, Param&egrave;très */}
       <AccordionItem value="other" className="border rounded-lg px-4">
         <AccordionTrigger className="hover:no-underline">
           <div className="flex items-center">
             <SectionIcon icon={Settings} color="bg-slate-600" />
             <div className="text-left">
-              <p className="font-semibold text-slate-900">Recherche, Messages, Notifications, Cr&eacute;dits et Param&egrave;tres</p>
+              <p className="font-semibold text-slate-900">Recherche, Messages, Notifications, Cr&eacute;dits et Param&egrave;très</p>
               <p className="text-xs text-slate-500 font-normal">Fonctionnalit&eacute;s communes</p>
             </div>
           </div>
@@ -817,7 +817,7 @@ function AgentDoc() {
               <li><strong>Messages</strong> : messagerie centralis&eacute;e avec les joueurs et clubs</li>
               <li><strong>Notifications</strong> : alertes en temps r&eacute;el (mandats, soumissions, interactions)</li>
               <li><strong>Cr&eacute;dits</strong> : portefeuille, recharge, abonnement, retraits et historique</li>
-              <li><strong>Param&egrave;tres</strong> : email, mot de passe, suppression de compte</li>
+              <li><strong>Param&egrave;très</strong> : email, mot de passe, suppression de compte</li>
             </ul>
           </DocSection>
         </AccordionContent>
@@ -945,13 +945,13 @@ function ClubDoc() {
         </AccordionContent>
       </AccordionItem>
 
-      {/* Equipes & Staff */}
+      {/* Équipes & Staff */}
       <AccordionItem value="teams" className="border rounded-lg px-4">
         <AccordionTrigger className="hover:no-underline">
           <div className="flex items-center">
             <SectionIcon icon={Users} color="bg-purple-500" />
             <div className="text-left">
-              <p className="font-semibold text-slate-900">Equipes et Staff</p>
+              <p className="font-semibold text-slate-900">Équipes et Staff</p>
               <p className="text-xs text-slate-500 font-normal">Organiser tes &eacute;quipes, joueurs et encadrement</p>
             </div>
           </div>
@@ -1187,7 +1187,7 @@ function ClubDoc() {
           <div className="flex items-center">
             <SectionIcon icon={Settings} color="bg-slate-600" />
             <div className="text-left">
-              <p className="font-semibold text-slate-900">Recherche, Messages, Cr&eacute;dits et Param&egrave;tres</p>
+              <p className="font-semibold text-slate-900">Recherche, Messages, Cr&eacute;dits et Param&egrave;très</p>
               <p className="text-xs text-slate-500 font-normal">Fonctionnalit&eacute;s communes</p>
             </div>
           </div>
@@ -1199,7 +1199,7 @@ function ClubDoc() {
               <li><strong>Recherche</strong> : trouver des joueurs par nom, position ou nationalit&eacute;</li>
               <li><strong>Messages</strong> : communiquer avec les joueurs et agents</li>
               <li><strong>Cr&eacute;dits</strong> : portefeuille, recharge, abonnement et historique des transactions</li>
-              <li><strong>Param&egrave;tres</strong> : modifier l&apos;email, le mot de passe, ou supprimer le compte (supprime le club et toutes les donn&eacute;es associ&eacute;es)</li>
+              <li><strong>Param&egrave;très</strong> : modifier l&apos;email, le mot de passe, ou supprimer le compte (supprime le club et toutes les donn&eacute;es associ&eacute;es)</li>
             </ul>
           </DocSection>
         </AccordionContent>
@@ -1564,24 +1564,24 @@ function AdminDoc() {
         </AccordionContent>
       </AccordionItem>
 
-      {/* Param&egrave;tres */}
+      {/* Param&egrave;très */}
       <AccordionItem value="settings" className="border rounded-lg px-4">
         <AccordionTrigger className="hover:no-underline">
           <div className="flex items-center">
             <SectionIcon icon={Settings} color="bg-slate-500" />
             <div className="text-left">
-              <p className="font-semibold text-slate-900">Param&egrave;tres</p>
+              <p className="font-semibold text-slate-900">Param&egrave;très</p>
               <p className="text-xs text-slate-500 font-normal">Configuration de la plateforme</p>
             </div>
           </div>
         </AccordionTrigger>
         <AccordionContent>
           <DocSection>
-            <p><strong>A quoi &ccedil;a sert ?</strong> Les param&egrave;tres permettent de configurer le comportement g&eacute;n&eacute;ral de la plateforme.</p>
+            <p><strong>A quoi &ccedil;a sert ?</strong> Les param&egrave;très permettent de configurer le comportement g&eacute;n&eacute;ral de la plateforme.</p>
 
             <p className="font-medium text-slate-800 mt-3">Sections :</p>
             <ul className="list-disc list-inside space-y-2 ml-1">
-              <li><strong>Param&egrave;tres g&eacute;n&eacute;raux</strong> : mode maintenance, inscriptions ouvertes</li>
+              <li><strong>Param&egrave;très g&eacute;n&eacute;raux</strong> : mode maintenance, inscriptions ouvertes</li>
               <li><strong>Notifications admin</strong> : activer/d&eacute;sactiver les alertes (nouvel utilisateur, v&eacute;rification, signalement)</li>
               <li><strong>S&eacute;curit&eacute;</strong> : limite d&apos;actions IA par heure, validation 2 &eacute;tapes pour les actions IA</li>
               <li><strong>Base de donn&eacute;es</strong> : statut de connexion, provider utilis&eacute;</li>

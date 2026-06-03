@@ -116,7 +116,7 @@ export default function CookiesPage() {
             </p>
             <ul className="list-disc pl-6 text-stadium-600 space-y-2 mb-4">
               <li>Via le <strong>module de gestion des cookies</strong> accessible en pied de page</li>
-              <li>Via les <strong>param&egrave;tres de votre navigateur</strong></li>
+              <li>Via les <strong>param&egrave;très de votre navigateur</strong></li>
             </ul>
 
             <h3 className="text-lg font-medium text-stadium-800 mb-2">Param&eacute;trage par navigateur :</h3>

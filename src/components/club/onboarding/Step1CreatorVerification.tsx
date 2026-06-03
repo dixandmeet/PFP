@@ -35,6 +35,7 @@ import {
   Send,
   RefreshCw,
   Info,
+  ArrowLeft,
 } from "lucide-react"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -66,11 +67,12 @@ type Step1State =
 
 interface Step1Props {
   onVerified: (email: string) => void
+  onBack?: () => void
 }
 
 // ─── Composant principal ─────────────────────────────────────────────────────
 
-export function Step1CreatorVerification({ onVerified }: Step1Props) {
+export function Step1CreatorVerification({ onVerified, onBack }: Step1Props) {
   const [state, setState] = useState<Step1State>("idle")
   const [foundUser, setFoundUser] = useState<UserSearchResult>(null)
   const [searchedEmail, setSearchedEmail] = useState("")
@@ -323,6 +325,18 @@ export function Step1CreatorVerification({ onVerified }: Step1Props) {
     state === "sending_otp" ||
     state === "verifying_otp"
 
+  const handleBack = useCallback(() => {
+    if (state === "idle" || state === "searching") {
+      onBack?.()
+      return
+    }
+    handleReset()
+  }, [state, onBack, handleReset])
+
+  const showBackButton =
+    state !== "otp_verified" &&
+    (state === "idle" || state === "searching" ? !!onBack : true)
+
   return (
     <div className="space-y-6">
       <div>
@@ -375,8 +389,14 @@ export function Step1CreatorVerification({ onVerified }: Step1Props) {
               </Alert>
             )}
 
-            <div className="flex gap-3">
-              <Button type="button" variant="outline" onClick={handleReset}>
+            <div className="flex flex-col-reverse sm:flex-row gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleReset}
+                className="border-stadium-200"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
                 Retour
               </Button>
               <Button
@@ -672,6 +692,23 @@ export function Step1CreatorVerification({ onVerified }: Step1Props) {
                 )}
               </div>
             )}
+          </div>
+        )}
+
+      {showBackButton &&
+        state !== "otp_sent" &&
+        state !== "verifying_otp" && (
+          <div className="pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleBack}
+              disabled={isLoading}
+              className="border-stadium-200"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Retour
+            </Button>
           </div>
         )}
 

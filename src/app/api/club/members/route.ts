@@ -19,7 +19,7 @@ export async function GET() {
     }
 
     if (!isClubRole(session.user.role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 })
+      return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
     }
 
     const clubInfo = await getClubForUser(session.user.id)
@@ -35,7 +35,7 @@ export async function GET() {
           { status: 403 }
         )
       }
-      return NextResponse.json({ error: "Club non trouve" }, { status: 404 })
+      return NextResponse.json({ error: "Club non trouvé" }, { status: 404 })
     }
 
     const members = await listMembers(clubInfo.clubProfileId)
@@ -60,17 +60,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (!isClubRole(session.user.role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 })
+      return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
     }
 
     const clubInfo = await getClubForUser(session.user.id)
     if (!clubInfo) {
-      return NextResponse.json({ error: "Club non trouve" }, { status: 404 })
+      return NextResponse.json({ error: "Club non trouvé" }, { status: 404 })
     }
 
     if (clubInfo.role !== "OWNER" && clubInfo.role !== "ADMIN") {
       return NextResponse.json(
-        { error: "Seuls les proprietaires et admins peuvent inviter des membres" },
+        { error: "Seuls les propriétaires et admins peuvent inviter des membres" },
         { status: 403 }
       )
     }
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     const parsed = inviteClubMemberSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Donnees invalides", details: parsed.error.flatten().fieldErrors },
+        { error: "Données invalides", details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       )
     }
@@ -135,13 +135,13 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (!isClubRole(session.user.role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 })
+      return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
     }
 
     const clubInfo = await getClubForUser(session.user.id)
     if (!clubInfo || clubInfo.role !== "OWNER") {
       return NextResponse.json(
-        { error: "Seul le proprietaire peut modifier les roles" },
+        { error: "Seul le propriétaire peut modifier les roles" },
         { status: 403 }
       )
     }
@@ -150,7 +150,7 @@ export async function PATCH(request: NextRequest) {
     const parsed = changeRoleSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Donnees invalides", details: parsed.error.flatten().fieldErrors },
+        { error: "Données invalides", details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       )
     }
@@ -178,13 +178,13 @@ export async function DELETE(request: NextRequest) {
     }
 
     if (!isClubRole(session.user.role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 })
+      return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
     }
 
     const clubInfo = await getClubForUser(session.user.id)
     if (!clubInfo || (clubInfo.role !== "OWNER" && clubInfo.role !== "ADMIN")) {
       return NextResponse.json(
-        { error: "Seuls les proprietaires et admins peuvent retirer des membres" },
+        { error: "Seuls les propriétaires et admins peuvent retirer des membres" },
         { status: 403 }
       )
     }
@@ -193,7 +193,7 @@ export async function DELETE(request: NextRequest) {
     const parsed = removeMemberSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Donnees invalides", details: parsed.error.flatten().fieldErrors },
+        { error: "Données invalides", details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       )
     }

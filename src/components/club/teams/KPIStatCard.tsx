@@ -8,9 +8,11 @@ interface KPIStatCardProps {
   value: number
   icon: LucideIcon
   iconClassName?: string
+  /** Texte secondaire sous le label (ex. « sur 5 », « Bientôt »). */
+  hint?: string
 }
 
-export function KPIStatCard({ label, value, icon: Icon, iconClassName }: KPIStatCardProps) {
+export function KPIStatCard({ label, value, icon: Icon, iconClassName, hint }: KPIStatCardProps) {
   return (
     <div
       className={cn(
@@ -29,6 +31,9 @@ export function KPIStatCard({ label, value, icon: Icon, iconClassName }: KPIStat
       <div className="min-w-0">
         <p className="text-2xl font-bold leading-none text-stadium-900">{value}</p>
         <p className="mt-1 text-xs font-medium text-stadium-500 truncate">{label}</p>
+        {hint && (
+          <p className="mt-0.5 text-[10px] text-stadium-400 truncate">{hint}</p>
+        )}
       </div>
     </div>
   )

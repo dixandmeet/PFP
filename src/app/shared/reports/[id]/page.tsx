@@ -76,10 +76,10 @@ export default function SharedReportPage() {
         const response = await fetch(`/api/reports/shared/${params.id}`)
         if (!response.ok) {
           if (response.status === 403) {
-            throw new Error("Vous n'avez pas acces a ce rapport")
+            throw new Error("Vous n'avez pas accès à ce rapport")
           }
           if (response.status === 404) {
-            throw new Error("Rapport non trouve")
+            throw new Error("Rapport non trouvé")
           }
           throw new Error("Erreur lors du chargement")
         }
@@ -118,7 +118,7 @@ export default function SharedReportPage() {
           <ClipboardList className="h-12 w-12 text-stadium-300 mx-auto mb-3" />
           <p className="text-lg font-semibold text-stadium-700">Rapport inaccessible</p>
           <p className="text-sm text-stadium-500 mt-1">
-            Ce rapport n&apos;existe pas ou vous n&apos;y avez pas acces.
+            Ce rapport n&apos;existe pas ou vous n&apos;y avez pas accès.
           </p>
           <button
             onClick={() => router.back()}

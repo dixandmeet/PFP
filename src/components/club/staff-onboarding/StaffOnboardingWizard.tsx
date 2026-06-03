@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation"
 import { StaffOnboardingStepper, type StaffStepKey } from "./StaffOnboardingStepper"
 import { StaffStep1Profile } from "./StaffStep1Profile"
 import { StaffStep2Kyc } from "./StaffStep2Kyc"
-import { Loader2, AlertCircle, CheckCircle2, PartyPopper } from "lucide-react"
+import { StaffStep3InviteWait, type PendingInvite } from "./StaffStep3InviteWait"
+import { Loader2, AlertCircle, PartyPopper } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 type OnboardingStep = StaffStepKey | "DONE"
@@ -28,6 +29,21 @@ interface StaffOnboardingState {
     fileSize: number | null
     createdAt: string
   }>
+  pendingInvites?: PendingInvite[]
+}
+
+function completedStepsForStep(step: OnboardingStep): string[] {
+  const completed: string[] = []
+  if (step === "KYC" || step === "INVITE" || step === "DONE") {
+    completed.push("PROFILE")
+  }
+  if (step === "INVITE" || step === "DONE") {
+    completed.push("KYC")
+  }
+  if (step === "DONE") {
+    completed.push("INVITE")
+  }
+  return completed
 }
 
 export function StaffOnboardingWizard() {
@@ -52,17 +68,14 @@ export function StaffOnboardingWizard() {
 
       if (step === "DONE") {
         setDone(true)
-        setCompletedSteps(["PROFILE", "KYC"])
+        setCompletedSteps(completedStepsForStep("DONE"))
         return
       }
 
-      setCurrentStep(step)
-
-      const completed: string[] = []
-      if (step === "KYC") {
-        completed.push("PROFILE")
+      if (step === "PROFILE" || step === "KYC" || step === "INVITE") {
+        setCurrentStep(step)
+        setCompletedSteps(completedStepsForStep(step))
       }
-      setCompletedSteps(completed)
     } catch {
       setError("Impossible de charger les données. Veuillez rafraîchir la page.")
     } finally {
@@ -101,11 +114,15 @@ export function StaffOnboardingWizard() {
         </div>
         <h2 className="text-2xl font-bold text-pitch-900">Inscription terminée !</h2>
         <p className="text-pitch-600 text-center max-w-md">
-          Bienvenue dans l'équipe de <strong>{state?.clubName}</strong>.
-          Vous pouvez maintenant accéder à l'espace club.
+          Bienvenue dans l&apos;équipe de{" "}
+          <strong>{state?.clubName || "votre club"}</strong>. Vous pouvez
+          maintenant accéder à l&apos;espace club.
         </p>
         <Button onClick={() => router.push("/club/dashboard")}>
           Accéder au dashboard
+        </Button>
+        <Button variant="outline" onClick={() => router.push("/club/staff/profile")}>
+          Retour au profil
         </Button>
       </div>
     )
@@ -122,7 +139,7 @@ export function StaffOnboardingWizard() {
         <StaffStep1Profile
           profile={state?.staffProfile || null}
           onComplete={() => {
-            setCompletedSteps((prev) => [...prev, "PROFILE"])
+            setCompletedSteps(completedStepsForStep("KYC"))
             setCurrentStep("KYC")
             loadState()
           }}
@@ -132,13 +149,30 @@ export function StaffOnboardingWizard() {
       {currentStep === "KYC" && (
         <StaffStep2Kyc
           existingDocs={state?.kycDocuments || []}
-          onComplete={() => {
-            setCompletedSteps((prev) => [...prev, "KYC"])
-            setDone(true)
+          onComplete={(nextStep) => {
+            if (nextStep === "DONE") {
+              setCompletedSteps(completedStepsForStep("DONE"))
+              setDone(true)
+              loadState()
+              return
+            }
+            setCompletedSteps(completedStepsForStep("INVITE"))
+            setCurrentStep("INVITE")
+            loadState()
           }}
           onBack={() => {
             setCurrentStep("PROFILE")
-            setCompletedSteps((prev) => prev.filter((s) => s !== "PROFILE"))
+            setCompletedSteps([])
+          }}
+        />
+      )}
+
+      {currentStep === "INVITE" && (
+        <StaffStep3InviteWait
+          pendingInvites={state?.pendingInvites || []}
+          onBack={() => {
+            setCurrentStep("KYC")
+            setCompletedSteps(completedStepsForStep("KYC"))
           }}
         />
       )}

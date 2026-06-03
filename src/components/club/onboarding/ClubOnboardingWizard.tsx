@@ -1,18 +1,18 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { OnboardingStepper, type StepKey as StepperStepKey } from "./OnboardingStepper"
 import { Step1CreatorVerification } from "./Step1CreatorVerification"
 import { Step2ClubInfo } from "./Step2ClubInfo"
 import { Step3KycDocuments } from "./Step3KycDocuments"
 import { Step4Submit } from "./Step4Submit"
-import { Loader2, AlertCircle, Clock, CheckCircle2 } from "lucide-react"
+import { Loader2, AlertCircle, CheckCircle2, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
 
 type StepKey = "CREATOR" | "CLUB_INFO" | "KYC" | "SUBMIT" | "DONE"
 
-interface OnboardingSession {
+export interface OnboardingSession {
   id: string
   currentStep: StepKey
   creatorOtpVerifiedAt: string | null
@@ -43,36 +43,72 @@ interface OnboardingSession {
   } | null
 }
 
-export function ClubOnboardingWizard() {
-  const [session, setSession] = useState<OnboardingSession | null>(null)
-  const [currentStep, setCurrentStep] = useState<StepKey>("CREATOR")
-  const [completedSteps, setCompletedSteps] = useState<StepKey[]>([])
-  const [loading, setLoading] = useState(true)
+function completedStepsFromSession(data: OnboardingSession): StepKey[] {
+  const completed: StepKey[] = []
+  if (data.creatorOtpVerifiedAt) completed.push("CREATOR")
+  if (data.clubId) completed.push("CLUB_INFO")
+  if ((data.club?.kycDocuments?.length ?? 0) >= 3) completed.push("KYC")
+  if (data.club?.status === "PENDING_REVIEW") completed.push("SUBMIT")
+  return completed
+}
+
+function normalizeOnboardingSession(raw: OnboardingSession): OnboardingSession {
+  return {
+    ...raw,
+    creatorOtpVerifiedAt: raw.creatorOtpVerifiedAt
+      ? String(raw.creatorOtpVerifiedAt)
+      : null,
+    club: raw.club
+      ? {
+          ...raw.club,
+          kycDocuments: raw.club.kycDocuments.map((d) => ({
+            ...d,
+            uploadedAt: String(d.uploadedAt),
+          })),
+        }
+      : null,
+  }
+}
+
+interface ClubOnboardingWizardProps {
+  initialSession?: OnboardingSession | null
+}
+
+export function ClubOnboardingWizard({
+  initialSession = null,
+}: ClubOnboardingWizardProps) {
+  const router = useRouter()
+  const normalizedInitial = initialSession
+    ? normalizeOnboardingSession(initialSession)
+    : null
+
+  const [session, setSession] = useState<OnboardingSession | null>(
+    normalizedInitial
+  )
+  const [currentStep, setCurrentStep] = useState<StepKey>(
+    normalizedInitial?.currentStep ?? "CREATOR"
+  )
+  const [completedSteps, setCompletedSteps] = useState<StepKey[]>(
+    normalizedInitial ? completedStepsFromSession(normalizedInitial) : []
+  )
+  const [loading, setLoading] = useState(!normalizedInitial)
   const [error, setError] = useState("")
 
-  // Charger la session d'onboarding existante
+  const applySession = useCallback((data: OnboardingSession) => {
+    const normalized = normalizeOnboardingSession(data)
+    setSession(normalized)
+    setCurrentStep(normalized.currentStep)
+    setCompletedSteps(completedStepsFromSession(normalized))
+  }, [])
+
+  // Rechargement client après une action (OTP, sauvegarde, etc.)
   const loadSession = useCallback(async () => {
     try {
       const res = await fetch("/api/onboarding/session")
       if (res.ok) {
         const data = await res.json()
         if (data.session) {
-          setSession(data.session)
-          setCurrentStep(data.session.currentStep)
-
-          // Calculer les étapes complétées
-          const completed: StepKey[] = []
-          if (data.session.creatorOtpVerifiedAt) completed.push("CREATOR")
-          if (data.session.clubId) completed.push("CLUB_INFO")
-          if (
-            data.session.club?.kycDocuments?.length >= 3
-          ) {
-            completed.push("KYC")
-          }
-          if (data.session.club?.status === "PENDING_REVIEW") {
-            completed.push("SUBMIT")
-          }
-          setCompletedSteps(completed)
+          applySession(data.session)
         }
       }
     } catch {
@@ -80,11 +116,15 @@ export function ClubOnboardingWizard() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [applySession])
 
   useEffect(() => {
-    loadSession()
-  }, [loadSession])
+    if (!normalizedInitial) {
+      loadSession()
+    } else {
+      setLoading(false)
+    }
+  }, [normalizedInitial, loadSession])
 
   // Handlers de navigation
   const handleCreatorVerified = (email: string) => {
@@ -108,7 +148,7 @@ export function ClubOnboardingWizard() {
 
   const handleSubmitted = () => {
     setCompletedSteps((prev) => [...new Set([...prev, "SUBMIT" as StepKey])])
-    setCurrentStep("DONE")
+    router.replace("/club/dashboard")
   }
 
   if (loading) {
@@ -119,44 +159,45 @@ export function ClubOnboardingWizard() {
     )
   }
 
-  // Club déjà actif
-  if (session?.club?.status === "ACTIVE") {
-    return (
-      <div className="text-center py-12 space-y-6">
-        <div className="w-16 h-16 rounded-full bg-pitch-100 flex items-center justify-center mx-auto">
-          <CheckCircle2 className="w-8 h-8 text-pitch-600" />
-        </div>
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">
-            Club déjà activé !
-          </h2>
-          <p className="text-gray-500 mt-2">
-            Votre club <strong>{session.club.clubName}</strong> est actif.
-          </p>
-        </div>
-        <Link href="/club/dashboard">
-          <Button>Accéder au tableau de bord</Button>
-        </Link>
-      </div>
-    )
-  }
+  const clubStatus = session?.club?.status
 
-  // Club en attente de review
-  if (session?.club?.status === "PENDING_REVIEW") {
+  if (clubStatus === "ACTIVE" || clubStatus === "PENDING_REVIEW") {
+    const isActive = clubStatus === "ACTIVE"
     return (
-      <div className="text-center py-12 space-y-6">
-        <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto">
-          <Clock className="w-8 h-8 text-amber-600" />
+      <div className="flex flex-col items-center justify-center py-16 space-y-6">
+        <div
+          className={`inline-flex items-center justify-center w-20 h-20 rounded-full ${
+            isActive ? "bg-green-100" : "bg-amber-100"
+          }`}
+        >
+          {isActive ? (
+            <CheckCircle2 className="w-10 h-10 text-green-600" />
+          ) : (
+            <Clock className="w-10 h-10 text-amber-600" />
+          )}
         </div>
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">
-            En cours de vérification
+        <div className="text-center max-w-md space-y-2">
+          <h2 className="text-2xl font-bold text-stadium-900">
+            {isActive ? "Club enregistré" : "Demande en cours de vérification"}
           </h2>
-          <p className="text-gray-500 mt-2 max-w-md mx-auto">
-            Votre demande pour <strong>{session.club.clubName}</strong> est en
-            cours d&apos;examen par notre équipe. Vous recevrez un email dès que la
-            vérification sera terminée (24-48h).
+          <p className="text-stadium-600">
+            {isActive ? (
+              <>
+                <strong>{session?.club?.clubName}</strong> est actif sur Profoot Profile.
+              </>
+            ) : (
+              <>
+                La demande pour <strong>{session?.club?.clubName}</strong> est en cours
+                d&apos;examen par notre équipe.
+              </>
+            )}
           </p>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Button onClick={() => router.push("/club/dashboard")}>Retour au dashboard</Button>
+          <Button variant="outline" onClick={() => router.push("/club/profile")}>
+            Voir le profil club
+          </Button>
         </div>
       </div>
     )
@@ -211,9 +252,12 @@ export function ClubOnboardingWizard() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+      <div className="bg-white rounded-2xl border border-stadium-200 p-6 md:p-8 shadow-sm">
         {currentStep === "CREATOR" && (
-          <Step1CreatorVerification onVerified={handleCreatorVerified} />
+          <Step1CreatorVerification
+            onVerified={handleCreatorVerified}
+            onBack={() => router.back()}
+          />
         )}
 
         {currentStep === "CLUB_INFO" && (
@@ -267,22 +311,6 @@ export function ClubOnboardingWizard() {
           />
         )}
 
-        {currentStep === "DONE" && (
-          <div className="text-center py-12 space-y-6">
-            <div className="w-16 h-16 rounded-full bg-pitch-100 flex items-center justify-center mx-auto">
-              <Clock className="w-8 h-8 text-pitch-600" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">
-                Demande soumise !
-              </h2>
-              <p className="text-gray-500 mt-2 max-w-md mx-auto">
-                Votre demande est en cours de vérification. Vous recevrez un
-                email dès que notre équipe aura examiné votre dossier.
-              </p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )

@@ -1,6 +1,6 @@
 "use client"
 
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,9 +10,22 @@ import {
   clubInfoSchema,
   type ClubInfoFormData,
 } from "@/lib/validators/club-onboarding-schemas"
-import { Loader2, ArrowLeft, ArrowRight } from "lucide-react"
-import { useState } from "react"
-import { COUNTRIES } from "@/lib/constants/countries"
+import {
+  Loader2,
+  ArrowLeft,
+  ArrowRight,
+  Building2,
+  Scale,
+  Mail,
+  Trophy,
+  GraduationCap,
+  Users,
+} from "lucide-react"
+import { useState, type ReactNode } from "react"
+import { COUNTRIES, getCountryIsoCode } from "@/lib/constants/countries"
+import { AddressAutocomplete } from "@/components/ui/address-autocomplete"
+import { cn } from "@/lib/utils"
+import type { LucideIcon } from "lucide-react"
 
 interface Step2Props {
   defaultValues?: Partial<ClubInfoFormData>
@@ -22,10 +35,83 @@ interface Step2Props {
 }
 
 const CLUB_TYPES = [
-  { value: "PRO", label: "Club professionnel" },
-  { value: "AMATEUR", label: "Club amateur" },
-  { value: "ACADEMY", label: "Centre de formation" },
-] as const
+  { value: "PRO" as const, label: "Professionnel", icon: Trophy },
+  { value: "AMATEUR" as const, label: "Amateur", icon: Users },
+  { value: "ACADEMY" as const, label: "Centre de formation", icon: GraduationCap },
+]
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null
+  return <p className="text-sm text-red-600 mt-1.5">{message}</p>
+}
+
+function FormSection({
+  icon: Icon,
+  title,
+  description,
+  optional,
+  children,
+}: {
+  icon: LucideIcon
+  title: string
+  description?: string
+  optional?: boolean
+  children: ReactNode
+}) {
+  return (
+    <section className="rounded-2xl border border-stadium-200/90 bg-white p-5 md:p-6 shadow-sm space-y-5">
+      <div className="flex items-start gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pitch-500 to-pitch-600 text-white shadow-sm">
+          <Icon className="h-5 w-5" aria-hidden />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-base font-semibold text-stadium-900">{title}</h3>
+            {optional && (
+              <span className="inline-flex items-center rounded-full bg-stadium-100 px-2.5 py-0.5 text-xs font-medium text-stadium-600">
+                Optionnel
+              </span>
+            )}
+          </div>
+          {description && (
+            <p className="text-sm text-stadium-500 mt-0.5">{description}</p>
+          )}
+        </div>
+      </div>
+      {children}
+    </section>
+  )
+}
+
+function FieldGroup({
+  id,
+  label,
+  required,
+  error,
+  children,
+  className,
+}: {
+  id: string
+  label: string
+  required?: boolean
+  error?: string
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <div className={className}>
+      <Label htmlFor={id} className="text-stadium-700 font-medium">
+        {label}
+        {required && <span className="text-pitch-600 ml-0.5">*</span>}
+      </Label>
+      <div className="mt-1.5">{children}</div>
+      <FieldError message={error} />
+    </div>
+  )
+}
+
+const inputClassName =
+  "h-11 border-stadium-200 bg-stadium-50/50 focus-visible:ring-pitch-500/30 focus-visible:border-pitch-400"
 
 export function Step2ClubInfo({ defaultValues, clubId, onSaved, onBack }: Step2Props) {
   const [saving, setSaving] = useState(false)
@@ -50,10 +136,10 @@ export function Step2ClubInfo({ defaultValues, clubId, onSaved, onBack }: Step2P
     },
   })
 
-  const watchCountry = form.watch("country")
-  const isFrance =
-    watchCountry?.toUpperCase() === "FR" ||
-    watchCountry?.toLowerCase() === "france"
+  const selectedClubType = form.watch("clubType")
+  const selectedCountry = form.watch("country")
+  const countryIso = getCountryIsoCode(selectedCountry || "")
+  const { errors } = form.formState
 
   const onSubmit = async (data: ClubInfoFormData) => {
     setSaving(true)
@@ -75,7 +161,6 @@ export function Step2ClubInfo({ defaultValues, clubId, onSaved, onBack }: Step2P
 
       if (!res.ok) {
         if (json.details) {
-          // Mapper les erreurs serveur vers les champs du formulaire
           Object.entries(json.details).forEach(([field, messages]) => {
             form.setError(field as keyof ClubInfoFormData, {
               message: Array.isArray(messages) ? messages[0] : String(messages),
@@ -96,237 +181,265 @@ export function Step2ClubInfo({ defaultValues, clubId, onSaved, onBack }: Step2P
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900">
+      <div className="space-y-1">
+        <h2 className="text-xl font-bold text-stadium-900 tracking-tight">
           Informations du club
         </h2>
-        <p className="text-sm text-gray-500 mt-1">
-          Renseignez les informations légales et de contact de votre club.
+        <p className="text-sm text-stadium-500 leading-relaxed">
+          Renseignez l&apos;identité et les coordonnées de votre club. Les informations
+          légales peuvent être complétées plus tard.
         </p>
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Identité */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="md:col-span-2">
-            <Label htmlFor="clubName">Nom officiel du club *</Label>
-            <Input
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        <FormSection
+          icon={Building2}
+          title="Identité du club"
+          description="Nom, localisation et type de structure"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+            <FieldGroup
               id="clubName"
-              {...form.register("clubName")}
-              placeholder="FC Exemple"
-              className="mt-1"
-            />
-            {form.formState.errors.clubName && (
-              <p className="text-sm text-red-500 mt-1">
-                {form.formState.errors.clubName.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="country">Pays *</Label>
-            <Combobox
-              options={COUNTRIES}
-              value={form.watch("country")}
-              onValueChange={(val) => {
-                form.setValue("country", val, { shouldValidate: true })
-                // Reset city when country changes
-                if (val !== form.getValues("country")) {
-                  form.setValue("city", "")
-                }
-              }}
-              placeholder="Sélectionner un pays"
-              searchPlaceholder="Rechercher un pays…"
-              emptyText="Aucun pays trouvé"
-              buttonClassName="mt-1"
-            />
-            {form.formState.errors.country && (
-              <p className="text-sm text-red-500 mt-1">
-                {form.formState.errors.country.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="city">Ville *</Label>
-            <Input
-              id="city"
-              {...form.register("city")}
-              placeholder="Paris"
-              className="mt-1"
-            />
-            {form.formState.errors.city && (
-              <p className="text-sm text-red-500 mt-1">
-                {form.formState.errors.city.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="yearFounded">Année de fondation *</Label>
-            <Input
-              id="yearFounded"
-              type="number"
-              {...form.register("yearFounded", { valueAsNumber: true })}
-              placeholder="1920"
-              className="mt-1"
-            />
-            {form.formState.errors.yearFounded && (
-              <p className="text-sm text-red-500 mt-1">
-                {form.formState.errors.yearFounded.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="clubType">Type de club *</Label>
-            <select
-              id="clubType"
-              {...form.register("clubType")}
-              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              label="Nom officiel du club"
+              required
+              error={errors.clubName?.message}
+              className="md:col-span-2"
             >
-              <option value="">Sélectionner...</option>
-              {CLUB_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-            {form.formState.errors.clubType && (
-              <p className="text-sm text-red-500 mt-1">
-                {form.formState.errors.clubType.message}
-              </p>
-            )}
-          </div>
-        </div>
+              <Input
+                id="clubName"
+                {...form.register("clubName")}
+                placeholder="FC Exemple"
+                className={inputClassName}
+              />
+            </FieldGroup>
 
-        {/* Informations légales */}
-        <div className="border-t pt-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-4">
-            Informations légales
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="legalForm">Forme juridique *</Label>
+            <FieldGroup
+              id="country"
+              label="Pays"
+              required
+              error={errors.country?.message}
+            >
+              <Combobox
+                options={COUNTRIES}
+                value={form.watch("country")}
+                onValueChange={(val) => {
+                  form.setValue("country", val, { shouldValidate: true })
+                }}
+                placeholder="Sélectionner un pays"
+                searchPlaceholder="Rechercher un pays…"
+                emptyText="Aucun pays trouvé"
+                buttonClassName="h-11 border-stadium-200 bg-stadium-50/50"
+              />
+            </FieldGroup>
+
+            <FieldGroup id="city" label="Ville" required error={errors.city?.message}>
+              <Input
+                id="city"
+                {...form.register("city")}
+                placeholder="Paris"
+                className={inputClassName}
+              />
+            </FieldGroup>
+
+            <FieldGroup
+              id="yearFounded"
+              label="Année de fondation"
+              required
+              error={errors.yearFounded?.message}
+            >
+              <Input
+                id="yearFounded"
+                type="number"
+                {...form.register("yearFounded", { valueAsNumber: true })}
+                placeholder="1920"
+                className={inputClassName}
+              />
+            </FieldGroup>
+
+            <div className="md:col-span-2">
+              <Label className="text-stadium-700 font-medium">
+                Type de club<span className="text-pitch-600 ml-0.5">*</span>
+              </Label>
+              <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {CLUB_TYPES.map((t) => {
+                  const Icon = t.icon
+                  const selected = selectedClubType === t.value
+                  return (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() =>
+                        form.setValue("clubType", t.value, {
+                          shouldValidate: true,
+                        })
+                      }
+                      className={cn(
+                        "flex flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 text-center transition-all",
+                        selected
+                          ? "border-pitch-500 bg-pitch-50 shadow-sm"
+                          : "border-stadium-200 bg-stadium-50/30 hover:border-stadium-300 hover:bg-white"
+                      )}
+                    >
+                      <Icon
+                        className={cn(
+                          "h-6 w-6",
+                          selected ? "text-pitch-600" : "text-stadium-400"
+                        )}
+                        aria-hidden
+                      />
+                      <span
+                        className={cn(
+                          "text-sm font-medium",
+                          selected ? "text-pitch-800" : "text-stadium-700"
+                        )}
+                      >
+                        {t.label}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+              <FieldError message={errors.clubType?.message} />
+            </div>
+          </div>
+        </FormSection>
+
+        <FormSection
+          icon={Scale}
+          title="Informations légales"
+          description="Forme juridique, immatriculation et affiliation fédérale"
+          optional
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+            <FieldGroup id="legalForm" label="Forme juridique" error={errors.legalForm?.message}>
               <Input
                 id="legalForm"
                 {...form.register("legalForm")}
-                placeholder="Association loi 1901, SASP..."
-                className="mt-1"
+                placeholder="Association loi 1901, SASP…"
+                className={inputClassName}
               />
-              {form.formState.errors.legalForm && (
-                <p className="text-sm text-red-500 mt-1">
-                  {form.formState.errors.legalForm.message}
-                </p>
-              )}
-            </div>
+            </FieldGroup>
 
-            <div>
-              <Label htmlFor="registrationNumber">
-                N° SIRET/RNA {isFrance ? "*" : "(optionnel)"}
-              </Label>
+            <FieldGroup
+              id="registrationNumber"
+              label="N° SIRET / RNA"
+              error={errors.registrationNumber?.message}
+            >
               <Input
                 id="registrationNumber"
                 {...form.register("registrationNumber")}
                 placeholder="123 456 789 00012"
-                className="mt-1"
+                className={inputClassName}
               />
-              {form.formState.errors.registrationNumber && (
-                <p className="text-sm text-red-500 mt-1">
-                  {form.formState.errors.registrationNumber.message}
-                </p>
-              )}
-            </div>
+            </FieldGroup>
 
-            <div>
-              <Label htmlFor="federation">Fédération (optionnel)</Label>
+            <FieldGroup id="federation" label="Fédération">
               <Input
                 id="federation"
                 {...form.register("federation")}
-                placeholder="FFF, FIFA..."
-                className="mt-1"
+                placeholder="FFF, FIFA…"
+                className={inputClassName}
               />
-            </div>
+            </FieldGroup>
 
-            <div>
-              <Label htmlFor="federationNumber">
-                N° d&apos;affiliation (optionnel)
-              </Label>
+            <FieldGroup id="federationNumber" label="N° d'affiliation">
               <Input
                 id="federationNumber"
                 {...form.register("federationNumber")}
                 placeholder="123456"
-                className="mt-1"
+                className={inputClassName}
               />
-            </div>
+            </FieldGroup>
           </div>
-        </div>
+        </FormSection>
 
-        {/* Contact */}
-        <div className="border-t pt-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-4">Contact</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="officialEmail">Email officiel *</Label>
+        <FormSection
+          icon={Mail}
+          title="Contact officiel"
+          description="Coordonnées utilisées pour les échanges avec Profoot Profile"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+            <FieldGroup
+              id="officialEmail"
+              label="Email officiel"
+              required
+              error={errors.officialEmail?.message}
+            >
               <Input
                 id="officialEmail"
                 type="email"
                 {...form.register("officialEmail")}
                 placeholder="contact@club.com"
-                className="mt-1"
+                className={inputClassName}
               />
-              {form.formState.errors.officialEmail && (
-                <p className="text-sm text-red-500 mt-1">
-                  {form.formState.errors.officialEmail.message}
-                </p>
-              )}
-            </div>
+            </FieldGroup>
 
-            <div>
-              <Label htmlFor="officialPhone">Téléphone officiel *</Label>
+            <FieldGroup
+              id="officialPhone"
+              label="Téléphone officiel"
+              required
+              error={errors.officialPhone?.message}
+            >
               <Input
                 id="officialPhone"
                 type="tel"
                 {...form.register("officialPhone")}
                 placeholder="+33 1 23 45 67 89"
-                className="mt-1"
+                className={inputClassName}
               />
-              {form.formState.errors.officialPhone && (
-                <p className="text-sm text-red-500 mt-1">
-                  {form.formState.errors.officialPhone.message}
-                </p>
-              )}
-            </div>
+            </FieldGroup>
 
-            <div className="md:col-span-2">
-              <Label htmlFor="address">Adresse complète *</Label>
-              <Input
-                id="address"
-                {...form.register("address")}
-                placeholder="123 Rue du Stade, 75001 Paris"
-                className="mt-1"
+            <FieldGroup
+              id="address"
+              label="Adresse complète"
+              required
+              error={errors.address?.message}
+              className="md:col-span-2"
+            >
+              <Controller
+                name="address"
+                control={form.control}
+                render={({ field }) => (
+                  <AddressAutocomplete
+                    id="address"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    countryRestriction={countryIso}
+                    placeholder="Commencez à saisir votre adresse…"
+                    className={inputClassName}
+                  />
+                )}
               />
-              {form.formState.errors.address && (
-                <p className="text-sm text-red-500 mt-1">
-                  {form.formState.errors.address.message}
+              {!selectedCountry && (
+                <p className="text-xs text-stadium-500 mt-1.5">
+                  Sélectionnez un pays pour affiner les suggestions d&apos;adresse.
                 </p>
               )}
-            </div>
+            </FieldGroup>
           </div>
-        </div>
+        </FormSection>
 
         {serverError && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
             <p className="text-sm text-red-700">{serverError}</p>
           </div>
         )}
 
-        <div className="flex gap-3 pt-4">
-          <Button type="button" variant="outline" onClick={onBack}>
+        <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onBack}
+            className="border-stadium-200"
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour
           </Button>
-          <Button type="submit" disabled={saving} className="flex-1">
+          <Button
+            type="submit"
+            disabled={saving}
+            className="flex-1 bg-pitch-600 hover:bg-pitch-700 h-11"
+          >
             {saving ? (
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
             ) : (

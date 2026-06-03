@@ -128,7 +128,7 @@ function AgentOpportunitiesContent() {
       setError(true)
       toast({
         title: "Erreur",
-        description: "Impossible de charger les donnees",
+        description: "Impossible de charger les données",
         variant: "destructive",
       })
     } finally {
@@ -208,7 +208,7 @@ function AgentOpportunitiesContent() {
     if (!selectedListing || !selectedPlayerId) {
       toast({
         title: "Champs requis",
-        description: "Veuillez selectionner un joueur",
+        description: "Veuillez sélectionner un joueur",
         variant: "destructive",
       })
       return
@@ -234,7 +234,7 @@ function AgentOpportunitiesContent() {
 
       toast({
         title: "Joueur soumis",
-        description: "Votre soumission a ete envoyee au club avec succes",
+        description: "Votre soumission a été envoyée au club avec succès",
       })
 
       setSubmitDialogOpen(false)
@@ -298,7 +298,7 @@ function AgentOpportunitiesContent() {
     } catch {
       toast({
         title: "Erreur",
-        description: "Erreur reseau",
+        description: "Erreur réseau",
         variant: "destructive",
       })
       return false
@@ -404,7 +404,7 @@ function AgentOpportunitiesContent() {
               <Search className="h-6 w-6 text-slate-400" />
             </div>
             <p className="text-sm font-medium text-slate-700 mb-1">
-              Aucune annonce trouvee
+              Aucune annonce trouvée
             </p>
             <p className="text-xs text-slate-500 mb-4">
               Essayez de modifier vos filtres ou revenez plus tard
@@ -498,7 +498,7 @@ function AgentOpportunitiesContent() {
           <div className="space-y-5 mt-2">
             <div>
               <Label className="text-sm font-medium text-slate-700 mb-2 block">
-                Selectionnez un joueur
+                Sélectionnez un joueur
               </Label>
               {loadingPlayers ? (
                 <div className="flex items-center gap-2 p-3 text-sm text-slate-500">
@@ -510,7 +510,7 @@ function AgentOpportunitiesContent() {
                   <Users className="h-6 w-6 text-slate-400 mx-auto mb-2" />
                   <p className="text-sm text-slate-600 font-medium">Aucun joueur</p>
                   <p className="text-xs text-slate-400 mt-1">
-                    Vous devez d'abord ajouter des joueurs a votre portefeuille
+                    Vous devez d'abord ajouter des joueurs à votre portefeuille
                   </p>
                 </div>
               ) : (

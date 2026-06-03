@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Crown, Star, Check, ArrowRight, Settings } from "lucide-react"
+import { Crown, Star, Check, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface PremiumUpsellCardProps {
@@ -21,41 +21,7 @@ export function PremiumUpsellCard({
   const router = useRouter()
 
   if (isPremium) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={cn(
-          "bg-gradient-to-br from-pitch-50 to-pitch-100 rounded-2xl p-5 border border-pitch-200",
-          className
-        )}
-      >
-        <div className="flex items-center gap-3 mb-3">
-          <div className="p-2.5 bg-pitch-500 rounded-xl">
-            <Crown className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <h3 className="font-bold text-pitch-800">Vous etes Premium</h3>
-            <p className="text-xs text-pitch-600">Toutes les fonctionnalites sont actives</p>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => router.push("/club/premium")}
-          aria-label="Gerer mon abonnement Premium"
-          className={cn(
-            "w-full inline-flex items-center justify-center gap-2 px-4 py-2",
-            "text-sm font-medium text-pitch-700",
-            "border border-pitch-300 bg-white hover:bg-pitch-50",
-            "rounded-xl transition-colors duration-200",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pitch-500"
-          )}
-        >
-          <Settings className="h-4 w-4" />
-          Gerer mon abonnement
-        </button>
-      </motion.div>
-    )
+    return null
   }
 
   const showFullVersion = hasCreatedListing || profileComplete
@@ -77,7 +43,7 @@ export function PremiumUpsellCard({
           </h3>
         </div>
         <ul className="space-y-1.5 mb-3">
-          {["Badge verifie", "Analytics avances", "Annonces illimitees"].map(
+          {["Badge vérifié", "Analytics avances", "Annonces illimitées"].map(
             (item) => (
               <li
                 key={item}
@@ -126,10 +92,10 @@ export function PremiumUpsellCard({
             <span className="font-bold text-base">Premium</span>
           </div>
           <p className="text-sm text-white/90 mb-3">
-            Debloquez toutes les fonctionnalites et boostez votre visibilite
+            Débloquez toutes les fonctionnalités et boostez votre visibilité
           </p>
           <ul className="space-y-1.5 text-sm mb-4">
-            {["Badge verifie", "Analytics avances", "Annonces illimitees"].map(
+            {["Badge vérifié", "Analytics avances", "Annonces illimitées"].map(
               (item) => (
                 <li key={item} className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-gold-200" />

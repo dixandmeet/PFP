@@ -95,6 +95,18 @@ enum ReportStatus {
   REJECTED
 }
 
+enum ReportKind {
+  PLAYER
+  MATCH
+}
+
+enum ReportSource {
+  CLUB
+  AGENT
+  PLAYER
+  SUBMISSION
+}
+
 enum NotificationType {
   MANDATE_REQUEST
   MANDATE_ACCEPTED
@@ -207,6 +219,9 @@ model User {
   // Messaging
   conversations ConversationParticipant[]
   sentMessages  Message[]
+
+  // Rapports créés par le staff club
+  clubReportsCreated PlayerReport[] @relation("ClubReportCreator")
 
   // Système de crédits
   subscription             Subscription?
@@ -455,6 +470,8 @@ model ClubProfile {
   kycDocuments      ClubKycDocument[]
   onboardingSession ClubOnboardingSession?
   members           ClubMember[]
+  reports           PlayerReport[]
+  reportClubAccess  ReportClubAccess[]
 
   @@index([userId])
   @@index([country])
@@ -636,15 +653,32 @@ model Submission {
 model PlayerReport {
   id String @id @default(cuid())
 
-  // Sujet du rapport
-  subjectId String
-  subject   PlayerProfile @relation("ReportSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+  reportKind ReportKind   @default(PLAYER)
+  source     ReportSource?
 
-  // Auteur du rapport (peut être le joueur lui-même ou un tiers)
-  authorId String
-  author   PlayerProfile @relation("ReportAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  // Sujet du rapport (joueur PFP — optionnel pour match / joueur externe)
+  subjectId String?
+  subject   PlayerProfile? @relation("ReportSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+
+  // Auteur legacy (player/agent — optionnel pour rapports club)
+  authorId String?
+  author   PlayerProfile? @relation("ReportAuthor", fields: [authorId], references: [id], onDelete: Cascade)
 
   authorType String // "PLAYER", "AGENT", "SCOUT", "COACH"
+
+  // Propriété club
+  clubProfileId   String?
+  clubProfile     ClubProfile? @relation(fields: [clubProfileId], references: [id], onDelete: Cascade)
+  createdByUserId String?
+  createdByUser   User?        @relation("ClubReportCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  // Joueur externe (soumission agent sans profil PFP)
+  externalPlayer Json?
+
+  // Rapport match
+  footballMatchId String?
+  footballMatch   FootballMatch? @relation(fields: [footballMatchId], references: [id], onDelete: SetNull)
+  matchManual     Json?
 
   title     String
   shareSlug String?      @unique // slug lisible pour les liens partagés
@@ -656,7 +690,7 @@ model PlayerReport {
 
   attachments String[] // S3 keys
 
-  // Permissions d'accès (JSON: { userIds: [...], roles: [...] })
+  // Permissions d'accès (JSON: { clubProfileIds: [...], userIds: [...] })
   accessPolicy Json?
 
   approvedBy String? // UserId qui a approuvé (si tiers)
@@ -667,10 +701,28 @@ model PlayerReport {
 
   // Messaging
   messageAttachments MessageAttachment[]
+  clubAccess         ReportClubAccess[]
 
   @@index([subjectId])
   @@index([authorId])
   @@index([status])
+  @@index([clubProfileId])
+  @@index([reportKind])
+  @@index([footballMatchId])
+}
+
+model ReportClubAccess {
+  id            String       @id @default(cuid())
+  reportId      String
+  report        PlayerReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  clubProfileId String
+  clubProfile   ClubProfile  @relation(fields: [clubProfileId], references: [id], onDelete: Cascade)
+  submissionId  String?
+  grantedAt     DateTime     @default(now())
+
+  @@unique([reportId, clubProfileId])
+  @@index([clubProfileId])
+  @@index([submissionId])
 }
 
 model ReportSection {
@@ -1196,6 +1248,8 @@ model FootballMatch {
   lastSyncedAt DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+
+  reports PlayerReport[]
 
   @@index([homeTeamId])
   @@index([awayTeamId])

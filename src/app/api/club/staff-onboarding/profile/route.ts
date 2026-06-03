@@ -23,21 +23,13 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
     }
 
-    // Vérifier que le membre est à l'étape PROFILE
     const member = await prisma.clubMember.findFirst({
       where: { userId: session.user.id, status: "ACTIVE" },
       select: { id: true, staffOnboardingStep: true },
     })
 
-    if (!member) {
-      return NextResponse.json({ error: "Aucun membership actif" }, { status: 404 })
-    }
-
-    if (member.staffOnboardingStep !== "PROFILE") {
-      return NextResponse.json(
-        { error: "Étape incorrecte" },
-        { status: 400 }
-      )
+    if (member && member.staffOnboardingStep && member.staffOnboardingStep !== "PROFILE") {
+      return NextResponse.json({ error: "Étape incorrecte" }, { status: 400 })
     }
 
     const body = await request.json()
@@ -52,7 +44,6 @@ export async function PUT(request: NextRequest) {
 
     const data = parsed.data
 
-    // Upsert le profil staff
     await prisma.clubStaffProfile.upsert({
       where: { userId: session.user.id },
       update: {
@@ -72,11 +63,12 @@ export async function PUT(request: NextRequest) {
       },
     })
 
-    // Avancer vers l'étape KYC
-    await prisma.clubMember.update({
-      where: { id: member.id },
-      data: { staffOnboardingStep: "KYC" },
-    })
+    if (member) {
+      await prisma.clubMember.update({
+        where: { id: member.id },
+        data: { staffOnboardingStep: "KYC" },
+      })
+    }
 
     return NextResponse.json({ success: true, step: "KYC" })
   } catch (error) {

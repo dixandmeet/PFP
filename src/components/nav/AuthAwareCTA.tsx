@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { getDashboardPath } from "@/lib/utils/role-helpers"
 
 interface AuthAwareCTAProps {
   variant?: "hero" | "final"
@@ -14,8 +15,8 @@ interface AuthAwareCTAProps {
 export function AuthAwareCTA({ variant = "hero", className }: AuthAwareCTAProps) {
   const { data: session, status } = useSession()
   
-  const dashboardUrl = session?.user 
-    ? `/${session.user.role?.toLowerCase() || 'player'}/dashboard`
+  const dashboardUrl = session?.user?.role
+    ? getDashboardPath(session.user.role)
     : null
 
   if (status === "loading") {

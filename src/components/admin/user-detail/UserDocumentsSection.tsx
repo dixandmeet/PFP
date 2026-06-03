@@ -55,14 +55,14 @@ interface UserDocumentsSectionProps {
 }
 
 const documentTypeConfig: Record<string, { label: string; icon: typeof FileText; description: string }> = {
-  IDENTITY_CARD: { label: "Carte d'identite", icon: CreditCard, description: "Recto/verso de la carte d'identite" },
+  IDENTITY_CARD: { label: "Carte d'identité", icon: CreditCard, description: "Recto/verso de la carte d'identité" },
   PASSPORT: { label: "Passeport", icon: Shield, description: "Page photo du passeport" },
-  DRIVING_LICENSE: { label: "Permis de conduire", icon: Car, description: "Permis de conduire en cours de validite" },
+  DRIVING_LICENSE: { label: "Permis de conduire", icon: Car, description: "Permis de conduire en cours de validité" },
   PROOF_OF_ADDRESS: { label: "Justificatif de domicile", icon: Home, description: "Facture ou attestation de moins de 3 mois" },
   AGENT_LICENSE: { label: "Licence d'agent", icon: FileCheck, description: "Licence ou certification d'agent sportif" },
   CLUB_REGISTRATION: { label: "Enregistrement club", icon: Building2, description: "Document officiel d'enregistrement du club" },
-  BANK_DETAILS: { label: "RIB / Coordonnees bancaires", icon: Landmark, description: "Releve d'identite bancaire" },
-  OTHER: { label: "Autre document", icon: File, description: "Document complementaire" },
+  BANK_DETAILS: { label: "RIB / Coordonnees bancaires", icon: Landmark, description: "Releve d'identité bancaire" },
+  OTHER: { label: "Autre document", icon: File, description: "Document complémentaire" },
 }
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
@@ -128,10 +128,10 @@ export function UserDocumentsSection({ documents, userId, onRefresh }: UserDocum
 
       if (!docRes.ok) {
         const err = await docRes.json().catch(() => ({}))
-        throw new Error(err.error || "Impossible de creer le document")
+        throw new Error(err.error || "Impossible de créer le document")
       }
 
-      toast({ title: "Document ajoute avec succes" })
+      toast({ title: "Document ajoute avec succès" })
       setUploadDialogOpen(false)
       setUploadFile(null)
       setUploadType("IDENTITY_CARD")
@@ -163,11 +163,11 @@ export function UserDocumentsSection({ documents, userId, onRefresh }: UserDocum
       })
 
       if (!res.ok) {
-        throw new Error("Impossible de mettre a jour le document")
+        throw new Error("Impossible de mettre à jour le document")
       }
 
       toast({
-        title: reviewStatus === "APPROVED" ? "Document approuve" : "Document rejete",
+        title: reviewStatus === "APPROVED" ? "Document approuvé" : "Document rejeté",
       })
       setReviewDialogOpen(false)
       setSelectedDoc(null)
@@ -177,7 +177,7 @@ export function UserDocumentsSection({ documents, userId, onRefresh }: UserDocum
     } catch (error) {
       toast({
         title: "Erreur",
-        description: "Impossible de mettre a jour le statut",
+        description: "Impossible de mettre à jour le statut",
         variant: "destructive",
       })
     } finally {
@@ -186,7 +186,7 @@ export function UserDocumentsSection({ documents, userId, onRefresh }: UserDocum
   }
 
   const handleDelete = async (docId: string) => {
-    if (!confirm("Supprimer ce document definitivement ?")) return
+    if (!confirm("Supprimer ce document définitivement ?")) return
 
     try {
       const res = await fetch(`/api/admin/users/${userId}/documents?documentId=${docId}`, {
@@ -232,7 +232,7 @@ export function UserDocumentsSection({ documents, userId, onRefresh }: UserDocum
               <span className="text-amber-600 font-medium"> · {pendingCount} en attente</span>
             )}
             {approvedCount > 0 && (
-              <span className="text-emerald-600 font-medium"> · {approvedCount} approuve{approvedCount !== 1 ? "s" : ""}</span>
+              <span className="text-emerald-600 font-medium"> · {approvedCount} approuvé{approvedCount !== 1 ? "s" : ""}</span>
             )}
           </p>
         </div>
@@ -280,7 +280,7 @@ export function UserDocumentsSection({ documents, userId, onRefresh }: UserDocum
           <FileText className="h-12 w-12 text-slate-300 mx-auto mb-3" />
           <p className="text-sm font-medium text-slate-500">Aucun document KYC</p>
           <p className="text-xs text-slate-400 mt-1">
-            Ajoutez des documents pour la verification d&apos;identite
+            Ajoutez des documents pour la vérification d&apos;identité
           </p>
           <Button
             size="sm"
@@ -338,7 +338,7 @@ export function UserDocumentsSection({ documents, userId, onRefresh }: UserDocum
                     )}
                     {doc.reviewedAt && (
                       <p className="text-xs text-slate-400 mt-1">
-                        Verifie le {format(new Date(doc.reviewedAt), "dd/MM/yyyy HH:mm", { locale: fr })}
+                        Vérifié le {format(new Date(doc.reviewedAt), "dd/MM/yyyy HH:mm", { locale: fr })}
                       </p>
                     )}
                   </div>
@@ -364,7 +364,7 @@ export function UserDocumentsSection({ documents, userId, onRefresh }: UserDocum
                         a.download = doc.fileName
                         a.click()
                       }}
-                      title="Telecharger"
+                      title="Télécharger"
                     >
                       <Download className="h-3.5 w-3.5" />
                     </Button>
@@ -410,7 +410,7 @@ export function UserDocumentsSection({ documents, userId, onRefresh }: UserDocum
           <DialogHeader>
             <DialogTitle>Ajouter un document KYC</DialogTitle>
             <DialogDescription>
-              Selectionnez le type de document et le fichier.
+              Sélectionnez le type de document et le fichier.
             </DialogDescription>
           </DialogHeader>
 
@@ -474,7 +474,7 @@ export function UserDocumentsSection({ documents, userId, onRefresh }: UserDocum
                     <div className="flex flex-col items-center gap-1">
                       <Upload className="h-5 w-5 text-slate-400" />
                       <span className="text-xs text-slate-500">
-                        Cliquez pour selectionner un fichier
+                        Cliquez pour sélectionner un fichier
                       </span>
                       <span className="text-xs text-slate-400">
                         PDF, JPG, PNG (max 10 Mo)
@@ -580,7 +580,7 @@ export function UserDocumentsSection({ documents, userId, onRefresh }: UserDocum
                   <Textarea
                     value={rejectionReason}
                     onChange={(e) => setRejectionReason(e.target.value)}
-                    placeholder="Expliquez pourquoi le document est rejete..."
+                    placeholder="Expliquez pourquoi le document est rejeté..."
                     className="mt-1"
                     rows={3}
                   />

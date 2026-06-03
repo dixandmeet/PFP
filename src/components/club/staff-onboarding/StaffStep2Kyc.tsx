@@ -24,7 +24,7 @@ interface KycDoc {
 
 interface StaffStep2Props {
   existingDocs: KycDoc[]
-  onComplete: () => void
+  onComplete: (step: "INVITE" | "DONE") => void
   onBack: () => void
 }
 
@@ -121,7 +121,8 @@ export function StaffStep2Kyc({ existingDocs, onComplete, onBack }: StaffStep2Pr
         throw new Error(data.error || "Erreur lors de la validation")
       }
 
-      onComplete()
+      const data = await res.json().catch(() => ({ step: "INVITE" }))
+      onComplete(data.step === "DONE" ? "DONE" : "INVITE")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur inattendue")
     } finally {

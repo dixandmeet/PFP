@@ -1,7 +1,7 @@
 // GET /api/club/staff-onboarding — État actuel de l'onboarding staff
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { getStaffOnboardingState } from "@/lib/services/staff-onboarding-service"
 
 export async function GET() {
   try {
@@ -14,40 +14,18 @@ export async function GET() {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
     }
 
-    // Trouver le membership actif
-    const member = await prisma.clubMember.findFirst({
-      where: { userId: session.user.id, status: "ACTIVE" },
-      select: {
-        id: true,
-        staffOnboardingStep: true,
-        role: true,
-        clubProfile: {
-          select: { id: true, clubName: true },
-        },
-      },
-    })
-
-    if (!member) {
-      return NextResponse.json({ error: "Aucun membership actif" }, { status: 404 })
-    }
-
-    // Charger le profil staff
-    const staffProfile = await prisma.clubStaffProfile.findUnique({
-      where: { userId: session.user.id },
-    })
-
-    // Charger les documents KYC
-    const kycDocuments = await prisma.kycDocument.findMany({
-      where: { userId: session.user.id },
-      orderBy: { createdAt: "desc" },
-    })
+    const state = await getStaffOnboardingState(session.user.id)
 
     return NextResponse.json({
-      step: member.staffOnboardingStep,
-      clubName: member.clubProfile.clubName,
-      clubRole: member.role,
-      staffProfile: staffProfile || null,
-      kycDocuments,
+      step: state.step,
+      clubName: state.clubName ?? "",
+      clubRole: state.clubRole ?? "",
+      staffProfile: state.staffProfile,
+      kycDocuments: state.kycDocuments.map((d) => ({
+        ...d,
+        createdAt: d.createdAt.toISOString(),
+      })),
+      pendingInvites: state.pendingInvites,
     })
   } catch (error) {
     console.error("[API] staff-onboarding GET error:", error)

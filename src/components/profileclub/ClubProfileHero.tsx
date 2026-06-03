@@ -113,7 +113,7 @@ export function ClubProfileHero({
               </div>
               <p className="text-sm font-medium">Aucune photo de couverture</p>
               <p className="text-xs text-stadium-300">
-                Cliquez pour ajouter une image qui represente votre club
+                Cliquez pour ajouter une image qui représente votre club
               </p>
             </div>
           </div>
@@ -186,7 +186,7 @@ export function ClubProfileHero({
             {isVerified && (
               <div
                 className="absolute bottom-1 right-1 bg-pitch-600 rounded-full p-1.5 shadow-lg"
-                title="Club verifie"
+                title="Club vérifié"
               >
                 <Shield className="h-4 w-4 text-white" />
               </div>
@@ -219,7 +219,7 @@ export function ClubProfileHero({
               {isVerified && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-pitch-50 text-pitch-700 rounded-full text-sm font-medium">
                   <Shield className="h-3.5 w-3.5" />
-                  Verifie
+                  Vérifié
                 </span>
               )}
             </div>

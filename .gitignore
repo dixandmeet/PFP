@@ -35,12 +35,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# prisma
-prisma/migrations/*
-!prisma/migrations/.gitkeep
 
 # uploads locaux (dev)
 /public/uploads
+private-uploads/
 
 # Expo / React Native
 mobile/.expo/

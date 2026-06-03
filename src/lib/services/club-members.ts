@@ -2,8 +2,28 @@ import { prisma } from "@/lib/prisma"
 import type { ClubRole } from "@prisma/client"
 import crypto from "crypto"
 
+/** Champs club exposés dans /api/users/me pour CLUB et CLUB_STAFF. */
+export const clubProfileForUserSelect = {
+  id: true,
+  clubName: true,
+  shortName: true,
+  clubType: true,
+  logo: true,
+  coverPhoto: true,
+  country: true,
+  city: true,
+  league: true,
+  bio: true,
+  foundedYear: true,
+  isVerified: true,
+  status: true,
+  officialEmail: true,
+  officialPhone: true,
+  address: true,
+} as const
+
 /** Normalise un email pour la comparaison d'invitation : même boîte Gmail avec/sans +alias. */
-function emailsMatchForInvite(invitationEmail: string, loggedInEmail: string): boolean {
+export function emailsMatchForInvite(invitationEmail: string, loggedInEmail: string): boolean {
   const a = invitationEmail.trim().toLowerCase()
   const b = loggedInEmail.trim().toLowerCase()
   if (a === b) return true
@@ -82,6 +102,19 @@ export async function getClubForUser(userId: string) {
   })
 
   return { clubProfileId: owner.clubProfileId, role: owner.role }
+}
+
+/**
+ * Resolve the club profile for a user via membership (CLUB_STAFF) or legacy owner link.
+ */
+export async function getClubProfileForUser(userId: string) {
+  const clubInfo = await getClubForUser(userId)
+  if (!clubInfo) return null
+
+  return prisma.clubProfile.findUnique({
+    where: { id: clubInfo.clubProfileId },
+    select: clubProfileForUserSelect,
+  })
 }
 
 // ─── Mutations ───────────────────────────────────────────────────────────────

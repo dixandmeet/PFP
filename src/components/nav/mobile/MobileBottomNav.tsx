@@ -11,11 +11,12 @@ import {
   Search,
   Menu,
   Users,
-  FileText,
+  ClipboardList,
 } from "lucide-react"
 import { useMobileNav } from "./MobileNavContext"
 
 type Role = "PLAYER" | "AGENT" | "CLUB" | "CLUB_STAFF"
+type ClubMemberRole = "OWNER" | "ADMIN" | "STAFF" | "VIEWER"
 
 interface BottomNavItem {
   href: string
@@ -24,39 +25,60 @@ interface BottomNavItem {
   isMessage?: boolean
 }
 
-function getNavItems(role: Role): BottomNavItem[] {
-  if (role === "PLAYER") return [
-    { href: "/player/dashboard", icon: LayoutDashboard, label: "Accueil" },
-    { href: "/player/messages", icon: MessageCircle, label: "Messages", isMessage: true },
-    { href: "/player/opportunities", icon: Target, label: "Annonces" },
-    { href: "/search", icon: Search, label: "Recherche" },
-  ]
-  if (role === "AGENT") return [
-    { href: "/agent/dashboard", icon: LayoutDashboard, label: "Accueil" },
-    { href: "/agent/messages", icon: MessageCircle, label: "Messages", isMessage: true },
-    { href: "/agent/players", icon: Users, label: "Joueurs" },
-    { href: "/search", icon: Search, label: "Recherche" },
-  ]
-  if (role === "CLUB") return [
-    { href: "/club/dashboard", icon: LayoutDashboard, label: "Accueil" },
-    { href: "/club/messages", icon: MessageCircle, label: "Messages", isMessage: true },
-    { href: "/club/applications", icon: FileText, label: "Candidatures" },
-    { href: "/search", icon: Search, label: "Recherche" },
-  ]
-  // CLUB_STAFF
-  return [
-    { href: "/club/staff/dashboard", icon: LayoutDashboard, label: "Accueil" },
-    { href: "/club/messages", icon: MessageCircle, label: "Messages", isMessage: true },
-    { href: "/club/staff/admin", icon: Users, label: "Membres" },
-    { href: "/search", icon: Search, label: "Recherche" },
-  ]
+function canManageMembers(role?: ClubMemberRole): boolean {
+  return role === "OWNER" || role === "ADMIN"
 }
 
-export function MobileBottomNav({ role }: { role: Role }) {
+function getNavItems(role: Role, clubMemberRole?: ClubMemberRole): BottomNavItem[] {
+  if (role === "PLAYER") {
+    return [
+      { href: "/player/dashboard", icon: LayoutDashboard, label: "Accueil" },
+      { href: "/player/messages", icon: MessageCircle, label: "Messages", isMessage: true },
+      { href: "/player/opportunities", icon: Target, label: "Annonces" },
+      { href: "/search", icon: Search, label: "Recherche" },
+    ]
+  }
+  if (role === "AGENT") {
+    return [
+      { href: "/agent/dashboard", icon: LayoutDashboard, label: "Accueil" },
+      { href: "/agent/messages", icon: MessageCircle, label: "Messages", isMessage: true },
+      { href: "/agent/players", icon: Users, label: "Joueurs" },
+      { href: "/search", icon: Search, label: "Recherche" },
+    ]
+  }
+  if (role === "CLUB") {
+    return [
+      { href: "/club/dashboard", icon: LayoutDashboard, label: "Accueil" },
+      { href: "/club/messages", icon: MessageCircle, label: "Messages", isMessage: true },
+      { href: "/club/recruitment", icon: ClipboardList, label: "Recrutement" },
+      { href: "/search", icon: Search, label: "Recherche" },
+    ]
+  }
+  // CLUB_STAFF — aligné sur le menu unifié
+  const items: BottomNavItem[] = [
+    { href: "/club/dashboard", icon: LayoutDashboard, label: "Accueil" },
+    { href: "/club/messages", icon: MessageCircle, label: "Messages", isMessage: true },
+  ]
+  if (canManageMembers(clubMemberRole)) {
+    items.push({ href: "/club/staff/admin", icon: Users, label: "Membres" })
+  } else {
+    items.push({ href: "/club/recruitment", icon: ClipboardList, label: "Recrutement" })
+  }
+  items.push({ href: "/search", icon: Search, label: "Recherche" })
+  return items
+}
+
+export function MobileBottomNav({
+  role,
+  clubMemberRole,
+}: {
+  role: Role
+  clubMemberRole?: ClubMemberRole
+}) {
   const pathname = usePathname()
   const { setSidebarOpen } = useMobileNav()
   const [messageCount, setMessageCount] = useState(0)
-  const items = getNavItems(role)
+  const items = getNavItems(role, clubMemberRole)
 
   useEffect(() => {
     async function load() {
@@ -106,17 +128,18 @@ export function MobileBottomNav({ role }: { role: Role }) {
                   </span>
                 )}
               </div>
-              <span className={cn(
-                "text-[10px] leading-none",
-                active ? "font-semibold" : "font-medium"
-              )}>
+              <span
+                className={cn(
+                  "text-[10px] leading-none",
+                  active ? "font-semibold" : "font-medium"
+                )}
+              >
                 {item.label}
               </span>
             </Link>
           )
         })}
 
-        {/* Bouton Plus → ouvre la sidebar */}
         <button
           type="button"
           onClick={() => setSidebarOpen(true)}

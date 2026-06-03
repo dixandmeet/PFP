@@ -19,12 +19,16 @@ import {
   Crown,
   ChevronRight,
   Film,
+  ArrowLeft,
 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 interface CreditsPageClientProps {
   defaultTab?: string
   /** Progression / quotas vidéo + lignes « stockage & uploads » sur les plans */
   showPlayerGamification?: boolean
+  backHref?: string
+  backLabel?: string
 }
 
 interface WalletData {
@@ -40,6 +44,8 @@ interface WalletData {
 export function CreditsPageClient({
   defaultTab = "overview",
   showPlayerGamification = false,
+  backHref,
+  backLabel = "Retour au profil",
 }: CreditsPageClientProps) {
   const [walletData, setWalletData] = useState<WalletData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -102,6 +108,20 @@ export function CreditsPageClient({
   return (
     <div className="min-h-screen">
       <div className="container mx-auto px-4 sm:px-6 py-6 max-w-5xl">
+        {backHref && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mb-4 -ml-2 gap-2 text-stadium-600 hover:text-pitch-700"
+            asChild
+          >
+            <Link href={backHref}>
+              <ArrowLeft className="h-4 w-4" />
+              {backLabel}
+            </Link>
+          </Button>
+        )}
+
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-pitch-100 rounded-xl">

@@ -35,8 +35,8 @@ export const tokens = {
     drawerShadow: "4px 0 24px 0 rgba(0, 0, 0, 0.08), 1px 0 4px 0 rgba(0, 0, 0, 0.04)",
   },
   sidebar: {
-    width: "304px",
-    itemHeight: "44px",
+    width: "280px",
+    itemHeight: "36px",
     iconSize: "20px",
     animationDuration: "280ms",
     animationEasing: "cubic-bezier(0.33, 1, 0.68, 1)",

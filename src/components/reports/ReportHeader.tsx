@@ -63,6 +63,7 @@ interface ReportHeaderProps {
   onShare: () => void
   onDownload: () => void
   onDelete?: () => void
+  readOnly?: boolean
 }
 
 export function ReportHeader({
@@ -77,6 +78,7 @@ export function ReportHeader({
   onShare,
   onDownload,
   onDelete,
+  readOnly = false,
 }: ReportHeaderProps) {
   const statusInfo = statusConfig[status] || statusConfig.DRAFT
   const StatusIcon = statusInfo.icon
@@ -132,6 +134,7 @@ export function ReportHeader({
         {/* Actions : empilées sur mobile, en ligne sur desktop */}
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:gap-2 shrink-0 w-full sm:w-auto">
           <div className="flex items-center gap-2">
+            {!readOnly && (
             <Button
               onClick={onEdit}
               size="sm"
@@ -142,6 +145,7 @@ export function ReportHeader({
               <Edit className="mr-1.5 h-3.5 w-3.5 shrink-0" />
               Modifier
             </Button>
+            )}
             <Button
               variant="outline"
               size="sm"

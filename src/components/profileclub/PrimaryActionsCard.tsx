@@ -16,8 +16,8 @@ export function PrimaryActionsCard({ userId, className }: PrimaryActionsCardProp
   const actions = [
     {
       id: "create-listing",
-      label: "Creer une annonce",
-      description: "Publiez une opportunite pour attirer des talents",
+      label: "Créer une annonce",
+      description: "Publiez une opportunité pour attirer des talents",
       icon: Megaphone,
       variant: "primary" as const,
       href: "/club/listings",
@@ -25,7 +25,7 @@ export function PrimaryActionsCard({ userId, className }: PrimaryActionsCardProp
     {
       id: "edit-profile",
       label: "Modifier le profil",
-      description: "Mettez a jour vos informations",
+      description: "Mettez à jour vos informations",
       icon: Edit,
       variant: "secondary" as const,
       href: "/club/profile/edit",

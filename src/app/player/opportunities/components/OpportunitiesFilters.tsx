@@ -18,7 +18,7 @@ const positions = [
 ]
 
 const sortOptions = [
-  { value: "recent", label: "Plus recent" },
+  { value: "recent", label: "Plus récent" },
   { value: "salary", label: "Salaire" },
 ]
 

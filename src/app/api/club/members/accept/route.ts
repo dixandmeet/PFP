@@ -4,6 +4,7 @@ import { acceptInvite } from "@/lib/services/club-members"
 import { acceptInviteSchema } from "@/lib/validators/club-member-schemas"
 import { handleApiError } from "@/lib/utils/api-helpers"
 import { prisma } from "@/lib/prisma"
+import { computeStaffOnboardingStepAfterInvite } from "@/lib/services/staff-onboarding-service"
 
 /**
  * POST /api/club/members/accept — Accept an invitation by token
@@ -33,7 +34,6 @@ export async function POST(request: NextRequest) {
     const isOwner = member.role === "OWNER"
     const newRole = isOwner ? "CLUB" : "CLUB_STAFF"
 
-    // Mettre à jour le rôle utilisateur
     if (session.user.role !== "CLUB" && session.user.role !== "CLUB_STAFF") {
       await prisma.user.update({
         where: { id: session.user.id },
@@ -41,12 +41,15 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Initialiser l'onboarding staff pour les non-owners
+    let staffOnboardingComplete = false
+
     if (!isOwner) {
+      const nextStep = await computeStaffOnboardingStepAfterInvite(session.user.id)
       await prisma.clubMember.update({
         where: { id: member.id },
-        data: { staffOnboardingStep: "PROFILE" },
+        data: { staffOnboardingStep: nextStep },
       })
+      staffOnboardingComplete = nextStep === "DONE"
     }
 
     return NextResponse.json({
@@ -54,6 +57,7 @@ export async function POST(request: NextRequest) {
       clubProfileId: member.clubProfileId,
       role: member.role,
       staffOnboarding: !isOwner,
+      staffOnboardingComplete,
     })
   } catch (error) {
     return handleApiError(error)

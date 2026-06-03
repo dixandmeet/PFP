@@ -182,7 +182,7 @@ export async function POST(request: Request) {
         type: "APPLICATION_RECEIVED",
         title: "Nouvelle candidature",
         message: `${playerProfile.firstName} ${playerProfile.lastName} a postulé à "${listing.title}"`,
-        link: `/club/applications/${application.id}`,
+        link: `/club/recruitment`,
       }
     })
 
@@ -193,7 +193,7 @@ export async function POST(request: Request) {
         listing.clubProfile.clubName,
         "Nouvelle candidature reçue",
         `${playerProfile.firstName} ${playerProfile.lastName} a postulé à votre annonce "${listing.title}". Consultez sa candidature pour en savoir plus.`,
-        `${baseUrl}/club/applications`,
+        `${baseUrl}/club/recruitment`,
         "Voir la candidature"
       )
       sendEmail({ to: listing.clubProfile.user.email, subject, html }).catch(console.error)

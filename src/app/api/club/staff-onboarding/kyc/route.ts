@@ -1,14 +1,16 @@
 // POST /api/club/staff-onboarding/kyc — Upload document KYC
-// PUT  /api/club/staff-onboarding/kyc — Valider et passer à DONE
+// PUT  /api/club/staff-onboarding/kyc — Valider et passer à INVITE ou DONE
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import type { KycDocumentType } from "@prisma/client"
 import { writeFile, mkdir } from "fs/promises"
 import path from "path"
 
 const ALLOWED_MIME = ["application/pdf", "image/jpeg", "image/jpg", "image/png"]
 const MAX_SIZE = 10 * 1024 * 1024 // 10 MB
 const ALLOWED_DOC_TYPES = ["IDENTITY_CARD", "PASSPORT", "DRIVING_LICENSE", "PROOF_OF_ADDRESS"] as const
+const IDENTITY_TYPES: KycDocumentType[] = ["IDENTITY_CARD", "PASSPORT", "DRIVING_LICENSE"]
 
 /**
  * POST — Upload un document KYC pour le staff
@@ -24,12 +26,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
     }
 
-    const member = await prisma.clubMember.findFirst({
-      where: { userId: session.user.id, status: "ACTIVE" },
-      select: { id: true, staffOnboardingStep: true },
+    const staffProfile = await prisma.clubStaffProfile.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
     })
 
-    if (!member || member.staffOnboardingStep !== "KYC") {
+    if (!staffProfile) {
+      return NextResponse.json(
+        { error: "Complétez d'abord votre profil" },
+        { status: 400 }
+      )
+    }
+
+    const member = await prisma.clubMember.findFirst({
+      where: { userId: session.user.id, status: "ACTIVE" },
+      select: { staffOnboardingStep: true },
+    })
+
+    if (member && member.staffOnboardingStep !== "KYC") {
       return NextResponse.json({ error: "Étape incorrecte" }, { status: 400 })
     }
 
@@ -40,7 +54,7 @@ export async function POST(request: NextRequest) {
     if (!file || !(file instanceof File)) {
       return NextResponse.json({ error: "Aucun fichier fourni" }, { status: 400 })
     }
-    if (!docType || !ALLOWED_DOC_TYPES.includes(docType as any)) {
+    if (!docType || !ALLOWED_DOC_TYPES.includes(docType as (typeof ALLOWED_DOC_TYPES)[number])) {
       return NextResponse.json({ error: "Type de document invalide" }, { status: 400 })
     }
     if (!ALLOWED_MIME.includes(file.type)) {
@@ -56,7 +70,6 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    // Stockage privé (hors public/ pour éviter l'accès non authentifié)
     const uploadDir = path.join(process.cwd(), "private-uploads", "staff-kyc", session.user.id)
     await mkdir(uploadDir, { recursive: true })
     const ALLOWED_EXTENSIONS = ["pdf", "jpg", "jpeg", "png"]
@@ -67,9 +80,8 @@ export async function POST(request: NextRequest) {
     await writeFile(filePath, buffer)
     const fileUrl = `/api/uploads/staff-kyc/${session.user.id}/${safeName}`
 
-    // Upsert le document KYC (un seul par type par user)
     const existing = await prisma.kycDocument.findFirst({
-      where: { userId: session.user.id, type: docType as any },
+      where: { userId: session.user.id, type: docType as (typeof ALLOWED_DOC_TYPES)[number] },
     })
 
     let doc
@@ -91,7 +103,7 @@ export async function POST(request: NextRequest) {
       doc = await prisma.kycDocument.create({
         data: {
           userId: session.user.id,
-          type: docType as any,
+          type: docType as (typeof ALLOWED_DOC_TYPES)[number],
           fileName: file.name,
           fileUrl,
           fileSize: file.size,
@@ -118,7 +130,7 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * PUT — Valider l'étape KYC et terminer l'onboarding
+ * PUT — Valider l'étape KYC et avancer
  */
 export async function PUT() {
   try {
@@ -131,20 +143,10 @@ export async function PUT() {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
     }
 
-    const member = await prisma.clubMember.findFirst({
-      where: { userId: session.user.id, status: "ACTIVE" },
-      select: { id: true, staffOnboardingStep: true },
-    })
-
-    if (!member || member.staffOnboardingStep !== "KYC") {
-      return NextResponse.json({ error: "Étape incorrecte" }, { status: 400 })
-    }
-
-    // Vérifier qu'au moins un document d'identité a été uploadé
     const identityDocs = await prisma.kycDocument.count({
       where: {
         userId: session.user.id,
-        type: { in: ["IDENTITY_CARD", "PASSPORT", "DRIVING_LICENSE"] },
+        type: { in: IDENTITY_TYPES },
       },
     })
 
@@ -155,13 +157,23 @@ export async function PUT() {
       )
     }
 
-    // Terminer l'onboarding
-    await prisma.clubMember.update({
-      where: { id: member.id },
-      data: { staffOnboardingStep: "DONE" },
+    const member = await prisma.clubMember.findFirst({
+      where: { userId: session.user.id, status: "ACTIVE" },
+      select: { id: true, staffOnboardingStep: true },
     })
 
-    return NextResponse.json({ success: true, step: "DONE" })
+    if (member) {
+      if (member.staffOnboardingStep !== "KYC") {
+        return NextResponse.json({ error: "Étape incorrecte" }, { status: 400 })
+      }
+      await prisma.clubMember.update({
+        where: { id: member.id },
+        data: { staffOnboardingStep: "DONE" },
+      })
+      return NextResponse.json({ success: true, step: "DONE" })
+    }
+
+    return NextResponse.json({ success: true, step: "INVITE" })
   } catch (error) {
     console.error("[API] staff-onboarding/kyc PUT error:", error)
     return NextResponse.json({ error: "Erreur interne du serveur" }, { status: 500 })

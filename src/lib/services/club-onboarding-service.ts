@@ -3,6 +3,40 @@ import { prisma } from "@/lib/prisma"
 import { OnboardingStep, ClubStatus, ClubKycStatus } from "@prisma/client"
 import { REQUIRED_KYC_DOCS } from "@/lib/validators/club-onboarding-schemas"
 
+const onboardingSessionInclude = {
+  club: {
+    include: {
+      kycDocuments: true,
+    },
+  },
+} as const
+
+/**
+ * Charge la session d'onboarding existante (y compris terminée) ou en crée une nouvelle.
+ */
+export async function getOnboardingSessionForDisplay(userId: string) {
+  const club = await prisma.clubProfile.findUnique({
+    where: { userId },
+    select: { id: true },
+  })
+
+  if (club) {
+    const existing = await prisma.clubOnboardingSession.findFirst({
+      where: {
+        OR: [{ userId }, { clubId: club.id }],
+      },
+      include: onboardingSessionInclude,
+      orderBy: { updatedAt: "desc" },
+    })
+
+    if (existing) {
+      return existing
+    }
+  }
+
+  return getOrCreateOnboardingSession(userId)
+}
+
 /**
  * Crée ou reprend une session d'onboarding pour un utilisateur
  */
@@ -13,13 +47,7 @@ export async function getOrCreateOnboardingSession(userId: string) {
       userId,
       currentStep: { not: "DONE" },
     },
-    include: {
-      club: {
-        include: {
-          kycDocuments: true,
-        },
-      },
-    },
+    include: onboardingSessionInclude,
     orderBy: { createdAt: "desc" },
   })
 
@@ -33,13 +61,7 @@ export async function getOrCreateOnboardingSession(userId: string) {
       userId,
       currentStep: "CREATOR",
     },
-    include: {
-      club: {
-        include: {
-          kycDocuments: true,
-        },
-      },
-    },
+    include: onboardingSessionInclude,
   })
 }
 
@@ -120,19 +142,9 @@ export async function validateClubCompleteness(clubId: string): Promise<{
   if (!club.country) errors.push("Le pays est requis")
   if (!club.city) errors.push("La ville est requise")
   if (!club.clubType) errors.push("Le type de club est requis")
-  if (!club.legalForm) errors.push("La forme juridique est requise")
   if (!club.officialEmail) errors.push("L'email officiel est requis")
   if (!club.officialPhone) errors.push("Le téléphone officiel est requis")
   if (!club.address) errors.push("L'adresse est requise")
-
-  // Vérifier registrationNumber si France
-  if (
-    (club.country?.toUpperCase() === "FR" ||
-      club.country?.toLowerCase() === "france") &&
-    !club.registrationNumber
-  ) {
-    errors.push("Le numéro SIRET/RNA est requis pour les clubs français")
-  }
 
   // Vérifier les documents KYC requis
   const uploadedDocTypes = club.kycDocuments.map((d) => d.type)

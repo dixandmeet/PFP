@@ -11,18 +11,67 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const position = searchParams.get("position")
+    const mine = searchParams.get("mine") === "1" || searchParams.get("mine") === "true"
     const ALLOWED_STATUSES = ["DRAFT", "PUBLISHED", "CLOSED"] as const
-    const rawStatus = searchParams.get("status") || "PUBLISHED"
-    const status = ALLOWED_STATUSES.includes(rawStatus as any) ? rawStatus : "PUBLISHED"
+    const rawStatus = searchParams.get("status")
     const page = Math.max(1, parseInt(searchParams.get("page") || "1") || 1)
     const limit = Math.min(Math.max(1, parseInt(searchParams.get("limit") || "20") || 20), 100)
 
-    const where: any = {
-      status,
+    const where: Record<string, unknown> = {}
+
+    if (!mine) {
+      const status =
+        rawStatus && ALLOWED_STATUSES.includes(rawStatus as (typeof ALLOWED_STATUSES)[number])
+          ? rawStatus
+          : "PUBLISHED"
+      where.status = status
+    } else if (
+      rawStatus &&
+      rawStatus !== "ALL" &&
+      ALLOWED_STATUSES.includes(rawStatus as (typeof ALLOWED_STATUSES)[number])
+    ) {
+      where.status = rawStatus
     }
 
     if (position) {
       where.position = { contains: position, mode: "insensitive" }
+    }
+
+    let viewsCount = 0
+
+    if (mine) {
+      const session = await auth()
+      if (!session?.user?.id) {
+        return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
+      }
+
+      const clubProfile = await prisma.clubProfile.findFirst({
+        where: {
+          OR: [
+            { userId: session.user.id },
+            {
+              members: {
+                some: { userId: session.user.id, status: "ACTIVE" },
+              },
+            },
+          ],
+        },
+        select: { id: true },
+      })
+
+      if (!clubProfile) {
+        return NextResponse.json({
+          listings: [],
+          meta: { viewsCount: 0 },
+          pagination: { page: 1, limit, total: 0, totalPages: 0 },
+        })
+      }
+
+      where.clubProfileId = clubProfile.id
+
+      viewsCount = await prisma.listingConsultation.count({
+        where: { clubProfileId: clubProfile.id },
+      })
     }
 
     const [listings, total] = await Promise.all([
@@ -57,7 +106,9 @@ export async function GET(request: Request) {
         },
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { publishedAt: "desc" },
+        orderBy: mine
+          ? [{ updatedAt: "desc" as const }]
+          : [{ publishedAt: "desc" as const }],
       }),
       prisma.listing.count({ where }),
     ])
@@ -121,6 +172,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       listings: maskedListings,
+      ...(mine ? { meta: { viewsCount } } : {}),
       pagination: {
         page,
         limit,

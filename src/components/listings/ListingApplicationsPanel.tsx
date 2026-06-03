@@ -179,7 +179,7 @@ export function ListingApplicationsPanel({
           </p>
         </div>
         <Button variant="outline" size="sm" asChild className="shrink-0">
-          <Link href="/club/applications">
+          <Link href="/club/recruitment">
             Toutes les candidatures
             <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
           </Link>

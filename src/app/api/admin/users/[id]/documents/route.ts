@@ -111,7 +111,7 @@ export async function PATCH(
     })
 
     if (!existing) {
-      return NextResponse.json({ error: "Document non trouve" }, { status: 404 })
+      return NextResponse.json({ error: "Document non trouvé" }, { status: 404 })
     }
 
     const document = await prisma.kycDocument.update({
@@ -172,7 +172,7 @@ export async function DELETE(
     })
 
     if (!existing) {
-      return NextResponse.json({ error: "Document non trouve" }, { status: 404 })
+      return NextResponse.json({ error: "Document non trouvé" }, { status: 404 })
     }
 
     await prisma.kycDocument.delete({ where: { id: documentId } })

@@ -50,8 +50,8 @@ export function DeleteUserDialog({ userName, onConfirm }: DeleteUserDialogProps)
         <AlertDialogHeader>
           <AlertDialogTitle>Supprimer cet utilisateur ?</AlertDialogTitle>
           <AlertDialogDescription>
-            Cette action est irreversible. Toutes les donnees de{" "}
-            <strong>{userName}</strong> seront definitivement supprimees.
+            Cette action est irreversible. Toutes les données de{" "}
+            <strong>{userName}</strong> seront définitivement supprimées.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="py-3">
@@ -74,7 +74,7 @@ export function DeleteUserDialog({ userName, onConfirm }: DeleteUserDialogProps)
             onClick={handleDelete}
             disabled={!isConfirmed || isDeleting}
           >
-            {isDeleting ? "Suppression..." : "Supprimer definitivement"}
+            {isDeleting ? "Suppression..." : "Supprimer définitivement"}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -13,6 +13,7 @@ export type Permission =
   | "create:mandate"
   | "accept:mandate"
   | "create:report"
+  | "view:report"
   | "approve:report"
   | "create:post"
   | "edit:own_post"
@@ -69,6 +70,8 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "view:profiles",
     "create:listing",
     "edit:own_listing",
+    "create:report",
+    "view:report",
     "create:post",
     "edit:own_post",
     "delete:own_post",
@@ -81,6 +84,8 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "create:profile",
     "edit:own_profile",
     "view:profiles",
+    "create:report",
+    "view:report",
     "create:post",
     "edit:own_post",
     "delete:own_post",

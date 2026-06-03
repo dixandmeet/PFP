@@ -44,7 +44,7 @@ export async function GET(
       // staff-kyc/{userId}/... — seul l'utilisateur ou un admin peut accéder
       const fileUserId = filePath[1] // staff-kyc/{userId}/filename
       if (session.user.role !== "ADMIN" && session.user.id !== fileUserId) {
-        return NextResponse.json({ error: "Acces refuse" }, { status: 403 })
+        return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
       }
     } else if (isClubKyc) {
       // clubs/{clubId}/... — seul le propriétaire du club ou un admin peut accéder
@@ -57,7 +57,7 @@ export async function GET(
         return NextResponse.json({ error: "Ressource introuvable" }, { status: 404 })
       }
       if (session.user.role !== "ADMIN" && club.userId !== session.user.id) {
-        return NextResponse.json({ error: "Acces refuse" }, { status: 403 })
+        return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
       }
       // Récupérer l'emplacement réel du fichier
       const requestedUrl = `/api/uploads/${relativePath}`

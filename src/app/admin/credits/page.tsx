@@ -378,7 +378,7 @@ export default function AdminCreditsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="desc">Plus recentes</SelectItem>
+                  <SelectItem value="desc">Plus récentes</SelectItem>
                   <SelectItem value="asc">Plus anciennes</SelectItem>
                 </SelectContent>
               </Select>
@@ -395,8 +395,8 @@ export default function AdminCreditsPage() {
           ) : transactions.length === 0 ? (
             <div className="text-center py-16">
               <Coins className="h-10 w-10 text-slate-300 mx-auto mb-3" />
-              <p className="text-sm text-slate-500 font-medium">Aucune transaction trouvee</p>
-              <p className="text-xs text-slate-400 mt-1">Modifiez vos filtres pour voir plus de resultats</p>
+              <p className="text-sm text-slate-500 font-medium">Aucune transaction trouvée</p>
+              <p className="text-xs text-slate-400 mt-1">Modifiez vos filtres pour voir plus de résultats</p>
             </div>
           ) : (
             <>
@@ -520,7 +520,7 @@ export default function AdminCreditsPage() {
               {pagination.totalPages > 1 && (
                 <div className="flex items-center justify-between px-5 py-3 border-t bg-slate-50/50">
                   <p className="text-xs text-slate-500">
-                    Page {pagination.page} sur {pagination.totalPages} ({pagination.total} resultats)
+                    Page {pagination.page} sur {pagination.totalPages} ({pagination.total} résultats)
                   </p>
                   <div className="flex items-center gap-1">
                     <Button

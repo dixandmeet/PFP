@@ -90,11 +90,11 @@ export function UserProfileSection({
 }: UserProfileSectionProps) {
   return (
     <div className="space-y-6">
-      {/* Identite & Compte */}
+      {/* Identité & Compte */}
       <Card className="overflow-hidden">
         <div className="flex items-center gap-2 px-6 py-4 bg-slate-50 border-b">
           <User className="h-4 w-4 text-slate-500" />
-          <h3 className="text-sm font-semibold text-slate-700">Identite & Compte</h3>
+          <h3 className="text-sm font-semibold text-slate-700">Identité & Compte</h3>
         </div>
         <div className="p-6">
           {isEditing ? (

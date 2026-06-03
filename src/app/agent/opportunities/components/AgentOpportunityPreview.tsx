@@ -63,7 +63,7 @@ export function OpportunityPreview({
           <FileSearch className="h-6 w-6 text-slate-400" />
         </div>
         <p className="text-sm font-medium text-slate-500">
-          Selectionnez une annonce
+          Sélectionnez une annonce
         </p>
         <p className="text-xs text-slate-400 mt-1">
           Cliquez sur une carte pour voir les details
@@ -113,7 +113,7 @@ export function OpportunityPreview({
               <div>
                 <p className="text-sm font-semibold text-amber-800">Annonce verrouillee</p>
                 <p className="text-xs text-amber-600 mt-1.5 leading-relaxed">
-                  Le nom du club, la ville, le salaire, la description et tous les autres details sont accessibles apres consultation.
+                  Le nom du club, la ville, le salaire, la description et tous les autres details sont accessibles après consultation.
                 </p>
               </div>
 

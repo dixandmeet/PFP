@@ -17,14 +17,14 @@ export function OpportunitiesHeader({
 }: OpportunitiesHeaderProps) {
   const subtitle =
     activeView === "opportunities"
-      ? `${listingsCount} opportunite${listingsCount > 1 ? "s" : ""} trouvee${listingsCount > 1 ? "s" : ""}`
+      ? `${listingsCount} opportunité${listingsCount > 1 ? "s" : ""} trouvée${listingsCount > 1 ? "s" : ""}`
       : `${applicationsCount} candidature${applicationsCount > 1 ? "s" : ""}`
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-          {activeView === "opportunities" ? "Opportunites" : "Mes Candidatures"}
+          {activeView === "opportunities" ? "Opportunités" : "Mes Candidatures"}
         </h1>
         <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>
       </div>
@@ -39,7 +39,7 @@ export function OpportunitiesHeader({
           }`}
         >
           <Target className="h-4 w-4" />
-          Opportunites
+          Opportunités
           {listingsCount > 0 && (
             <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-xs font-semibold ${
               activeView === "opportunities"

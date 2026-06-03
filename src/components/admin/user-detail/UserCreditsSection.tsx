@@ -102,7 +102,7 @@ const withdrawalStatusLabels: Record<string, { label: string; color: string }> =
 const kycLabels: Record<string, { label: string; color: string }> = {
   NOT_STARTED: { label: "Non demarre", color: "text-slate-500" },
   PENDING: { label: "En cours", color: "text-amber-600" },
-  VERIFIED: { label: "Verifie", color: "text-emerald-600" },
+  VERIFIED: { label: "Vérifié", color: "text-emerald-600" },
   REJECTED: { label: "Rejete", color: "text-red-600" },
 }
 
@@ -230,7 +230,7 @@ export function UserCreditsSection({
                   <span className="text-sm font-medium">{subscription.creditsAllocated}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-500">Periode</span>
+                  <span className="text-sm text-slate-500">Période</span>
                   <span className="text-xs text-slate-600">
                     {format(new Date(subscription.currentPeriodStart), "dd/MM/yy", { locale: fr })} - {format(new Date(subscription.currentPeriodEnd), "dd/MM/yy", { locale: fr })}
                   </span>
@@ -292,7 +292,7 @@ export function UserCreditsSection({
                   </div>
                 </div>
                 <p className="text-xs text-slate-400 text-center">
-                  Cree {formatDistanceToNow(new Date(stripeConnect.createdAt), { addSuffix: true, locale: fr })}
+                  Créé {formatDistanceToNow(new Date(stripeConnect.createdAt), { addSuffix: true, locale: fr })}
                 </p>
               </div>
             ) : (
@@ -426,8 +426,8 @@ export function UserCreditsSection({
             </DialogTitle>
             <DialogDescription>
               {creditMode === "credit"
-                ? "Ajouter des credits au wallet de l'utilisateur."
-                : "Retirer des credits du wallet de l'utilisateur."
+                ? "Ajouter des crédits au wallet de l'utilisateur."
+                : "Retirer des crédits du wallet de l'utilisateur."
               }
             </DialogDescription>
           </DialogHeader>

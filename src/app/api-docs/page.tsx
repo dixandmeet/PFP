@@ -84,7 +84,7 @@ export default function ApiDocsPage() {
             <div className="p-5 rounded-xl border border-stadium-200">
               <Key className="w-6 h-6 text-primary mb-3" />
               <h3 className="font-semibold text-stadium-900 text-sm mb-1">1. Obtenez une cl&eacute; API</h3>
-              <p className="text-xs text-stadium-500">Cr&eacute;ez un compte et g&eacute;n&eacute;rez votre cl&eacute; depuis les param&egrave;tres.</p>
+              <p className="text-xs text-stadium-500">Cr&eacute;ez un compte et g&eacute;n&eacute;rez votre cl&eacute; depuis les param&egrave;très.</p>
             </div>
             <div className="p-5 rounded-xl border border-stadium-200">
               <Globe className="w-6 h-6 text-primary mb-3" />

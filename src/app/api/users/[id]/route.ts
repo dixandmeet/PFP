@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { handleApiError } from "@/lib/utils/api-helpers"
+import { getClubProfileForUser } from "@/lib/services/club-members"
 
 export async function GET(
   request: Request,
@@ -88,7 +89,11 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(user)
+    const { clubProfile: directClubProfile, ...userWithoutClub } = user
+    const clubProfile =
+      directClubProfile ?? (await getClubProfileForUser(userId))
+
+    return NextResponse.json({ ...userWithoutClub, clubProfile })
   } catch (error) {
     return handleApiError(error)
   }

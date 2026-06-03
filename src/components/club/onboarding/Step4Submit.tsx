@@ -11,7 +11,6 @@ import {
   Building2,
   FileText,
   ShieldCheck,
-  Clock,
 } from "lucide-react"
 import { KYC_DOC_LABELS } from "@/lib/validators/club-onboarding-schemas"
 
@@ -49,7 +48,6 @@ export function Step4Submit({
 }: Step4Props) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
-  const [submitted, setSubmitted] = useState(false)
 
   const handleSubmit = async () => {
     setSubmitting(true)
@@ -73,33 +71,12 @@ export function Step4Submit({
         return
       }
 
-      setSubmitted(true)
       onSubmit()
     } catch {
       setError("Erreur de connexion au serveur")
     } finally {
       setSubmitting(false)
     }
-  }
-
-  if (submitted) {
-    return (
-      <div className="text-center py-12 space-y-6">
-        <div className="w-16 h-16 rounded-full bg-pitch-100 flex items-center justify-center mx-auto">
-          <Clock className="w-8 h-8 text-pitch-600" />
-        </div>
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">
-            Demande soumise !
-          </h2>
-          <p className="text-gray-500 mt-2 max-w-md mx-auto">
-            Votre demande d&apos;enregistrement pour <strong>{club.clubName}</strong> est
-            en cours de vérification. Vous recevrez un email dès que notre
-            équipe aura examiné votre dossier (24-48h).
-          </p>
-        </div>
-      </div>
-    )
   }
 
   return (

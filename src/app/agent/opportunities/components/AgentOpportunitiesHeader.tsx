@@ -25,7 +25,7 @@ export function AgentOpportunitiesHeader({
       <div className="flex gap-2">
         <div className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-green-600/10 text-green-700 ring-1 ring-green-600/20">
           <Target className="h-4 w-4" />
-          Opportunites
+          Opportunités
           {listingsCount > 0 && (
             <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-xs font-semibold bg-green-600/10 text-green-700">
               {listingsCount}

@@ -66,7 +66,7 @@ export const AgentsSearchBar = forwardRef<HTMLInputElement, AgentsSearchBarProps
     const hasActiveFilters = filterCountry !== "all" || filterSpecialty !== "all" || !!searchQuery
 
     const sortLabel: Record<string, string> = {
-      verified: "Verifies d'abord",
+      verified: "Vérifiés d'abord",
       mandates: "Plus de mandats",
       recent: "Recents",
     }
@@ -78,7 +78,7 @@ export const AgentsSearchBar = forwardRef<HTMLInputElement, AgentsSearchBarProps
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stadium-400 pointer-events-none" />
             <Input
               ref={ref}
-              placeholder="Rechercher par nom, agence, specialites..."
+              placeholder="Rechercher par nom, agence, spécialités..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               className="pl-10 h-11 rounded-xl border-stadium-200 bg-white text-sm placeholder:text-stadium-400 focus-visible:ring-2 focus-visible:ring-pitch-500 focus-visible:ring-offset-0 transition-shadow duration-200"
@@ -170,7 +170,7 @@ export const AgentsSearchBar = forwardRef<HTMLInputElement, AgentsSearchBarProps
 
             <Select value={filterSpecialty} onValueChange={onFilterSpecialtyChange}>
               <SelectTrigger className="w-[170px] h-9 rounded-xl border-stadium-200 text-sm">
-                <SelectValue placeholder="Specialite" />
+                <SelectValue placeholder="Spécialité" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes</SelectItem>
@@ -187,7 +187,7 @@ export const AgentsSearchBar = forwardRef<HTMLInputElement, AgentsSearchBarProps
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="verified">Verifies d'abord</SelectItem>
+                <SelectItem value="verified">Vérifiés d'abord</SelectItem>
                 <SelectItem value="mandates">Plus de mandats</SelectItem>
               </SelectContent>
             </Select>
@@ -215,7 +215,7 @@ export const AgentsSearchBar = forwardRef<HTMLInputElement, AgentsSearchBarProps
             {filterSpecialty !== "all" && (
               <span className="inline-flex items-center gap-1 bg-pitch-50 text-pitch-700 border border-pitch-200 rounded-lg px-2.5 py-1 text-xs font-medium">
                 {filterSpecialty}
-                <button onClick={() => onFilterSpecialtyChange("all")} className="ml-0.5 hover:text-pitch-900" aria-label="Retirer le filtre specialite">
+                <button onClick={() => onFilterSpecialtyChange("all")} className="ml-0.5 hover:text-pitch-900" aria-label="Retirer le filtre spécialité">
                   <X className="h-3 w-3" />
                 </button>
               </span>

@@ -14,19 +14,19 @@ import {
   LogOut,
   Building2,
   Send,
+  ClipboardList,
   Target,
   X,
   Trophy,
   MessageCircle,
   Coins,
   Film,
-  UserCircle,
   Eye,
+  Rss,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { FootballIcon } from "@/components/auth/icons"
 import { ProfileHeaderCard } from "./ProfileHeaderCard"
-import { ProfileSwitcher } from "./ProfileSwitcher"
 import { SidebarItem } from "./SidebarItem"
 import { SidebarSectionTitle } from "./SidebarSectionTitle"
 import { isClubRole } from "@/lib/utils/role-helpers"
@@ -39,6 +39,8 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>
   badge?: number
   badgeVariant?: "default" | "accent"
+  danger?: boolean
+  action?: "logout"
 }
 
 interface NavSection {
@@ -46,80 +48,91 @@ interface NavSection {
   items: NavItem[]
 }
 
+type ClubMemberRole = "OWNER" | "ADMIN" | "STAFF" | "VIEWER"
+
 interface SidebarProps {
   role: "PLAYER" | "AGENT" | "CLUB" | "CLUB_STAFF"
   /** Quand false ou non fourni, la section GESTION (Club) est masquée. */
   clubActive?: boolean
+  clubMemberRole?: ClubMemberRole
 }
 
-function getStaffSections(): NavSection[] {
-  return [
+function canManageMembers(role?: ClubMemberRole): boolean {
+  return role === "OWNER" || role === "ADMIN"
+}
+
+const CLUB_ACCOUNT_PATHS = [
+  "/club/staff/profile",
+  "/club/credits",
+  "/club/notifications",
+  "/club/settings",
+]
+
+const CLUB_ACCOUNT_HUB_HREF = "/club/staff/profile"
+
+function getUnifiedClubSections(
+  clubActive: boolean,
+  memberRole?: ClubMemberRole
+): NavSection[] {
+  const sections: NavSection[] = [
     {
-      title: "Activite",
+      title: "Activité",
       items: [
-        { title: "Dashboard", href: "/club/staff/dashboard", icon: LayoutDashboard },
+        { title: "Dashboard", href: "/club/dashboard", icon: LayoutDashboard },
+        { title: "Fil d'actualité", href: "/club/feed", icon: Rss },
+        { title: "Reels", href: "/reels", icon: Film },
         { title: "Messages", href: "/club/messages", icon: MessageCircle },
-      ],
-    },
-    {
-      title: "Mon profil",
-      items: [
-        { title: "Mon profil", href: "/club/staff/profile", icon: UserCircle },
-      ],
-    },
-    {
-      title: "Administration",
-      items: [
-        { title: "Membres", href: "/club/staff/admin", icon: Users },
+        { title: "Recherche", href: "/search", icon: Search },
       ],
     },
   ]
-}
 
-function getClubSections(showGestion: boolean): NavSection[] {
-  const activiteSection: NavSection = {
-    title: "Activite",
-    items: [
-      { title: "Dashboard", href: "/club/dashboard", icon: LayoutDashboard },
-      { title: "Reels", href: "/reels", icon: Film },
-      { title: "Messages", href: "/club/messages", icon: MessageCircle },
-      { title: "Recherche", href: "/search", icon: Search },
-    ],
-  }
-
-  if (!showGestion) {
-    return [activiteSection]
-  }
-
-  return [
-    activiteSection,
-    {
+  if (clubActive) {
+    sections.push({
       title: "Gestion",
       items: [
         { title: "Profil Club", href: "/club/profile", icon: Building2 },
-        { title: "Equipes & Staff", href: "/club/teams", icon: Users },
+        { title: "Équipes & Staff", href: "/club/teams", icon: Users },
         { title: "Annonces", href: "/club/listings", icon: Target },
-        { title: "Candidatures", href: "/club/applications", icon: FileText },
-        { title: "Soumissions", href: "/club/submissions", icon: Send },
+        { title: "Recrutement", href: "/club/recruitment", icon: ClipboardList },
+        { title: "Rapports", href: "/club/reports", icon: FileText },
       ],
-    },
-  ]
+    })
+  }
+
+  sections.push({
+    title: "Compte",
+    items: [{ title: "Paramètres", href: CLUB_ACCOUNT_HUB_HREF, icon: Settings }],
+  })
+
+  if (canManageMembers(memberRole)) {
+    sections.push({
+      title: "Administration",
+      items: [{ title: "Membres", href: "/club/staff/admin", icon: Users }],
+    })
+  }
+
+  return sections
 }
 
-function getSections(role: string, isStaffContext: boolean, clubActive?: boolean): NavSection[] {
+function getSections(
+  role: string,
+  clubActive?: boolean,
+  clubMemberRole?: ClubMemberRole
+): NavSection[] {
   if (role === "PLAYER") {
     return [
       {
-        title: "Activite",
+        title: "Activité",
         items: [
           { title: "Dashboard", href: "/player/dashboard", icon: LayoutDashboard },
           { title: "Reels", href: "/reels", icon: Film },
-          { title: "Opportunites", href: "/player/opportunities", icon: Target },
+          { title: "Opportunités", href: "/player/opportunities", icon: Target },
           { title: "Messages", href: "/player/messages", icon: MessageCircle },
         ],
       },
       {
-        title: "Carriere",
+        title: "Carrière",
         items: [
           { title: "Parcours", href: "/player/career", icon: Trophy },
           { title: "Agents", href: "/player/agents", icon: Users },
@@ -134,7 +147,7 @@ function getSections(role: string, isStaffContext: boolean, clubActive?: boolean
   if (role === "AGENT") {
     return [
       {
-        title: "Activite",
+        title: "Activité",
         items: [
           { title: "Dashboard", href: "/agent/dashboard", icon: LayoutDashboard },
           { title: "Reels", href: "/reels", icon: Film },
@@ -155,14 +168,16 @@ function getSections(role: string, isStaffContext: boolean, clubActive?: boolean
     ]
   }
 
-  // CLUB role
-  return isStaffContext ? getStaffSections() : getClubSections(clubActive ?? false)
+  if (isClubRole(role)) {
+    return getUnifiedClubSections(clubActive ?? false, clubMemberRole)
+  }
+
+  return []
 }
 
-export function Sidebar({ role, clubActive }: SidebarProps) {
+export function Sidebar({ role, clubActive, clubMemberRole }: SidebarProps) {
   const pathname = usePathname()
-  const isStaffContext = isClubRole(role) && pathname.startsWith("/club/staff")
-  const sections = getSections(role, isStaffContext, clubActive)
+  const sections = getSections(role, clubActive, clubMemberRole)
   const { sidebarOpen: isMobileOpen, setSidebarOpen: setIsMobileOpen } = useMobileNav()
   const [notifCount, setNotifCount] = useState(0)
   const [messageCount, setMessageCount] = useState(0)
@@ -210,19 +225,35 @@ export function Sidebar({ role, clubActive }: SidebarProps) {
     await signOut({ callbackUrl: "/login" })
   }
 
+  // Les rôles club (CLUB et CLUB_STAFF) partagent les pages sous /club.
+  // On évite ainsi des liens cassés du type /club_staff/credits.
+  const accountBase = isClubRole(role) ? "club" : role.toLowerCase()
+
+  const isClubAccountHubActive = CLUB_ACCOUNT_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(path + "/")
+  )
+
   const isActive = (href: string) => {
     if (href === "/search") return pathname === href || pathname.startsWith("/search")
+    if (href === CLUB_ACCOUNT_HUB_HREF) return isClubAccountHubActive
     return pathname === href || pathname.startsWith(href + "/")
   }
 
   const addBadges = (item: NavItem): NavItem => {
-    if (item.href.includes("/messages")) {
-      if (messageCount > 0) {
-        return { ...item, badge: messageCount, badgeVariant: "accent" as const }
-      }
+    if (item.href.includes("/messages") && messageCount > 0) {
+      return { ...item, badge: messageCount, badgeVariant: "accent" as const }
+    }
+    if (
+      (item.href.includes("/notifications") || item.href === CLUB_ACCOUNT_HUB_HREF) &&
+      notifCount > 0
+    ) {
+      return { ...item, badge: notifCount, badgeVariant: "accent" as const }
     }
     return item
   }
+
+  const showAccountFooter = !isClubRole(role)
+  const showClubLogoutFooter = isClubRole(role)
 
   return (
     <>
@@ -235,7 +266,7 @@ export function Sidebar({ role, clubActive }: SidebarProps) {
 
       <aside
         className={cn(
-          "flex h-screen w-[304px] flex-col bg-white border-r border-stadium-200",
+          "flex h-screen w-[280px] flex-col bg-white border-r border-stadium-200",
           "shadow-[4px_0_24px_0_rgba(0,0,0,0.06),1px_0_4px_0_rgba(0,0,0,0.03)]",
           "fixed lg:relative inset-y-0 left-0 z-50",
           "transform transition-transform ease-[cubic-bezier(0.33,1,0.68,1)]",
@@ -244,7 +275,7 @@ export function Sidebar({ role, clubActive }: SidebarProps) {
             : "-translate-x-full lg:translate-x-0 duration-200"
         )}
       >
-        <div className="flex h-14 items-center justify-between px-5 border-b border-stadium-100 bg-gradient-to-r from-pitch-600 to-pitch-500">
+        <div className="flex h-11 shrink-0 items-center justify-between px-4 border-b border-stadium-100 bg-gradient-to-r from-pitch-600 to-pitch-500">
           <Link href="/" className="flex items-center gap-2" suppressHydrationWarning>
             <FootballIcon className="w-7 h-7 rounded-lg" variant="light" />
             <span className="text-[15px] font-bold text-white tracking-tight">
@@ -262,78 +293,99 @@ export function Sidebar({ role, clubActive }: SidebarProps) {
           </button>
         </div>
 
-        <ProfileHeaderCard role={role} staffContext={isStaffContext} />
+        <div className="flex min-h-0 flex-1 flex-col">
+          <ProfileHeaderCard role={role} />
 
-        {isClubRole(role) && <ProfileSwitcher />}
-
-        <nav className="flex-1 overflow-y-auto pb-2 scrollbar-thin">
-          {sections.map((section, sIdx) => (
-            <div key={section.title}>
-              <SidebarSectionTitle title={section.title} />
-              <div className="space-y-0.5">
-                {section.items.map((item) => {
-                  const enriched = addBadges(item)
-                  return (
-                    <SidebarItem
-                      key={enriched.href}
-                      href={enriched.href}
-                      icon={enriched.icon}
-                      label={enriched.title}
-                      isActive={isActive(enriched.href)}
-                      badge={enriched.badge}
-                      badgeVariant={enriched.badgeVariant}
-                    />
-                  )
-                })}
+          <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-1 scrollbar-thin">
+            {sections.map((section, sIdx) => (
+              <div key={section.title}>
+                <SidebarSectionTitle title={section.title} />
+                <div>
+                  {section.items.map((item) => {
+                    const enriched = addBadges(item)
+                    const itemKey =
+                      enriched.action === "logout"
+                        ? "logout"
+                        : `${section.title}-${enriched.href}`
+                    return (
+                      <SidebarItem
+                        key={itemKey}
+                        href={enriched.href}
+                        icon={enriched.icon}
+                        label={enriched.title}
+                        isActive={
+                          enriched.action === "logout" ? false : isActive(enriched.href)
+                        }
+                        badge={enriched.badge}
+                        badgeVariant={enriched.badgeVariant}
+                        danger={enriched.danger}
+                        onClick={
+                          enriched.action === "logout" ? handleLogout : undefined
+                        }
+                      />
+                    )
+                  })}
+                </div>
+                {sIdx < sections.length - 1 && (
+                  <div className="mx-3 my-0.5 border-b border-stadium-100" />
+                )}
               </div>
-              {sIdx < sections.length - 1 && (
-                <div className="mx-4 my-1 border-b border-stadium-100" />
-              )}
+            ))}
+          </nav>
+
+          {showAccountFooter && (
+            <div className="shrink-0 border-t border-stadium-100">
+              <SidebarSectionTitle title="Compte" className="pt-1.5 pb-0" />
+
+              <SidebarItem
+                href={`/${accountBase}/credits`}
+                icon={Coins}
+                label="Crédits"
+                isActive={isActive(`/${accountBase}/credits`)}
+                compact
+              />
+
+              <SidebarItem
+                href={`/${accountBase}/notifications`}
+                icon={Bell}
+                label="Notifications"
+                isActive={isActive(`/${accountBase}/notifications`)}
+                badge={notifCount > 0 ? notifCount : undefined}
+                badgeVariant="accent"
+                compact
+              />
+
+              <SidebarItem
+                href={`/${accountBase}/settings`}
+                icon={Settings}
+                label="Paramètres"
+                isActive={isActive(`/${accountBase}/settings`)}
+                compact
+              />
+
+              <SidebarItem
+                href="#"
+                icon={LogOut}
+                label="Déconnexion"
+                danger
+                compact
+                onClick={handleLogout}
+              />
             </div>
-          ))}
-        </nav>
+          )}
 
-        <div className="border-t border-stadium-100 py-2">
-          <SidebarSectionTitle title="Compte" className="pt-2 pb-1" />
-
-          <SidebarItem
-            href={`/${role.toLowerCase()}/credits`}
-            icon={Coins}
-            label="Credits"
-            isActive={isActive(`/${role.toLowerCase()}/credits`)}
-          />
-
-          <SidebarItem
-            href={`/${role.toLowerCase()}/notifications`}
-            icon={Bell}
-            label="Notifications"
-            isActive={isActive(`/${role.toLowerCase()}/notifications`)}
-            badge={notifCount > 0 ? notifCount : undefined}
-            badgeVariant="accent"
-          />
-
-          <SidebarItem
-            href={`/${role.toLowerCase()}/settings`}
-            icon={Settings}
-            label="Parametres"
-            isActive={isActive(`/${role.toLowerCase()}/settings`)}
-          />
-
-          <div className="mx-4 my-1.5 border-b border-stadium-100" />
-
-          <SidebarItem
-            href="#"
-            icon={LogOut}
-            label="Deconnexion"
-            danger
-            onClick={handleLogout}
-          />
-
-          <div className="px-5 py-2">
-            <p className="text-[10px] text-stadium-300 font-medium" suppressHydrationWarning>
-              Profoot Profile v1.0
-            </p>
-          </div>
+          {showClubLogoutFooter && (
+            <div className="shrink-0 border-t border-stadium-100 pb-1">
+              <SidebarItem
+                href="#"
+                icon={LogOut}
+                label="Déconnexion"
+                danger
+                compact
+                onClick={handleLogout}
+              />
+            </div>
+          )}
         </div>
       </aside>
     </>

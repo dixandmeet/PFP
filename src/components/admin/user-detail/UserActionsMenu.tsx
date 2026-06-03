@@ -93,7 +93,7 @@ export function UserActionsMenu({ user, onAction, disabled }: UserActionsMenuPro
               setConfirmAction({
                 title: isSuspended ? "Reactiver l'utilisateur ?" : "Suspendre l'utilisateur ?",
                 description: isSuspended
-                  ? "L'utilisateur pourra a nouveau se connecter et utiliser la plateforme."
+                  ? "L'utilisateur pourra à nouveau se connecter et utiliser la plateforme."
                   : "L'utilisateur ne pourra plus se connecter ni interagir avec la plateforme.",
                 action: isSuspended ? "reactivate" : "suspend",
               })
@@ -119,7 +119,7 @@ export function UserActionsMenu({ user, onAction, disabled }: UserActionsMenuPro
               setConfirmAction({
                 title: "Reinitialiser le mot de passe ?",
                 description:
-                  "Un email de reinitialisation sera envoye a l'utilisateur.",
+                  "Un email de réinitialisation sera envoyé à l'utilisateur.",
                 action: "resetPassword",
               })
             }
@@ -131,7 +131,7 @@ export function UserActionsMenu({ user, onAction, disabled }: UserActionsMenuPro
           <DropdownMenuItem
             onClick={() =>
               setConfirmAction({
-                title: "Forcer la deconnexion ?",
+                title: "Forcer la déconnexion ?",
                 description:
                   "Toutes les sessions actives de l'utilisateur seront invalidees.",
                 action: "forceLogout",
@@ -139,7 +139,7 @@ export function UserActionsMenu({ user, onAction, disabled }: UserActionsMenuPro
             }
           >
             <LogOut className="h-4 w-4 mr-2" />
-            Forcer deconnexion
+            Forcer déconnexion
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

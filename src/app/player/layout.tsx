@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { LayoutShell } from "@/components/layout/LayoutShell"
+import { getDashboardPath } from "@/lib/utils/role-helpers"
 
 export default async function PlayerLayout({
   children,
@@ -14,7 +15,7 @@ export default async function PlayerLayout({
   }
 
   if (session.user.role !== "PLAYER") {
-    redirect(session.user.role === "ADMIN" ? "/admin" : `/${session.user.role.toLowerCase()}/dashboard`)
+    redirect(getDashboardPath(session.user.role))
   }
 
   return (

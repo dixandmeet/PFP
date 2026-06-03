@@ -42,7 +42,7 @@ export function OpportunityPreview({
           <FileSearch className="h-6 w-6 text-slate-400" />
         </div>
         <p className="text-sm font-medium text-slate-500">
-          Selectionne une opportunite
+          Sélectionne une opportunité
         </p>
         <p className="text-xs text-slate-400 mt-1">
           Clique sur une carte pour voir les details
@@ -92,7 +92,7 @@ export function OpportunityPreview({
               <div>
                 <p className="text-sm font-semibold text-amber-800">Annonce verrouillee</p>
                 <p className="text-xs text-amber-600 mt-1.5 leading-relaxed">
-                  Le nom du club, la ville, le salaire, la description et tous les autres details sont accessibles apres consultation.
+                  Le nom du club, la ville, le salaire, la description et tous les autres details sont accessibles après consultation.
                 </p>
               </div>
 
@@ -226,7 +226,7 @@ export function OpportunityPreview({
                 <div className="flex items-center gap-2 p-3 bg-green-50 rounded-xl ring-1 ring-green-200">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <span className="text-sm font-medium text-green-700">
-                    Vous avez deja postule a cette offre
+                    Vous avez déjà postulé à cette offre
                   </span>
                 </div>
               ) : (

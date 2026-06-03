@@ -13,6 +13,7 @@ interface SidebarItemProps {
   badge?: number
   badgeVariant?: "default" | "accent"
   danger?: boolean
+  compact?: boolean
   onClick?: () => void
 }
 
@@ -24,16 +25,23 @@ export function SidebarItem({
   badge,
   badgeVariant = "default",
   danger = false,
+  compact = false,
   onClick,
 }: SidebarItemProps) {
   const content = (
     <>
       {isActive && (
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-7 bg-pitch-600 rounded-r-full" />
+        <div
+          className={cn(
+            "absolute left-0 top-1/2 -translate-y-1/2 w-[3px] bg-pitch-600 rounded-r-full",
+            compact ? "h-5" : "h-7"
+          )}
+        />
       )}
       <Icon
         className={cn(
-          "h-5 w-5 flex-shrink-0 transition-colors",
+          compact ? "h-4 w-4" : "h-5 w-5",
+          "flex-shrink-0 transition-colors",
           isActive
             ? "text-pitch-600"
             : danger
@@ -43,7 +51,8 @@ export function SidebarItem({
       />
       <span
         className={cn(
-          "flex-1 text-[14px] font-medium transition-colors",
+          "flex-1 font-medium transition-colors",
+          compact ? "text-[13px]" : "text-[14px]",
           isActive
             ? "text-pitch-700 font-semibold"
             : danger
@@ -68,7 +77,8 @@ export function SidebarItem({
   )
 
   const className = cn(
-    "group relative flex items-center gap-3 h-11 px-3.5 mx-2 rounded-xl transition-all duration-150 outline-none",
+    "group relative flex items-center rounded-lg transition-all duration-150 outline-none",
+    compact ? "gap-2.5 h-8 px-3 mx-1.5" : "gap-3 h-9 px-3 mx-2",
     "focus-visible:ring-2 focus-visible:ring-pitch-500 focus-visible:ring-offset-1",
     isActive
       ? "bg-pitch-50/80"

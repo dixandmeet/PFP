@@ -107,9 +107,14 @@ function LoginContent() {
       })
 
       if (result?.error) {
-        if (result.code === "email_not_verified") {
+        const isEmailNotVerified =
+          result.code === "email_not_verified" ||
+          result.error === "email_not_verified" ||
+          // Auth.js v5 enveloppe souvent EmailNotVerifiedError dans CallbackRouteError
+          result.error === "CallbackRouteError"
+        if (isEmailNotVerified) {
           setError(
-            "Vérifiez votre adresse e-mail avant de vous connecter. Un lien de confirmation vous a été envoyé à l’inscription."
+            "Vérifiez votre adresse e-mail avant de vous connecter. Consultez le lien reçu à l’inscription, ou demandez-en un nouveau depuis la page « Vérifiez votre e-mail »."
           )
         } else {
           setError("Email ou mot de passe incorrect")

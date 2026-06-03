@@ -124,7 +124,7 @@ export const playerTools: AITool[] = [
           type: "APPLICATION_RECEIVED",
           title: "Nouvelle candidature",
           message: `${playerProfile.firstName} ${playerProfile.lastName} a postulé`,
-          link: `/club/applications/${application.id}`,
+          link: `/club/recruitment`,
         }
       })
 
