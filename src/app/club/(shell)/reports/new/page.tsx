@@ -16,6 +16,7 @@ import {
 import { useToast } from "@/components/ui/use-toast"
 import { ArrowLeft, Loader2, User, Trophy } from "lucide-react"
 import { CLUB_REPORTS_BASE } from "@/lib/reports/club-report-display"
+import { getReportTemplates } from "@/lib/reports/templates"
 import type { Match } from "@/lib/services/thesportsdb"
 
 type RosterPlayer = {
@@ -42,6 +43,12 @@ function NewClubReportContent() {
   const [saving, setSaving] = useState(false)
   const [title, setTitle] = useState("")
   const [authorType, setAuthorType] = useState<"SCOUT" | "COACH">("SCOUT")
+  const [templateId, setTemplateId] = useState("")
+
+  const availableTemplates = getReportTemplates(
+    "CLUB",
+    kind === "match" ? "MATCH" : "PLAYER"
+  )
 
   const [subjectId, setSubjectId] = useState(prefillPlayerId || "")
   const [rosterPlayers, setRosterPlayers] = useState<RosterPlayer[]>([])
@@ -201,6 +208,15 @@ function NewClubReportContent() {
         }
       }
 
+      const chosenTemplate = availableTemplates.find((t) => t.id === templateId)
+      if (chosenTemplate) {
+        body.sections = chosenTemplate.sections.map((s, i) => ({
+          title: s.title,
+          content: s.content,
+          order: i,
+        }))
+      }
+
       const res = await fetch("/api/club/reports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -238,7 +254,10 @@ function NewClubReportContent() {
       <div className="mb-6 flex gap-2">
         <button
           type="button"
-          onClick={() => setKind("player")}
+          onClick={() => {
+            setKind("player")
+            setTemplateId("")
+          }}
           className={`flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium ${
             kind === "player"
               ? "border-pitch-500 bg-pitch-50 text-pitch-800"
@@ -250,7 +269,10 @@ function NewClubReportContent() {
         </button>
         <button
           type="button"
-          onClick={() => setKind("match")}
+          onClick={() => {
+            setKind("match")
+            setTemplateId("")
+          }}
           className={`flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium ${
             kind === "match"
               ? "border-pitch-500 bg-pitch-50 text-pitch-800"
@@ -283,6 +305,30 @@ function NewClubReportContent() {
             </SelectContent>
           </Select>
         </div>
+
+        {availableTemplates.length > 0 && (
+          <div className="space-y-2">
+            <Label>Modèle (optionnel)</Label>
+            <Select value={templateId} onValueChange={setTemplateId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Partir d'un rapport vierge" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Rapport vierge</SelectItem>
+                {availableTemplates.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.name} ({t.sections.length} sections)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {availableTemplates.find((t) => t.id === templateId) && (
+              <p className="text-xs text-stadium-500">
+                {availableTemplates.find((t) => t.id === templateId)?.description}
+              </p>
+            )}
+          </div>
+        )}
 
         {kind === "player" ? (
           <>
