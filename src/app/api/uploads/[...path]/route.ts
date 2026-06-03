@@ -46,6 +46,13 @@ export async function GET(
       if (session.user.role !== "ADMIN" && session.user.id !== fileUserId) {
         return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
       }
+      // Récupérer l'emplacement réel du fichier
+      const requestedUrl = `/api/uploads/${relativePath}`
+      const doc = await prisma.kycDocument.findFirst({
+        where: { userId: fileUserId, fileUrl: requestedUrl },
+        select: { storageKey: true },
+      })
+      docStorageKey = doc?.storageKey ?? null
     } else if (isClubKyc) {
       // clubs/{clubId}/... — seul le propriétaire du club ou un admin peut accéder
       const clubId = filePath[1]

@@ -70,15 +70,30 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    const uploadDir = path.join(process.cwd(), "private-uploads", "staff-kyc", session.user.id)
-    await mkdir(uploadDir, { recursive: true })
     const ALLOWED_EXTENSIONS = ["pdf", "jpg", "jpeg", "png"]
     const rawExt = file.name.split(".").pop()?.toLowerCase() || "pdf"
     const ext = ALLOWED_EXTENSIONS.includes(rawExt) ? rawExt : "pdf"
     const safeName = `${docType}-${Date.now()}.${ext}`
-    const filePath = path.join(uploadDir, safeName)
-    await writeFile(filePath, buffer)
+
+    // URL logique servie au frontend — toujours auth-guardée via /api/uploads/...
     const fileUrl = `/api/uploads/staff-kyc/${session.user.id}/${safeName}`
+    let storageKey: string | null = null
+
+    // Priorité : Vercel Blob (prod, FS en lecture seule) > disque local (dev)
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const { put } = await import("@vercel/blob")
+      const blob = await put(`staff-kyc/${session.user.id}/${safeName}`, buffer, {
+        access: "public", // Vercel Blob n'a pas de mode privé natif — la confidentialité passe par /api/uploads
+        contentType: file.type,
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+        addRandomSuffix: true, // URL non devinable même si on connaît le chemin logique
+      })
+      storageKey = blob.url
+    } else {
+      const uploadDir = path.join(process.cwd(), "private-uploads", "staff-kyc", session.user.id)
+      await mkdir(uploadDir, { recursive: true })
+      await writeFile(path.join(uploadDir, safeName), buffer)
+    }
 
     const existing = await prisma.kycDocument.findFirst({
       where: { userId: session.user.id, type: docType as (typeof ALLOWED_DOC_TYPES)[number] },
@@ -91,6 +106,7 @@ export async function POST(request: NextRequest) {
         data: {
           fileName: file.name,
           fileUrl,
+          storageKey,
           fileSize: file.size,
           mimeType: file.type,
           status: "PENDING",
@@ -106,6 +122,7 @@ export async function POST(request: NextRequest) {
           type: docType as (typeof ALLOWED_DOC_TYPES)[number],
           fileName: file.name,
           fileUrl,
+          storageKey,
           fileSize: file.size,
           mimeType: file.type,
           status: "PENDING",

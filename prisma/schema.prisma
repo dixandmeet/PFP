@@ -1789,10 +1789,11 @@ model KycDocument {
   type   KycDocumentType
   status KycDocumentStatus @default(PENDING)
 
-  fileName String // Nom original du fichier
-  fileUrl  String // URL S3 / stockage
-  fileSize Int? // Taille en octets
-  mimeType String? // ex: application/pdf, image/jpeg
+  fileName   String // Nom original du fichier
+  fileUrl    String // URL logique auth-guardée (/api/uploads/staff-kyc/...)
+  storageKey String? // Emplacement réel : URL Vercel Blob (https://) ou s3://... ; null = disque local
+  fileSize   Int? // Taille en octets
+  mimeType   String? // ex: application/pdf, image/jpeg
 
   // Review admin
   reviewedBy      String?
