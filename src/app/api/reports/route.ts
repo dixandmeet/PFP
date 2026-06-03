@@ -200,6 +200,13 @@ export async function POST(request: NextRequest) {
         status: "DRAFT",
         attachments: validatedData.attachments || [],
         accessPolicy: validatedData.accessPolicy || null,
+        sections: {
+          create: validatedData.sections.map((s, i) => ({
+            title: s.title,
+            content: s.content,
+            order: s.order ?? i,
+          })),
+        },
       },
       include: {
         author: {

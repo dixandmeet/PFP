@@ -35,6 +35,7 @@ import { ReportsStats } from "@/components/reports/ReportsStats"
 import { ReportsToolbar } from "@/components/reports/ReportsToolbar"
 import { ReportCard } from "@/components/reports/ReportCard"
 import { SkeletonReportCard } from "@/components/reports/SkeletonReportCard"
+import { getReportTemplates } from "@/lib/reports/templates"
 
 const reportSchema = z.object({
   title: z.string().min(1, "Le titre est requis"),
@@ -86,6 +87,9 @@ export default function AgentReportsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [reportToDelete, setReportToDelete] = useState<string | null>(null)
   const [managedPlayers, setManagedPlayers] = useState<ManagedPlayer[]>([])
+  const [templateId, setTemplateId] = useState("")
+
+  const availableTemplates = getReportTemplates("AGENT", "PLAYER")
 
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("ALL")
@@ -196,10 +200,24 @@ export default function AgentReportsPage() {
   const onSubmit = async (data: ReportFormData) => {
     setSaving(true)
     try {
+      const chosenTemplate = availableTemplates.find((t) => t.id === templateId)
+      const body = {
+        ...data,
+        ...(chosenTemplate
+          ? {
+              sections: chosenTemplate.sections.map((s, i) => ({
+                title: s.title,
+                content: s.content,
+                order: i,
+              })),
+            }
+          : {}),
+      }
+
       const response = await fetch("/api/reports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(body),
       })
 
       if (!response.ok) {
@@ -216,6 +234,7 @@ export default function AgentReportsPage() {
       })
 
       reset()
+      setTemplateId("")
       setDialogOpen(false)
     } catch (err: any) {
       toast({
@@ -481,6 +500,32 @@ export default function AgentReportsPage() {
                 <p className="text-xs text-red-600 mt-1">{errors.subjectId.message}</p>
               )}
             </div>
+
+            {availableTemplates.length > 0 && (
+              <div>
+                <Label htmlFor="templateId" className="text-stadium-700 text-sm font-medium">
+                  Modèle (optionnel)
+                </Label>
+                <select
+                  id="templateId"
+                  value={templateId}
+                  onChange={(e) => setTemplateId(e.target.value)}
+                  className="w-full px-3 py-2 border border-stadium-200 focus:ring-2 focus:ring-pitch-600/30 rounded-xl mt-1 text-sm bg-white"
+                >
+                  <option value="">Rapport vierge</option>
+                  {availableTemplates.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name} ({t.sections.length} sections)
+                    </option>
+                  ))}
+                </select>
+                {availableTemplates.find((t) => t.id === templateId) && (
+                  <p className="text-xs text-stadium-500 mt-1">
+                    {availableTemplates.find((t) => t.id === templateId)?.description}
+                  </p>
+                )}
+              </div>
+            )}
 
             <DialogFooter className="pt-3 border-t border-stadium-100">
               <Button
