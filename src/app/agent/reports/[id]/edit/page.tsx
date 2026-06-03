@@ -10,6 +10,8 @@ import { Loader2 } from "lucide-react"
 import { EditReportHeader } from "@/components/reports/EditReportHeader"
 import { GeneralInfoForm } from "@/components/reports/GeneralInfoForm"
 import { ReportSectionsEditor } from "@/components/reports/ReportSectionsEditor"
+import { ReportTemplatePicker } from "@/components/reports/ReportTemplatePicker"
+import type { ReportTemplateSection } from "@/lib/reports/templates"
 
 const sectionSchema = z.object({
   id: z.string().optional(),
@@ -75,7 +77,11 @@ export default function AgentEditReportPage() {
     defaultValues: { sections: [] },
   })
 
-  const { fields, append, remove, move } = useFieldArray({ control, name: "sections" })
+  const { fields, append, remove, move, replace } = useFieldArray({ control, name: "sections" })
+
+  const applyTemplate = (sections: ReportTemplateSection[]) => {
+    replace(sections.map((s, i) => ({ title: s.title, content: s.content, order: i })))
+  }
 
   const watchStatus = watch("status")
   const watchAuthorType = watch("authorType")
@@ -200,6 +206,14 @@ export default function AgentEditReportPage() {
           onAdd={addSection}
           onRemove={remove}
           onMove={move}
+          templateSlot={
+            <ReportTemplatePicker
+              audience="AGENT"
+              kind="PLAYER"
+              hasExistingSections={fields.length > 0}
+              onApply={applyTemplate}
+            />
+          }
         />
       </form>
     </div>

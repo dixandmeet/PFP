@@ -11,7 +11,9 @@ import { Button } from "@/components/ui/button"
 import { EditReportHeader } from "@/components/reports/EditReportHeader"
 import { GeneralInfoForm } from "@/components/reports/GeneralInfoForm"
 import { ReportSectionsEditor } from "@/components/reports/ReportSectionsEditor"
+import { ReportTemplatePicker } from "@/components/reports/ReportTemplatePicker"
 import { CLUB_REPORTS_BASE } from "@/lib/reports/club-report-display"
+import type { ReportTemplateSection } from "@/lib/reports/templates"
 
 const sectionSchema = z.object({
   id: z.string().optional(),
@@ -47,6 +49,7 @@ export default function ClubEditReportPage() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [reportKind, setReportKind] = useState<"PLAYER" | "MATCH">("PLAYER")
 
   const {
     register,
@@ -60,10 +63,14 @@ export default function ClubEditReportPage() {
     defaultValues: { sections: [] },
   })
 
-  const { fields, append, remove, move } = useFieldArray({ control, name: "sections" })
+  const { fields, append, remove, move, replace } = useFieldArray({ control, name: "sections" })
 
   const addSection = () => {
     append({ title: "", content: "", order: fields.length })
+  }
+
+  const applyTemplate = (sections: ReportTemplateSection[]) => {
+    replace(sections.map((s, i) => ({ title: s.title, content: s.content, order: i })))
   }
 
   const watchStatus = watch("status")
@@ -81,6 +88,7 @@ export default function ClubEditReportPage() {
         return
       }
       const report = data.report
+      setReportKind(report.reportKind === "MATCH" ? "MATCH" : "PLAYER")
       reset({
         title: report.title,
         authorType: report.authorType,
@@ -173,6 +181,14 @@ export default function ClubEditReportPage() {
           onAdd={addSection}
           onRemove={remove}
           onMove={move}
+          templateSlot={
+            <ReportTemplatePicker
+              audience="CLUB"
+              kind={reportKind}
+              hasExistingSections={fields.length > 0}
+              onApply={applyTemplate}
+            />
+          }
         />
 
         <div className="flex justify-end pb-8">

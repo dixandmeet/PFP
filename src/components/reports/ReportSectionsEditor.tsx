@@ -46,6 +46,8 @@ interface ReportSectionsEditorProps {
   onAdd: () => void
   onRemove: (index: number) => void
   onMove: (from: number, to: number) => void
+  /** Bouton optionnel "Partir d'un modèle" rendu à côté des actions. */
+  templateSlot?: React.ReactNode
 }
 
 export function ReportSectionsEditor({
@@ -56,6 +58,7 @@ export function ReportSectionsEditor({
   onAdd,
   onRemove,
   onMove,
+  templateSlot,
 }: ReportSectionsEditorProps) {
   const hasSections = fields.length > 0
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -108,20 +111,23 @@ export function ReportSectionsEditor({
         </div>
 
         {hasSections && (
-          <Button
-            type="button"
-            size="sm"
-            onClick={onAdd}
-            className="w-full sm:w-auto bg-pitch-600 hover:bg-pitch-700 text-white rounded-xl"
-          >
-            <Plus className="mr-1.5 h-4 w-4 shrink-0" />
-            Ajouter une section
-          </Button>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            {templateSlot}
+            <Button
+              type="button"
+              size="sm"
+              onClick={onAdd}
+              className="w-full sm:w-auto bg-pitch-600 hover:bg-pitch-700 text-white rounded-xl"
+            >
+              <Plus className="mr-1.5 h-4 w-4 shrink-0" />
+              Ajouter une section
+            </Button>
+          </div>
         )}
       </div>
 
       {!hasSections ? (
-        <EmptyState onAdd={onAdd} />
+        <EmptyState onAdd={onAdd} templateSlot={templateSlot} />
       ) : (
         <DndContext
           sensors={sensors}
@@ -164,7 +170,13 @@ export function ReportSectionsEditor({
   )
 }
 
-function EmptyState({ onAdd }: { onAdd: () => void }) {
+function EmptyState({
+  onAdd,
+  templateSlot,
+}: {
+  onAdd: () => void
+  templateSlot?: React.ReactNode
+}) {
   return (
     <div className="rounded-2xl border border-dashed border-stadium-200 bg-stadium-50/50 p-8 sm:p-10">
       <div className="flex flex-col items-center text-center">
@@ -175,17 +187,20 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
           Aucune section pour le moment
         </h3>
         <p className="text-xs text-stadium-500 mb-6 max-w-xs leading-relaxed">
-          Ajoutez des sections pour structurer votre rapport : technique, mental, physique…
+          Partez d'un modèle prêt à l'emploi ou ajoutez vos sections : technique, mental, physique…
         </p>
-        <Button
-          type="button"
-          onClick={onAdd}
-          size="default"
-          className="bg-pitch-600 hover:bg-pitch-700 text-white rounded-xl w-full sm:w-auto"
-        >
-          <Plus className="mr-1.5 h-4 w-4 shrink-0" />
-          Ajouter la première section
-        </Button>
+        <div className="flex w-full flex-col items-center gap-2 sm:w-auto sm:flex-row">
+          {templateSlot}
+          <Button
+            type="button"
+            onClick={onAdd}
+            size="default"
+            className="bg-pitch-600 hover:bg-pitch-700 text-white rounded-xl w-full sm:w-auto"
+          >
+            <Plus className="mr-1.5 h-4 w-4 shrink-0" />
+            Ajouter la première section
+          </Button>
+        </div>
       </div>
     </div>
   )
