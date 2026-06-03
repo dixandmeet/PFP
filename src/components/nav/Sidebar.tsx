@@ -136,7 +136,7 @@ function getSections(
         items: [
           { title: "Parcours", href: "/player/career", icon: Trophy },
           { title: "Agents", href: "/player/agents", icon: Users },
-          { title: "Rapports", href: "/player/reports", icon: FileText },
+          // Masqué temporairement : { title: "Rapports", href: "/player/reports", icon: FileText },
           { title: "Consultations", href: "/player/profile-views", icon: Eye },
           { title: "Recherche", href: "/search", icon: Search },
         ],
