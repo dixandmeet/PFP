@@ -1,6 +1,9 @@
 "use client"
 
+import { useState } from "react"
 import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { AdminCreateListingDialog } from "@/components/admin/AdminCreateListingDialog"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -13,6 +16,7 @@ import {
   Clock,
   ArrowRight,
   ListChecks,
+  Plus,
 } from "lucide-react"
 import { format, formatDistanceToNow } from "date-fns"
 import { fr } from "date-fns/locale"
@@ -30,6 +34,8 @@ interface UserApplicationsSectionProps {
   mandates?: MandateEntry[]
   submissions?: SubmissionEntry[]
   listings?: ListingEntry[]
+  clubProfileId?: string
+  onListingCreated?: () => void
 }
 
 const applicationStatusLabels: Record<string, { label: string; color: string }> = {
@@ -72,7 +78,11 @@ export function UserApplicationsSection({
   mandates = [],
   submissions = [],
   listings = [],
+  clubProfileId,
+  onListingCreated,
 }: UserApplicationsSectionProps) {
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+
   return (
     <div className="space-y-6">
       {/* Player: Applications */}
@@ -294,17 +304,36 @@ export function UserApplicationsSection({
       {/* Club: Listings */}
       {isClubRole(role) && (
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <ListChecks className="h-5 w-5 text-slate-500" />
-            <h3 className="text-lg font-semibold text-slate-900">
-              Annonces ({listings.length})
-            </h3>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <ListChecks className="h-5 w-5 text-slate-500" />
+              <h3 className="text-lg font-semibold text-slate-900">
+                Annonces ({listings.length})
+              </h3>
+            </div>
+            {clubProfileId && (
+              <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Nouvelle annonce
+              </Button>
+            )}
           </div>
 
           {listings.length === 0 ? (
             <Card className="p-8 text-center">
               <ListChecks className="h-8 w-8 text-slate-300 mx-auto mb-2" />
               <p className="text-sm text-slate-500">Aucune annonce</p>
+              {clubProfileId && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={() => setCreateDialogOpen(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Créer une annonce
+                </Button>
+              )}
             </Card>
           ) : (
             <div className="space-y-2">
@@ -340,6 +369,15 @@ export function UserApplicationsSection({
                 </Card>
               ))}
             </div>
+          )}
+
+          {clubProfileId && (
+            <AdminCreateListingDialog
+              open={createDialogOpen}
+              onOpenChange={setCreateDialogOpen}
+              clubProfileId={clubProfileId}
+              onCreated={onListingCreated}
+            />
           )}
         </div>
       )}

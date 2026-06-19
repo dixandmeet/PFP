@@ -608,6 +608,8 @@ export default function AdminUserDetailPage({
                 }
                 submissions={user.agentProfile?.submissions}
                 listings={user.clubProfile?.listings}
+                clubProfileId={user.clubProfile?.id}
+                onListingCreated={fetchUser}
               />
             </TabsContent>
           )}

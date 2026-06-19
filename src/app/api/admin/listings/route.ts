@@ -29,17 +29,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Club introuvable" }, { status: 404 })
     }
 
-    const teamCount = await prisma.team.count({
-      where: { clubProfileId },
-    })
-
-    if (teamCount === 0) {
-      return NextResponse.json(
-        { error: "Ce club doit avoir au moins une équipe avant de créer une annonce" },
-        { status: 400 }
-      )
-    }
-
     const validatedData = createListingSchema.parse(body)
 
     const teamId = typeof body.teamId === "string" ? body.teamId : null

@@ -23,12 +23,16 @@ interface AdminCreateListingDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onCreated?: () => void
+  clubProfileId?: string
+  teamOptional?: boolean
 }
 
 export function AdminCreateListingDialog({
   open,
   onOpenChange,
   onCreated,
+  clubProfileId: fixedClubProfileId,
+  teamOptional = true,
 }: AdminCreateListingDialogProps) {
   const { toast } = useToast()
   const [clubs, setClubs] = useState<ClubOption[]>([])
@@ -38,14 +42,23 @@ export function AdminCreateListingDialog({
   const [loadingTeams, setLoadingTeams] = useState(false)
   const [saving, setSaving] = useState(false)
 
+  const activeClubId = fixedClubProfileId || selectedClubId
+
   const resetState = useCallback(() => {
-    setSelectedClubId("")
+    if (!fixedClubProfileId) {
+      setSelectedClubId("")
+    }
     setTeams([])
-  }, [])
+  }, [fixedClubProfileId])
 
   useEffect(() => {
     if (!open) {
       resetState()
+      return
+    }
+
+    if (fixedClubProfileId) {
+      setSelectedClubId(fixedClubProfileId)
       return
     }
 
@@ -76,10 +89,10 @@ export function AdminCreateListingDialog({
     }
 
     fetchClubs()
-  }, [open, resetState, toast])
+  }, [open, fixedClubProfileId, resetState, toast])
 
   useEffect(() => {
-    if (!selectedClubId) {
+    if (!activeClubId) {
       setTeams([])
       return
     }
@@ -87,7 +100,7 @@ export function AdminCreateListingDialog({
     async function fetchTeams() {
       setLoadingTeams(true)
       try {
-        const res = await fetch(`/api/clubs/${selectedClubId}/teams`)
+        const res = await fetch(`/api/clubs/${activeClubId}/teams`)
         if (!res.ok) throw new Error("Impossible de charger les équipes")
 
         const data = await res.json()
@@ -106,10 +119,10 @@ export function AdminCreateListingDialog({
     }
 
     fetchTeams()
-  }, [selectedClubId, toast])
+  }, [activeClubId, toast])
 
   const handleSubmit = async (data: ListingFormData) => {
-    if (!selectedClubId) {
+    if (!activeClubId) {
       toast({
         title: "Erreur",
         description: "Veuillez sélectionner un club",
@@ -121,7 +134,7 @@ export function AdminCreateListingDialog({
     setSaving(true)
     try {
       const payload = {
-        clubProfileId: selectedClubId,
+        clubProfileId: activeClubId,
         ...data,
         minAge: data.minAge ? parseInt(data.minAge) : null,
         maxAge: data.maxAge ? parseInt(data.maxAge) : null,
@@ -175,11 +188,12 @@ export function AdminCreateListingDialog({
       open={open}
       onOpenChange={handleDialogChange}
       teams={teams}
-      clubs={clubs}
-      clubProfileId={selectedClubId}
-      onClubChange={setSelectedClubId}
+      clubs={fixedClubProfileId ? undefined : clubs}
+      clubProfileId={activeClubId}
+      onClubChange={fixedClubProfileId ? undefined : setSelectedClubId}
       loadingClubs={loadingClubs}
       loadingTeams={loadingTeams}
+      teamOptional={teamOptional}
       editingListing={null}
       saving={saving}
       onSubmit={handleSubmit}

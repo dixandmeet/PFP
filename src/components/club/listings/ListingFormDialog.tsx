@@ -30,22 +30,26 @@ import {
   type ClubListing,
 } from "@/lib/club/listings"
 
-const listingSchema = z.object({
-  teamId: z.string().min(1, "L'équipe est requise"),
-  title: z.string().min(5, "Le titre doit faire au moins 5 caractères"),
-  description: z.string().min(20, "La description doit faire au moins 20 caractères"),
-  position: z.string().min(1, "La position est requise"),
-  minAge: z.string().optional(),
-  maxAge: z.string().optional(),
-  nationality: z.array(z.string()).optional(),
-  salaryMin: z.string().optional(),
-  salaryMax: z.string().optional(),
-  currency: z.string().optional(),
-  contractType: z.string().optional(),
-  startDate: z.string().optional(),
-})
+function createListingFormSchema(teamOptional: boolean) {
+  return z.object({
+    teamId: teamOptional
+      ? z.string().optional()
+      : z.string().min(1, "L'équipe est requise"),
+    title: z.string().min(5, "Le titre doit faire au moins 5 caractères"),
+    description: z.string().min(20, "La description doit faire au moins 20 caractères"),
+    position: z.string().min(1, "La position est requise"),
+    minAge: z.string().optional(),
+    maxAge: z.string().optional(),
+    nationality: z.array(z.string()).optional(),
+    salaryMin: z.string().optional(),
+    salaryMax: z.string().optional(),
+    currency: z.string().optional(),
+    contractType: z.string().optional(),
+    startDate: z.string().optional(),
+  })
+}
 
-export type ListingFormData = z.infer<typeof listingSchema>
+export type ListingFormData = z.infer<ReturnType<typeof createListingFormSchema>>
 
 interface ClubTeam {
   id: string
@@ -72,6 +76,7 @@ interface ListingFormDialogProps {
   onClubChange?: (clubProfileId: string) => void
   loadingClubs?: boolean
   loadingTeams?: boolean
+  teamOptional?: boolean
 }
 
 export function ListingFormDialog({
@@ -87,6 +92,7 @@ export function ListingFormDialog({
   onClubChange,
   loadingClubs = false,
   loadingTeams = false,
+  teamOptional = false,
 }: ListingFormDialogProps) {
   const {
     register,
@@ -96,7 +102,7 @@ export function ListingFormDialog({
     reset,
     formState: { errors },
   } = useForm<ListingFormData>({
-    resolver: zodResolver(listingSchema),
+    resolver: zodResolver(createListingFormSchema(teamOptional)),
     defaultValues: {
       currency: "EUR",
       teamId: "",
@@ -187,38 +193,40 @@ export function ListingFormDialog({
             </div>
           )}
 
-          <div>
-            <Label>Équipe *</Label>
-            <Select
-              onValueChange={(value) => setValue("teamId", value)}
-              value={watch("teamId") || undefined}
-              disabled={loadingTeams || (clubs ? !clubProfileId : false)}
-            >
-              <SelectTrigger>
-                <SelectValue
-                  placeholder={
-                    loadingTeams
-                      ? "Chargement..."
-                      : clubs && !clubProfileId
-                        ? "Sélectionnez d'abord un club"
-                        : teams.length === 0
-                          ? "Aucune équipe disponible"
-                          : "Sélectionner l'équipe"
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {teams.map((team) => (
-                  <SelectItem key={team.id} value={team.id}>
-                    {team.name} ({team.level})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.teamId && (
-              <p className="mt-1 text-sm text-red-600">{errors.teamId.message}</p>
-            )}
-          </div>
+          {(teams.length > 0 || !teamOptional) && (
+            <div>
+              <Label>{teamOptional ? "Équipe" : "Équipe *"}</Label>
+              <Select
+                onValueChange={(value) => setValue("teamId", value)}
+                value={watch("teamId") || undefined}
+                disabled={loadingTeams || (clubs ? !clubProfileId : false)}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      loadingTeams
+                        ? "Chargement..."
+                        : clubs && !clubProfileId
+                          ? "Sélectionnez d'abord un club"
+                          : teams.length === 0
+                            ? "Aucune équipe disponible"
+                            : "Sélectionner l'équipe"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {teams.map((team) => (
+                    <SelectItem key={team.id} value={team.id}>
+                      {team.name} ({team.level})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.teamId && (
+                <p className="mt-1 text-sm text-red-600">{errors.teamId.message}</p>
+              )}
+            </div>
+          )}
 
           <div>
             <Label htmlFor="title">Titre *</Label>
@@ -365,7 +373,7 @@ export function ListingFormDialog({
                 saving ||
                 loadingClubs ||
                 loadingTeams ||
-                (clubs ? !clubProfileId || teams.length === 0 : false)
+                (clubs ? !clubProfileId || (!teamOptional && teams.length === 0) : false)
               }
             >
               {saving ? (
