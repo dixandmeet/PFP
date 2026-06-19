@@ -53,6 +53,12 @@ interface ClubTeam {
   level: string
 }
 
+interface ClubOption {
+  id: string
+  clubName: string
+  country: string
+}
+
 interface ListingFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -61,6 +67,11 @@ interface ListingFormDialogProps {
   saving: boolean
   onSubmit: (data: ListingFormData) => Promise<void>
   seed?: Partial<ListingFormData> | null
+  clubs?: ClubOption[]
+  clubProfileId?: string
+  onClubChange?: (clubProfileId: string) => void
+  loadingClubs?: boolean
+  loadingTeams?: boolean
 }
 
 export function ListingFormDialog({
@@ -71,6 +82,11 @@ export function ListingFormDialog({
   saving,
   onSubmit,
   seed,
+  clubs,
+  clubProfileId,
+  onClubChange,
+  loadingClubs = false,
+  loadingTeams = false,
 }: ListingFormDialogProps) {
   const {
     register,
@@ -122,6 +138,11 @@ export function ListingFormDialog({
     })
   }, [open, editingListing, seed, reset])
 
+  useEffect(() => {
+    if (!clubs || editingListing) return
+    setValue("teamId", "")
+  }, [clubProfileId, clubs, editingListing, setValue])
+
   const handleOpenChange = (next: boolean) => {
     onOpenChange(next)
   }
@@ -139,14 +160,52 @@ export function ListingFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {clubs && onClubChange && (
+            <div>
+              <Label>Club *</Label>
+              <Select
+                onValueChange={onClubChange}
+                value={clubProfileId || undefined}
+                disabled={loadingClubs}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={loadingClubs ? "Chargement..." : "Sélectionner le club"}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {clubs.map((club) => (
+                    <SelectItem key={club.id} value={club.id}>
+                      {club.clubName} ({club.country})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!loadingClubs && clubs.length === 0 && (
+                <p className="mt-1 text-sm text-amber-600">Aucun club disponible</p>
+              )}
+            </div>
+          )}
+
           <div>
             <Label>Équipe *</Label>
             <Select
               onValueChange={(value) => setValue("teamId", value)}
               value={watch("teamId") || undefined}
+              disabled={loadingTeams || (clubs ? !clubProfileId : false)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionner l'équipe" />
+                <SelectValue
+                  placeholder={
+                    loadingTeams
+                      ? "Chargement..."
+                      : clubs && !clubProfileId
+                        ? "Sélectionnez d'abord un club"
+                        : teams.length === 0
+                          ? "Aucune équipe disponible"
+                          : "Sélectionner l'équipe"
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 {teams.map((team) => (
@@ -300,7 +359,15 @@ export function ListingFormDialog({
             >
               Annuler
             </Button>
-            <Button type="submit" disabled={saving}>
+            <Button
+              type="submit"
+              disabled={
+                saving ||
+                loadingClubs ||
+                loadingTeams ||
+                (clubs ? !clubProfileId || teams.length === 0 : false)
+              }
+            >
               {saving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

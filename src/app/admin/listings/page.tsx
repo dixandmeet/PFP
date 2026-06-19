@@ -1,12 +1,14 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { AdminHeader } from "@/components/admin/AdminHeader"
+import { AdminCreateListingDialog } from "@/components/admin/AdminCreateListingDialog"
 import { DataTable, Column } from "@/components/admin/DataTable"
 import { StatusBadge } from "@/components/admin/UserBadge"
 import { ActionMenu, commonActions } from "@/components/admin/ActionMenu"
 import { Card } from "@/components/ui/card"
 import { StatsCard } from "@/components/admin/StatsCard"
+import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
@@ -14,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Briefcase, CheckCircle, XCircle, Clock } from "lucide-react"
+import { Briefcase, CheckCircle, XCircle, Clock, Plus } from "lucide-react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 
@@ -55,6 +57,7 @@ const statusLabels: Record<string, string> = {
 export default function AdminListingsPage() {
   const [listings, setListings] = useState<Listing[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [pagination, setPagination] = useState({
     page: 1,
@@ -69,50 +72,49 @@ export default function AdminListingsPage() {
     closed: 0,
   })
 
-  useEffect(() => {
-    async function fetchListings() {
-      setIsLoading(true)
-      try {
-        const params = new URLSearchParams({
-          page: String(pagination.page),
-          pageSize: String(pagination.pageSize),
-        })
-        
-        if (statusFilter && statusFilter !== "all") {
-          params.set("status", statusFilter)
-        }
+  const fetchListings = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      const params = new URLSearchParams({
+        page: String(pagination.page),
+        pageSize: String(pagination.pageSize),
+      })
 
-        const res = await fetch(`/api/listings?${params}`)
-        if (res.ok) {
-          const data = await res.json()
-          setListings(data.listings || [])
-          setPagination((prev) => ({
-            ...prev,
-            total: data.pagination?.total || 0,
-            totalPages: data.pagination?.totalPages || 0,
-          }))
-        }
-
-        // Fetch stats
-        const statsRes = await fetch("/api/admin/stats")
-        if (statsRes.ok) {
-          const statsData = await statsRes.json()
-          setStats({
-            total: statsData.listings?.total || 0,
-            published: statsData.listings?.active || 0,
-            draft: 0,
-            closed: statsData.listings?.closed || 0,
-          })
-        }
-      } catch (error) {
-        console.error("Error fetching listings:", error)
-      } finally {
-        setIsLoading(false)
+      if (statusFilter && statusFilter !== "all") {
+        params.set("status", statusFilter)
       }
-    }
 
-    fetchListings()
+      const res = await fetch(`/api/listings?${params}`)
+      if (res.ok) {
+        const data = await res.json()
+        setListings(data.listings || [])
+        setPagination((prev) => ({
+          ...prev,
+          total: data.pagination?.total || 0,
+          totalPages: data.pagination?.totalPages || 0,
+        }))
+      }
+
+      const statsRes = await fetch("/api/admin/stats")
+      if (statsRes.ok) {
+        const statsData = await statsRes.json()
+        setStats({
+          total: statsData.listings?.total || 0,
+          published: statsData.listings?.active || 0,
+          draft: 0,
+          closed: statsData.listings?.closed || 0,
+        })
+      }
+    } catch (error) {
+      console.error("Error fetching listings:", error)
+    } finally {
+      setIsLoading(false)
+    }
   }, [pagination.page, pagination.pageSize, statusFilter])
+
+  useEffect(() => {
+    fetchListings()
+  }, [fetchListings])
 
   const handleStatusChange = async (listingId: string, newStatus: string) => {
     try {
@@ -262,7 +264,7 @@ export default function AdminListingsPage() {
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between gap-4">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-40 h-9">
               <SelectValue placeholder="Tous les statuts" />
@@ -274,6 +276,11 @@ export default function AdminListingsPage() {
               <SelectItem value="CLOSED">Fermées</SelectItem>
             </SelectContent>
           </Select>
+
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvelle annonce
+          </Button>
         </div>
 
         {/* Table */}
@@ -291,6 +298,12 @@ export default function AdminListingsPage() {
           }}
         />
       </div>
+
+      <AdminCreateListingDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onCreated={fetchListings}
+      />
     </div>
   )
 }
