@@ -30,8 +30,8 @@ import {
   type ClubListing,
 } from "@/lib/club/listings"
 
-function createListingFormSchema(teamOptional: boolean) {
-  return z.object({
+function createListingFormSchema(teamOptional: boolean, showStatus = false) {
+  const base = {
     teamId: teamOptional
       ? z.string().optional()
       : z.string().min(1, "L'équipe est requise"),
@@ -46,10 +46,21 @@ function createListingFormSchema(teamOptional: boolean) {
     currency: z.string().optional(),
     contractType: z.string().optional(),
     startDate: z.string().optional(),
-  })
+  }
+
+  if (showStatus) {
+    return z.object({
+      ...base,
+      status: z.enum(["DRAFT", "PUBLISHED", "CLOSED"]),
+    })
+  }
+
+  return z.object(base)
 }
 
-export type ListingFormData = z.infer<ReturnType<typeof createListingFormSchema>>
+export type ListingFormData = z.infer<ReturnType<typeof createListingFormSchema>> & {
+  status?: "DRAFT" | "PUBLISHED" | "CLOSED"
+}
 
 interface ClubTeam {
   id: string
@@ -77,6 +88,7 @@ interface ListingFormDialogProps {
   loadingClubs?: boolean
   loadingTeams?: boolean
   teamOptional?: boolean
+  showStatus?: boolean
 }
 
 export function ListingFormDialog({
@@ -93,6 +105,7 @@ export function ListingFormDialog({
   loadingClubs = false,
   loadingTeams = false,
   teamOptional = false,
+  showStatus = false,
 }: ListingFormDialogProps) {
   const {
     register,
@@ -102,7 +115,7 @@ export function ListingFormDialog({
     reset,
     formState: { errors },
   } = useForm<ListingFormData>({
-    resolver: zodResolver(createListingFormSchema(teamOptional)),
+    resolver: zodResolver(createListingFormSchema(teamOptional, showStatus)),
     defaultValues: {
       currency: "EUR",
       teamId: "",
@@ -125,6 +138,9 @@ export function ListingFormDialog({
         currency: editingListing.currency || "EUR",
         contractType: editingListing.contractType || "",
         startDate: editingListing.startDate?.split("T")[0] || "",
+        ...(showStatus
+          ? { status: (editingListing.status as ListingFormData["status"]) || "DRAFT" }
+          : {}),
       })
       return
     }
@@ -141,8 +157,9 @@ export function ListingFormDialog({
       salaryMax: seed?.salaryMax || "",
       contractType: seed?.contractType || "",
       startDate: seed?.startDate || "",
+      ...(showStatus ? { status: "DRAFT" as const } : {}),
     })
-  }, [open, editingListing, seed, reset])
+  }, [open, editingListing, seed, reset, showStatus])
 
   useEffect(() => {
     if (!clubs || editingListing) return
@@ -358,6 +375,30 @@ export function ListingFormDialog({
             <Label htmlFor="startDate">Date de début souhaitée</Label>
             <Input id="startDate" type="date" {...register("startDate")} />
           </div>
+
+          {showStatus && (
+            <div>
+              <Label>Statut *</Label>
+              <Select
+                onValueChange={(value) =>
+                  setValue("status", value as ListingFormData["status"])
+                }
+                value={watch("status") || "DRAFT"}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner le statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="DRAFT">Brouillon</SelectItem>
+                  <SelectItem value="PUBLISHED">Publiée (visible par tous)</SelectItem>
+                  <SelectItem value="CLOSED">Fermée</SelectItem>
+                </SelectContent>
+              </Select>
+              {"status" in errors && errors.status && (
+                <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>
+              )}
+            </div>
+          )}
 
           <DialogFooter>
             <Button

@@ -6,6 +6,7 @@ import {
   type ListingFormData,
 } from "@/components/club/listings/ListingFormDialog"
 import { useToast } from "@/components/ui/use-toast"
+import type { ClubListing } from "@/lib/club/listings"
 
 interface ClubOption {
   id: string
@@ -24,7 +25,27 @@ interface AdminCreateListingDialogProps {
   onOpenChange: (open: boolean) => void
   onCreated?: () => void
   clubProfileId?: string
+  listingId?: string | null
   teamOptional?: boolean
+}
+
+function buildPayload(data: ListingFormData, activeClubId: string) {
+  return {
+    clubProfileId: activeClubId,
+    title: data.title,
+    description: data.description,
+    position: data.position,
+    minAge: data.minAge ? parseInt(data.minAge) : null,
+    maxAge: data.maxAge ? parseInt(data.maxAge) : null,
+    salaryMin: data.salaryMin ? parseInt(data.salaryMin) : null,
+    salaryMax: data.salaryMax ? parseInt(data.salaryMax) : null,
+    nationality: data.nationality || [],
+    currency: data.currency || "EUR",
+    contractType: data.contractType || undefined,
+    startDate: data.startDate || undefined,
+    teamId: data.teamId || null,
+    status: data.status || "DRAFT",
+  }
 }
 
 export function AdminCreateListingDialog({
@@ -32,16 +53,20 @@ export function AdminCreateListingDialog({
   onOpenChange,
   onCreated,
   clubProfileId: fixedClubProfileId,
+  listingId = null,
   teamOptional = true,
 }: AdminCreateListingDialogProps) {
   const { toast } = useToast()
   const [clubs, setClubs] = useState<ClubOption[]>([])
   const [selectedClubId, setSelectedClubId] = useState("")
   const [teams, setTeams] = useState<ClubTeam[]>([])
+  const [editingListing, setEditingListing] = useState<ClubListing | null>(null)
   const [loadingClubs, setLoadingClubs] = useState(false)
   const [loadingTeams, setLoadingTeams] = useState(false)
+  const [loadingListing, setLoadingListing] = useState(false)
   const [saving, setSaving] = useState(false)
 
+  const isEditing = Boolean(listingId)
   const activeClubId = fixedClubProfileId || selectedClubId
 
   const resetState = useCallback(() => {
@@ -49,6 +74,7 @@ export function AdminCreateListingDialog({
       setSelectedClubId("")
     }
     setTeams([])
+    setEditingListing(null)
   }, [fixedClubProfileId])
 
   useEffect(() => {
@@ -56,6 +82,35 @@ export function AdminCreateListingDialog({
       resetState()
       return
     }
+
+    if (listingId) {
+      async function fetchListing() {
+        setLoadingListing(true)
+        try {
+          const res = await fetch(`/api/listings/${listingId}`)
+          if (!res.ok) throw new Error("Impossible de charger l'annonce")
+          const data = await res.json()
+          setEditingListing(data)
+          if (!fixedClubProfileId && data.clubProfile?.id) {
+            setSelectedClubId(data.clubProfile.id)
+          }
+        } catch (error) {
+          toast({
+            title: "Erreur",
+            description:
+              error instanceof Error ? error.message : "Impossible de charger l'annonce",
+            variant: "destructive",
+          })
+          onOpenChange(false)
+        } finally {
+          setLoadingListing(false)
+        }
+      }
+      fetchListing()
+      return
+    }
+
+    setEditingListing(null)
 
     if (fixedClubProfileId) {
       setSelectedClubId(fixedClubProfileId)
@@ -89,7 +144,7 @@ export function AdminCreateListingDialog({
     }
 
     fetchClubs()
-  }, [open, fixedClubProfileId, resetState, toast])
+  }, [open, fixedClubProfileId, listingId, resetState, toast, onOpenChange])
 
   useEffect(() => {
     if (!activeClubId) {
@@ -107,22 +162,24 @@ export function AdminCreateListingDialog({
         setTeams(data.teams || [])
       } catch (error) {
         setTeams([])
-        toast({
-          title: "Erreur",
-          description:
-            error instanceof Error ? error.message : "Impossible de charger les équipes",
-          variant: "destructive",
-        })
+        if (!isEditing) {
+          toast({
+            title: "Erreur",
+            description:
+              error instanceof Error ? error.message : "Impossible de charger les équipes",
+            variant: "destructive",
+          })
+        }
       } finally {
         setLoadingTeams(false)
       }
     }
 
     fetchTeams()
-  }, [activeClubId, toast])
+  }, [activeClubId, isEditing, toast])
 
   const handleSubmit = async (data: ListingFormData) => {
-    if (!activeClubId) {
+    if (!activeClubId && !listingId) {
       toast({
         title: "Erreur",
         description: "Veuillez sélectionner un club",
@@ -133,36 +190,63 @@ export function AdminCreateListingDialog({
 
     setSaving(true)
     try {
-      const payload = {
-        clubProfileId: activeClubId,
-        ...data,
-        minAge: data.minAge ? parseInt(data.minAge) : null,
-        maxAge: data.maxAge ? parseInt(data.maxAge) : null,
-        salaryMin: data.salaryMin ? parseInt(data.salaryMin) : null,
-        salaryMax: data.salaryMax ? parseInt(data.salaryMax) : null,
-        nationality: data.nationality || [],
-        teamId: data.teamId || null,
+      if (listingId && editingListing) {
+        const payload = buildPayload(data, activeClubId)
+        const { status, clubProfileId: _clubId, ...updateFields } = payload
+
+        const response = await fetch(`/api/listings/${listingId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updateFields),
+        })
+
+        if (!response.ok) {
+          const err = await response.json()
+          throw new Error(err.error || "Erreur lors de la mise à jour")
+        }
+
+        if (status !== editingListing.status) {
+          const statusRes = await fetch(`/api/listings/${listingId}/status`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status }),
+          })
+          if (!statusRes.ok) {
+            const err = await statusRes.json()
+            throw new Error(err.error || "Erreur lors du changement de statut")
+          }
+        }
+
+        toast({
+          title: "Succès",
+          description: "Annonce mise à jour avec succès",
+        })
+      } else {
+        const payload = buildPayload(data, activeClubId)
+        const response = await fetch("/api/admin/listings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        })
+
+        if (!response.ok) {
+          const err = await response.json()
+          const message =
+            err.details?.length > 0
+              ? `${err.error}: ${err.details.map((d: { path: string[]; message: string }) => `${d.path.join(".")} ${d.message}`).join("; ")}`
+              : err.error || "Erreur lors de la création"
+          throw new Error(message)
+        }
+
+        toast({
+          title: "Succès",
+          description:
+            data.status === "PUBLISHED"
+              ? "Annonce publiée avec succès"
+              : "Annonce créée avec succès",
+        })
       }
 
-      const response = await fetch("/api/admin/listings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-
-      if (!response.ok) {
-        const err = await response.json()
-        const message =
-          err.details?.length > 0
-            ? `${err.error}: ${err.details.map((d: { path: string[]; message: string }) => `${d.path.join(".")} ${d.message}`).join("; ")}`
-            : err.error || "Erreur lors de la création"
-        throw new Error(message)
-      }
-
-      toast({
-        title: "Succès",
-        description: "Annonce créée avec succès",
-      })
       onOpenChange(false)
       onCreated?.()
     } catch (error) {
@@ -188,14 +272,15 @@ export function AdminCreateListingDialog({
       open={open}
       onOpenChange={handleDialogChange}
       teams={teams}
-      clubs={fixedClubProfileId ? undefined : clubs}
+      clubs={fixedClubProfileId || isEditing ? undefined : clubs}
       clubProfileId={activeClubId}
-      onClubChange={fixedClubProfileId ? undefined : setSelectedClubId}
-      loadingClubs={loadingClubs}
+      onClubChange={fixedClubProfileId || isEditing ? undefined : setSelectedClubId}
+      loadingClubs={loadingClubs || loadingListing}
       loadingTeams={loadingTeams}
       teamOptional={teamOptional}
-      editingListing={null}
-      saving={saving}
+      showStatus
+      editingListing={isEditing ? editingListing : null}
+      saving={saving || loadingListing}
       onSubmit={handleSubmit}
     />
   )

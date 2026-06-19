@@ -4,8 +4,18 @@ import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AdminCreateListingDialog } from "@/components/admin/AdminCreateListingDialog"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
+import { ActionMenu, commonActions } from "@/components/admin/ActionMenu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { useToast } from "@/components/ui/use-toast"
 import {
   FileCheck,
   Handshake,
@@ -17,6 +27,8 @@ import {
   ArrowRight,
   ListChecks,
   Plus,
+  CheckCircle,
+  XCircle,
 } from "lucide-react"
 import { format, formatDistanceToNow } from "date-fns"
 import { fr } from "date-fns/locale"
@@ -81,7 +93,89 @@ export function UserApplicationsSection({
   clubProfileId,
   onListingCreated,
 }: UserApplicationsSectionProps) {
-  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const { toast } = useToast()
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingListingId, setEditingListingId] = useState<string | null>(null)
+  const [deleteListing, setDeleteListing] = useState<ListingEntry | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  const openCreateDialog = () => {
+    setEditingListingId(null)
+    setDialogOpen(true)
+  }
+
+  const openEditDialog = (listingId: string) => {
+    setEditingListingId(listingId)
+    setDialogOpen(true)
+  }
+
+  const handleDialogChange = (open: boolean) => {
+    setDialogOpen(open)
+    if (!open) {
+      setEditingListingId(null)
+    }
+  }
+
+  const handleStatusChange = async (listingId: string, status: string) => {
+    try {
+      const res = await fetch(`/api/listings/${listingId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || "Erreur lors du changement de statut")
+      }
+
+      toast({
+        title: "Succès",
+        description:
+          status === "PUBLISHED"
+            ? "Annonce publiée — visible par tous"
+            : "Statut mis à jour",
+      })
+      onListingCreated?.()
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Erreur inconnue",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!deleteListing) return
+
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/listings/${deleteListing.id}`, {
+        method: "DELETE",
+      })
+
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || "Erreur lors de la suppression")
+      }
+
+      toast({
+        title: "Succès",
+        description: "Annonce supprimée",
+      })
+      setDeleteListing(null)
+      onListingCreated?.()
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Erreur inconnue",
+        variant: "destructive",
+      })
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -312,7 +406,7 @@ export function UserApplicationsSection({
               </h3>
             </div>
             {clubProfileId && (
-              <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
+              <Button size="sm" onClick={openCreateDialog}>
                 <Plus className="h-4 w-4 mr-2" />
                 Nouvelle annonce
               </Button>
@@ -328,7 +422,7 @@ export function UserApplicationsSection({
                   variant="outline"
                   size="sm"
                   className="mt-4"
-                  onClick={() => setCreateDialogOpen(true)}
+                  onClick={openCreateDialog}
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Créer une annonce
@@ -339,15 +433,15 @@ export function UserApplicationsSection({
             <div className="space-y-2">
               {listings.map((listing) => (
                 <Card key={listing.id} className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h4 className="text-sm font-medium text-slate-900">
                           {listing.title}
                         </h4>
                         <StatusBadge status={listing.status} map={listingStatusLabels} />
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-slate-500">
+                      <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
                         <span className="flex items-center gap-1">
                           <User className="h-3 w-3" />
                           {listing.position}
@@ -365,6 +459,51 @@ export function UserApplicationsSection({
                         </span>
                       </div>
                     </div>
+                    {clubProfileId && (
+                      <ActionMenu
+                        actions={[
+                          commonActions.edit(() => openEditDialog(listing.id)),
+                          ...(listing.status === "PUBLISHED"
+                            ? [
+                                commonActions.view(() =>
+                                  window.open(`/listings/${listing.id}`, "_blank")
+                                ),
+                              ]
+                            : []),
+                          ...(listing.status === "DRAFT"
+                            ? [
+                                {
+                                  label: "Publier",
+                                  icon: CheckCircle,
+                                  onClick: () =>
+                                    handleStatusChange(listing.id, "PUBLISHED"),
+                                },
+                              ]
+                            : []),
+                          ...(listing.status === "PUBLISHED"
+                            ? [
+                                {
+                                  label: "Fermer",
+                                  icon: XCircle,
+                                  onClick: () =>
+                                    handleStatusChange(listing.id, "CLOSED"),
+                                },
+                              ]
+                            : []),
+                          ...(listing.status === "CLOSED"
+                            ? [
+                                {
+                                  label: "Republier",
+                                  icon: CheckCircle,
+                                  onClick: () =>
+                                    handleStatusChange(listing.id, "PUBLISHED"),
+                                },
+                              ]
+                            : []),
+                          commonActions.delete(() => setDeleteListing(listing)),
+                        ]}
+                      />
+                    )}
                   </div>
                 </Card>
               ))}
@@ -373,12 +512,38 @@ export function UserApplicationsSection({
 
           {clubProfileId && (
             <AdminCreateListingDialog
-              open={createDialogOpen}
-              onOpenChange={setCreateDialogOpen}
+              open={dialogOpen}
+              onOpenChange={handleDialogChange}
               clubProfileId={clubProfileId}
+              listingId={editingListingId}
               onCreated={onListingCreated}
             />
           )}
+
+          <AlertDialog
+            open={!!deleteListing}
+            onOpenChange={(open) => !open && setDeleteListing(null)}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Supprimer l&apos;annonce ?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Cette action est irréversible. L&apos;annonce &laquo;{" "}
+                  {deleteListing?.title} &raquo; sera définitivement supprimée.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={deleting}>Annuler</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  {deleting ? "Suppression..." : "Supprimer"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
 

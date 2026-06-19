@@ -1,9 +1,88 @@
+// GET /api/admin/listings — Liste toutes les annonces (admin)
 // POST /api/admin/listings — Créer une annonce pour un club (admin)
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { handleApiError, parseBody } from "@/lib/utils/api-helpers"
 import { createListingSchema } from "@/lib/validators/schemas"
+import { z } from "zod"
+
+const ALLOWED_STATUSES = ["DRAFT", "PUBLISHED", "CLOSED"] as const
+
+export async function GET(request: Request) {
+  try {
+    const session = await auth()
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Accès refusé" }, { status: 403 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const rawStatus = searchParams.get("status")
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1") || 1)
+    const pageSize = Math.min(
+      Math.max(1, parseInt(searchParams.get("pageSize") || "20") || 20),
+      100
+    )
+
+    const where: Record<string, unknown> = {}
+    if (
+      rawStatus &&
+      rawStatus !== "all" &&
+      ALLOWED_STATUSES.includes(rawStatus as (typeof ALLOWED_STATUSES)[number])
+    ) {
+      where.status = rawStatus
+    }
+
+    const [listings, total] = await Promise.all([
+      prisma.listing.findMany({
+        where,
+        include: {
+          clubProfile: {
+            select: {
+              id: true,
+              clubName: true,
+              country: true,
+              logo: true,
+            },
+          },
+          team: {
+            select: {
+              id: true,
+              name: true,
+              level: true,
+            },
+          },
+          _count: {
+            select: {
+              applications: true,
+              submissions: true,
+            },
+          },
+        },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: [{ updatedAt: "desc" }],
+      }),
+      prisma.listing.count({ where }),
+    ])
+
+    return NextResponse.json({
+      listings,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    })
+  } catch (error) {
+    return handleApiError(error)
+  }
+}
+
+const adminCreateListingSchema = createListingSchema.extend({
+  status: z.enum(ALLOWED_STATUSES).optional(),
+})
 
 export async function POST(request: Request) {
   try {
@@ -29,7 +108,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Club introuvable" }, { status: 404 })
     }
 
-    const validatedData = createListingSchema.parse(body)
+    const validatedData = adminCreateListingSchema.parse(body)
 
     const teamId = typeof body.teamId === "string" ? body.teamId : null
     if (teamId) {
@@ -44,10 +123,22 @@ export async function POST(request: Request) {
       }
     }
 
+    const status = validatedData.status ?? "DRAFT"
+    const { status: _status, ...listingFields } = validatedData
+
     const createData: Record<string, unknown> = {
-      ...validatedData,
+      ...listingFields,
       clubProfileId,
       teamId,
+      status,
+    }
+
+    if (status === "PUBLISHED") {
+      createData.publishedAt = new Date()
+    }
+
+    if (status === "CLOSED") {
+      createData.closedAt = new Date()
     }
 
     if (createData.startDate && typeof createData.startDate === "string") {

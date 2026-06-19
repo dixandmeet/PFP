@@ -19,6 +19,17 @@ import {
 import { Briefcase, CheckCircle, XCircle, Clock, Plus } from "lucide-react"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
+import { useToast } from "@/components/ui/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface Listing {
   id: string
@@ -55,9 +66,13 @@ const statusLabels: Record<string, string> = {
 }
 
 export default function AdminListingsPage() {
+  const { toast } = useToast()
   const [listings, setListings] = useState<Listing[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [editingListingId, setEditingListingId] = useState<string | null>(null)
+  const [deleteListing, setDeleteListing] = useState<Listing | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [pagination, setPagination] = useState({
     page: 1,
@@ -84,7 +99,7 @@ export default function AdminListingsPage() {
         params.set("status", statusFilter)
       }
 
-      const res = await fetch(`/api/listings?${params}`)
+      const res = await fetch(`/api/admin/listings?${params}`)
       if (res.ok) {
         const data = await res.json()
         setListings(data.listings || [])
@@ -132,6 +147,51 @@ export default function AdminListingsPage() {
       }
     } catch (error) {
       console.error("Error updating listing status:", error)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!deleteListing) return
+
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/listings/${deleteListing.id}`, {
+        method: "DELETE",
+      })
+
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || "Erreur lors de la suppression")
+      }
+
+      toast({ title: "Succès", description: "Annonce supprimée" })
+      setDeleteListing(null)
+      fetchListings()
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : "Erreur inconnue",
+        variant: "destructive",
+      })
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const openCreateDialog = () => {
+    setEditingListingId(null)
+    setCreateDialogOpen(true)
+  }
+
+  const openEditDialog = (listingId: string) => {
+    setEditingListingId(listingId)
+    setCreateDialogOpen(true)
+  }
+
+  const handleDialogChange = (open: boolean) => {
+    setCreateDialogOpen(open)
+    if (!open) {
+      setEditingListingId(null)
     }
   }
 
@@ -220,7 +280,9 @@ export default function AdminListingsPage() {
       cell: (listing) => (
         <ActionMenu
           actions={[
+            commonActions.edit(() => openEditDialog(listing.id)),
             commonActions.view(() => window.open(`/listings/${listing.id}`, "_blank")),
+            commonActions.delete(() => setDeleteListing(listing)),
           ]}
         />
       ),
@@ -277,7 +339,7 @@ export default function AdminListingsPage() {
             </SelectContent>
           </Select>
 
-          <Button onClick={() => setCreateDialogOpen(true)}>
+          <Button onClick={openCreateDialog}>
             <Plus className="h-4 w-4 mr-2" />
             Nouvelle annonce
           </Button>
@@ -301,9 +363,35 @@ export default function AdminListingsPage() {
 
       <AdminCreateListingDialog
         open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
+        onOpenChange={handleDialogChange}
+        listingId={editingListingId}
         onCreated={fetchListings}
       />
+
+      <AlertDialog
+        open={!!deleteListing}
+        onOpenChange={(open) => !open && setDeleteListing(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer l&apos;annonce ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. L&apos;annonce &laquo;{" "}
+              {deleteListing?.title} &raquo; sera définitivement supprimée.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleting ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
